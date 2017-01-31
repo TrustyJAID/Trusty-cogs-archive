@@ -123,6 +123,8 @@ class TrustyBot:
                 extension = "7z"
             if "GZ" in significanttx:
                 extension = "gz"
+            if "PDF" in significanttx:
+                extension = "pdf"
             await self.bot.send_file(ctx.message.channel, "data/blockchain/" + IO + "data.txt", filename=IO+'data.'+extension)
         if significanttx == '':
             await self.bot.say("Nothing significant in transaction `{}`".format(transaction))
