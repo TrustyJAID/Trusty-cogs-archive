@@ -17,15 +17,14 @@ from data.blockchain import search
 from data.blockchain import filesystem
 from data.blockchain import satoshi
 
-
 # RPCUSER, RPCPASS = filesystem.read('rpclogin.txt', 'rb').split()
-RPCUSER, RPCPASS = filesystem.read("cogs\\blockchain\\rpclogin.txt", "r").split()
+RPCUSER, RPCPASS = filesystem.read("data\\blockchain\\rpclogin.txt", "r").split()
 SERVER = rpc.make_server(RPCUSER, RPCPASS)
-
+BADTRANSACTION = ["4a0088a249e9099d205fb4760c28275d4b8965ac9fd56f5ddf6771cdb0d94f38",
+                  "dde7cd8e8f073a525c16c5ee4e4a254f847b7ad6babef257231813166fbef551"]
 
 class TrustyBot:
 
-    RPCUSER, RPCPASS = filesystem.read('cogs\\blockchain\\rpclogin.txt', 'r').split()
     SERVER = rpc.make_server(RPCUSER, RPCPASS)
 
     def __init__(self, bot):
@@ -44,6 +43,10 @@ class TrustyBot:
     @commands.command(hidden=True)
     async def tx(self, transaction):
         """4b0cd7e191ef0a14a9b6ab1c5900be534118c20a332ff26407648168d2722a2e"""
+        for tx in BADTRANSACTION:
+            if transaction in tx:
+                await self.bot.say("That transaction is black listed for illegal content.")
+                return
         hexdata = rpc.get_data_local(transaction, self.SERVER)
         inhex = rpc.get_indata_local(transaction, self.SERVER)
         _, _, data = satoshi.length_checksum_data_from_rawdata(satoshi.unhexutf8(hexdata))
@@ -74,6 +77,10 @@ class TrustyBot:
         satoshi = s
         Send a transaction id like the one below
         ;txdl 4b0cd7e191ef0a14a9b6ab1c5900be534118c20a332ff26407648168d2722a2e"""
+        for tx in BADTRANSACTION:
+            if transaction in tx:
+                await self.bot.say("That transaction is black listed for illegal content.")
+                return
         # print(IO)
         # print(discord.Channel)
         hexdata = rpc.get_data_local(transaction, self.SERVER)
