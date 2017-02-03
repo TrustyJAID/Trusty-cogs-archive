@@ -40,9 +40,10 @@ class TrustyBot:
         length, checksum, data = satoshi.length_checksum_data_from_rawdata(data)
         return satoshi.verify_checksum_data(checksum, data)
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def tx(self, transaction):
-        """4b0cd7e191ef0a14a9b6ab1c5900be534118c20a332ff26407648168d2722a2e"""
+        """checks a transaction for significance.
+        ;tx 4b0cd7e191ef0a14a9b6ab1c5900be534118c20a332ff26407648168d2722a2e"""
         for tx in BADTRANSACTION:
             if transaction in tx:
                 await self.bot.say("That transaction is black listed for illegal content.")
@@ -70,24 +71,29 @@ class TrustyBot:
 
     @commands.command(pass_context=True)
     async def txdl(self, ctx, transaction, IO="original"):
-        """
+        """Downloads Data from the blockchain default is original data.
         IO is optional:
         input = i
         output = o
         satoshi = s
         Send a transaction id like the one below
-        ;txdl 4b0cd7e191ef0a14a9b6ab1c5900be534118c20a332ff26407648168d2722a2e"""
+        ;txdl 4b0cd7e191ef0a14a9b6ab1c5900be534118c20a332ff26407648168d2722a2e o"""
         for tx in BADTRANSACTION:
             if transaction in tx:
                 await self.bot.say("That transaction is black listed for illegal content.")
                 return
         # print(IO)
         # print(discord.Channel)
-        hexdata = rpc.get_data_local(transaction, self.SERVER)
-        inhex = rpc.get_indata_local(transaction, self.SERVER)
-        _, _, data = satoshi.length_checksum_data_from_rawdata(satoshi.unhexutf8(hexdata))
-        indata = satoshi.unhexutf8(inhex)
-        origdata = satoshi.unhexutf8(hexdata)
+        try:
+            hexdata = rpc.get_data_local(transaction, self.SERVER)
+            inhex = rpc.get_indata_local(transaction, self.SERVER)
+            _, _, data = satoshi.length_checksum_data_from_rawdata(satoshi.unhexutf8(hexdata))
+            indata = satoshi.unhexutf8(inhex)
+            origdata = satoshi.unhexutf8(hexdata)
+        except:
+            print("There was likely an incorrect transaction.")
+            await self.bot.say("Sorry there is something wrong with that transaction.")
+            return
         significanttx = ''
         significanttx += search.search_hex(hexdata, " output")
         significanttx += search.search_hex(inhex, " input")
@@ -111,12 +117,24 @@ class TrustyBot:
         if significanttx != '':
             extension = "txt"
             await self.bot.say(significanttx)
-            if "JPG" in significanttx:
-                extension = "jpg"
-            if "ASCII" in significanttx and "input" in significanttx:
-                await self.bot.say("```" + str(indata[:1500]) + "```")
-            if "ASCII" in significanttx and "output" in significanttx:
-                await self.bot.say("```" + str(origdata[:1500]) + "```")
+            try:
+                if "ASCII" in significanttx and "input" in significanttx:
+                    await self.bot.say("```" + indata[:1994].decode('utf8') + "```")
+                if "ASCII" in significanttx and "output" in significanttx:
+                    if "Satoshi" in significanttx:
+                        await self.bot.say("```" + data[:1994].decode('utf8') + "```")
+                    else:
+                        await self.bot.say("```" + origdata[:1994].decode('utf8') + "```")
+                if "Assange" in significanttx and "input" in significanttx and "ASCII" not in significanttx:
+                    await self.bot.say("```" + indata[:1994].decode('utf8') + "```")
+                if "Assange" in significanttx and "output" in significanttx and "ASCII" not in significanttx:
+                    await self.bot.say("```" + origdata[:1994].decode('utf8') + "```")
+                if "Wikileaks" in significanttx and "input" in significanttx and "ASCII" not in significanttx:
+                    await self.bot.say("```" + indata[:1994].decode('utf8') + "```")
+                if "Wikileaks" in significanttx and "output" in significanttx and "ASCII" not in significanttx:
+                    await self.bot.say("```" + origdata[:1994].decode('utf8') + "```")
+            except UnicodeDecodeError:
+                pass
             if "GIF" in significanttx:
                 extension = "gif"
             if "7z" in significanttx:
@@ -125,6 +143,10 @@ class TrustyBot:
                 extension = "gz"
             if "PDF" in significanttx:
                 extension = "pdf"
+            if "PNG" in significanttx:
+                extension = "png"
+            if "JPG" in significanttx:
+                extension = "jpg"
             await self.bot.send_file(ctx.message.channel, "data/blockchain/" + IO + "data.txt", filename=IO+'data.'+extension)
         if significanttx == '':
             await self.bot.say("Nothing significant in transaction `{}`".format(transaction))
