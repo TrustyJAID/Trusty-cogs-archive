@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "GabAnon General commands",
+    "DESCRIPTION" : "Custom commands and page for GabAnon.",
+    "DISABLED" : false,
+    "NAME" : "gab",
+    "REQUIREMENTS" : [""],
+    "TAGS" : ["gab"],
+    "INSTALL_MSG" : "Various commands."
+}
