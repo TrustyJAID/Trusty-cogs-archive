@@ -101,6 +101,13 @@ class TrustyBot:
             wew = codecs.open("data/trustybot/wew.txt", encoding="utf8")
             await self.bot.say(wew.read())
             wew.close()
+        
+        @commands.command(hidden=False)
+        async def test(self):
+            """wew"""
+            wew = codecs.open("data/trustybot/wew.txt", encoding="utf8")
+            await self.bot.say(wew.read())
+            wew.close()
 
         @commands.command(hiddent=False, pass_context=True)
         async def illuminati(self, ctx):
