@@ -1,9 +1,12 @@
-﻿XKeyscore
+XKeyscore
 sudo rm -rf ~
 with my code
 sudo apt-get
+sudo apt-get rekt
+sudo apt-get lulz
+sudo apt-get pwned
 Anonymous
-REDACTED
+[REDACTED]
 Zero-Day
 with PGP keys
 with GPG
@@ -18,9 +21,7 @@ with rainbow table
 with crypto
 ROOT
 with metadata
-sudo apt-get pwned
 with zero-day vulns
-sudo apt-get lulz
 with your DMS
 with Arch linux
 with TOR
@@ -30,3 +31,14 @@ with your Bitcoins
 with Bitcoins
 with nmap
 with metasploit
+with the Discord API
+with ROOT
+with source code
+with Python
+with iOS
+with Android
+with Windows
+with MacOS
+#!/bin/bash
+with UTF-8
+with Stuxnet
