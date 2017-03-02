@@ -23,15 +23,16 @@ SERVER = rpc.make_server(RPCUSER, RPCPASS)
 BADTRANSACTION = ["4a0088a249e9099d205fb4760c28275d4b8965ac9fd56f5ddf6771cdb0d94f38",
                   "dde7cd8e8f073a525c16c5ee4e4a254f847b7ad6babef257231813166fbef551"]
 
-class TrustyBot:
+class blockchain:
 
     SERVER = rpc.make_server(RPCUSER, RPCPASS)
 
     def __init__(self, bot):
         self.bot = bot
         self.poll_sessions = []
+        self.list_words = ["ASCII", "Julian", "Assange", "Wikileaks"]
 
-    def checksum(self, data):
+    async def checksum(self, data):
         """
         verify's the checksum for files
         uploaded using the satoshi uploader
@@ -57,7 +58,7 @@ class TrustyBot:
         significanttx += search.search_hex(hexdata, " output")
         significanttx += search.search_hex(inhex, " input")
         # significanttx += check_hash(inhex+hexdata, 'ripemd160')
-        if self.checksum(origdata):
+        if await self.checksum(origdata):
             significanttx += " Satoshi Checksum found"
         if search.search_words(origdata):
             significanttx += " ASCII letters found output"
@@ -68,6 +69,9 @@ class TrustyBot:
             await self.bot.say(significanttx)
         else:
             await self.bot.say("Nothing significant in transaction {}".format(transaction))
+
+    async def split_long_text(self, data):
+        return [data[i:i+1994] for i in range(0, len(data), 1994)]
 
     @commands.command(pass_context=True)
     async def txdl(self, ctx, transaction, IO="original"):
@@ -107,7 +111,7 @@ class TrustyBot:
             dataout = data
         if IO == transaction:
             dataout = origdata
-        if self.checksum(origdata):
+        if await self.checksum(origdata):
             significanttx += " Satoshi Checksum found"
         if search.search_words(origdata):
             significanttx += " ASCII letters found output"
@@ -118,21 +122,20 @@ class TrustyBot:
             extension = "txt"
             await self.bot.say(significanttx)
             try:
-                if "ASCII" in significanttx and "input" in significanttx:
-                    await self.bot.say("```" + indata[:1994].decode('utf8') + "```")
-                if "ASCII" in significanttx and "output" in significanttx:
-                    if "Satoshi" in significanttx:
-                        await self.bot.say("```" + data[:1994].decode('utf8') + "```")
-                    else:
-                        await self.bot.say("```" + origdata[:1994].decode('utf8') + "```")
-                if "Assange" in significanttx and "input" in significanttx and "ASCII" not in significanttx:
-                    await self.bot.say("```" + indata[:1994].decode('utf8') + "```")
-                if "Assange" in significanttx and "output" in significanttx and "ASCII" not in significanttx:
-                    await self.bot.say("```" + origdata[:1994].decode('utf8') + "```")
-                if "Wikileaks" in significanttx and "input" in significanttx and "ASCII" not in significanttx:
-                    await self.bot.say("```" + indata[:1994].decode('utf8') + "```")
-                if "Wikileaks" in significanttx and "output" in significanttx and "ASCII" not in significanttx:
-                    await self.bot.say("```" + origdata[:1994].decode('utf8') + "```")
+                for words in self.list_words:
+                    if words in significanttx and "input" in significanttx:
+                            indata = await self.split_long_text(indata)
+                            for i in indata:
+                                await self.bot.say("```" + i.decode('utf8') + "```")
+                    if words in significanttx and "output" in significanttx:
+                        if "Satoshi" in significanttx:
+                            data = await self.split_long_text(data)
+                            for i in data:
+                                await self.bot.say("```" + i.decode('utf8') + "```")
+                        else:
+                            data = await self.split_long_text(data)
+                            for i in data:
+                                await self.bot.say("```" + i.decode('utf8') + "```")
             except UnicodeDecodeError:
                 pass
             if "GIF" in significanttx:
@@ -154,6 +157,6 @@ class TrustyBot:
 
 
 def setup(bot):
-    n = TrustyBot(bot)
+    n = blockchain(bot)
     # bot.add_listener(n.check_poll_votes, "on_message")
     bot.add_cog(n)

@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Random games playing",
+    "DESCRIPTION" : "Add to list of random games to play",
+    "DISABLED" : false,
+    "NAME" : "TrustyBot",
+    "REQUIREMENTS" : [""],
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Various commands."
+}
