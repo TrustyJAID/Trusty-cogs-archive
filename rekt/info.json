@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "REKT",
+    "DESCRIPTION" : "Are you REKT?",
+    "DISABLED" : false,
+    "NAME" : "TrustyBot",
+    "REQUIREMENTS" : [""],
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Are you REKT?"
+}
