@@ -2,28 +2,22 @@ import discord
 from discord.ext import commands
 from .utils.chat_formatting import *
 from .utils.dataIO import dataIO
+from .utils.dataIO import fileIO
 from cogs.utils import checks
-from random import randint
 from random import choice
-from enum import Enum
-from binascii import hexlify
+import random
 import urllib.request
 import hashlib
-import datetime
-import time
 import aiohttp
 import asyncio
-import random
-import codecs
-import json
 
 
 class TrustyBot:
     def __init__(self, bot):
         self.bot = bot
-        self.poll_sessions = []
         self.text = dataIO.load_json("data/trustybot/messages.json")
         self.links = dataIO.load_json("data/trustybot/links.json")
+        self.faces = dataIO.load_json("data/trustybot/CIAJapaneseStyleFaces.json")
 
     # Text Commands #
     @commands.command(hidden=False)
@@ -31,6 +25,21 @@ class TrustyBot:
     async def grep(self):
         """Get the fuck out of here with grep!"""
         await self.bot.say("Get the fuck out of here with grep!")
+
+    @commands.command(hidden=False)
+    async def passphrase(self):
+        """Wikileaks Vault7 Part 1 passphrase"""
+        await self.bot.say("`SplinterItIntoAThousandPiecesAndScatterItIntoTheWinds`")
+
+    @commands.command(hidden=False)
+    async def torrent(self):
+        """Wikileaks Vault7 Part 1 torrent file"""
+        await self.bot.say("https://t.co/gpBxJAoYD5")
+
+    @commands.command(hidden=False)
+    async def vault7(self):
+        """Wikileaks Vault7"""
+        await self.bot.say("https://wikileaks.org/ciav7p1/")
 
     @commands.command(name="repos", aliases=["github"])
     async def repos(self):
@@ -110,7 +119,7 @@ class TrustyBot:
             await self.bot.say(msg.format(""))
         else:
             await self.bot.say(msg.format(user))
-    
+
     @commands.command(hidden=False)
     @commands.cooldown(1, 60, commands.BucketType.server)
     async def goodshit(self):
@@ -122,17 +131,17 @@ class TrustyBot:
         """I don't care if I ever come down!"""
         await self.bot.say(self.links["maga"])
 
-    @commands.command(name="kara", aliases=["nevercomedown2"])
+    @commands.command(hidden=True, name="kara", aliases=["nevercomedown2"])
     async def kara(self):
         """I don't care if I ever come down!"""
         await self.bot.say(self.links["kara"])
 
-    @commands.command(aliases=["elder", "phoenix"])
+    @commands.command(hidden=True, aliases=["elder", "phoenix"])
     async def elderphoenix(self):
         """lol"""
         await self.bot.say(choice(self.links["elder"]))
 
-    @commands.command(aliases=["directthecheckerd"])
+    @commands.command(hidden=True, aliases=["directthecheckerd"])
     async def elmyr(self):
         """lol"""
         await self.bot.say(choice(self.links["elmyr"]))
@@ -142,17 +151,17 @@ class TrustyBot:
         """Straya"""
         await self.bot.say(choice(self.links["straya"]))
 
-    @commands.command(name="kingdonald", aliases=["KD", "kd"])
+    @commands.command(hidden=True, name="kingdonald", aliases=["KD", "kd"])
     async def kingdonald(self):
         """KingDonald"""
         await self.bot.say(choice(self.links["KingDonald"]))
 
-    @commands.command(name="wsa", aliases=["WSA"])
+    @commands.command(hidden=True, name="wsa", aliases=["WSA"])
     async def wsa(self):
         """lol"""
         await self.bot.say(self.links["wsa"])
 
-    @commands.command(name="neon", aliases=["NEON"])
+    @commands.command(hidden=True, name="neon", aliases=["NEON"])
     async def neon(self):
         """lol"""
         await self.bot.say(self.links["neon"])
@@ -162,7 +171,7 @@ class TrustyBot:
         """lol"""
         await self.bot.say(self.links["death"])
 
-    @commands.command(name="ventucky", aliases=["ven"])
+    @commands.command(hidden=True, name="ventucky", aliases=["ven"])
     async def ventucky(self):
         """lol"""
         await self.bot.say(choice(self.links["ventucky"]))
@@ -172,7 +181,7 @@ class TrustyBot:
         """Lenny"""
         await self.bot.say(self.text["lenny"])
 
-    @commands.command(hidden=False, pass_context=True, aliases=["meme_queen"])
+    @commands.command(hidden=True, pass_context=True, aliases=["meme_queen"])
     async def mq(self, ctx):
         """Lol"""
         await self.bot.say("You're cute <@245862769054711809> :smile:")
@@ -192,6 +201,16 @@ class TrustyBot:
     async def fuckyou(self):
         """What did you fucking say about me"""
         await self.bot.say(self.text["fuckyou"])
+
+    @commands.command(hidden=False)
+    async def party(self):
+        """Party"""
+        await self.bot.say(self.text["party"])
+
+    @commands.command(hidden=False)
+    async def takeaction(self):
+        """Take Action"""
+        await self.bot.say(self.text["takeaction"])
 
     @commands.command(hidden=False)
     async def dreams(self):
@@ -233,252 +252,32 @@ class TrustyBot:
         """topkek"""
         await self.bot.say(self.text["topkek"])
 
-    # Image Commands #
-    @commands.command(pass_context=True)
-    async def kappa(self, ctx):
-        """kappa"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/kappa.png"
-        await self.bot.send_file(chn, fn)
+    @commands.command(pass_context=True, aliases=["japaneseface"])
+    async def face(self, ctx, number=None):
+        """Japanese Faces at random courtesy of the CIA"""
+        if number is None:
+            await self.bot.say(choice(self.faces))
+            return
+        if "<@" in str(number):
+            if "245862769054711809" in number:
+                await self.bot.say(self.faces[328])
+                return
+            else:
+                random.seed(number.strip("<@!>"))
+                userface = self.faces[random.randint(0, len(self.faces))]
+                await self.bot.say(userface)
+                return
+        if number.isdigit():
+            if int(number) <= len(self.faces):
+                await self.bot.say(self.faces[int(number)-1])
+                return
+            else:
+                await self.bot.say("That number is too large, pick less than {}!"
+                                   .format(len(self.faces)))
+                return
+        if not number.isdigit() and "<@!" not in number:
+            await self.bot.say(self.faces[len(number)])
 
-    @commands.command(pass_context=True)
-    async def cheers(self, ctx):
-        """cheers!"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/cheers.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["btcup"])
-    async def tothemoon(self, ctx):
-        """To the moon!!"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/roller-coaster-guy.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def btcdown(self, ctx):
-        """NOT To the moon!!"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/roller-coaster-guy-down.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["hacker"])
-    async def hackerman(self, ctx):
-        """Hackerman"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/hackerman.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def kiddo(self, ctx):
-        """kiddo"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/kiddo.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def nsa(self, ctx):
-        """NSA"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/nsa.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def wikileaks(self, ctx):
-        """wikileaks"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/wikileaks.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["openyoureyes"])
-    async def woke(self, ctx):
-        """Posts tim and eric gif"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/tim-and-eric-mind-blown.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def canary(self, ctx):
-        """TrustyBot Canary"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/warrant-canary.jpg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def wtf(self, ctx):
-        """lol"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/wtf.jpg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def vapormaga(self, ctx):
-        """lol"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/vapormaga.jpeg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def thisisfine(self, ctx):
-        """lol"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/thisisfine.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["gg"])
-    async def gremblygunk(self, ctx):
-        """Gremblygunk"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/gremblygunk.jpeg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def badge(self, ctx):
-        """WIA Badge"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/Badge.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def wrong(self, ctx):
-        """Wrong gif"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/wrong.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def ohno(self, ctx):
-        """Pepe Wall"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/ohno.jpg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["ay", "duck"])
-    async def awyiss(self, ctx):
-        """Aw Yiss Duck"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/awyiss.jpg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["buildthewall", "build"])
-    async def wall(self, ctx):
-        """Pepe Wall"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/wall.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["trustyjaid"])
-    async def trusty(self, ctx):
-        """Trusty Meme"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/trustymeme.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["takemetobernie"])
-    async def bernie(self, ctx):
-        """bernie Meme"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/bernie.jpg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["JAK"])
-    async def juliankills(self, ctx):
-        """wia Meme"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/juliankills.jpg"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["whereisassange"])
-    async def wia(self, ctx):
-        """wia Meme"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/whereisassange.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["Julian"])
-    async def jakek(self, ctx):
-        """Julian Assange kek"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/JAkek.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def getout(self, ctx):
-        """get out pepe"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/getout.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def kek(self, ctx):
-        """kek"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/kek.gif"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["fgm"])
-    async def feelsgoodman(self, ctx):
-        """Feels good man"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/feelsgoodman.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["troll"])
-    async def trollface(self, ctx):
-        """Troll Face"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/Trollface.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def problem(self, ctx):
-        """Problem"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/problem.png"
-        await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True, aliases=["db"])
-    async def dickbutt(self, ctx):
-        """DickButt"""
-        extension = ["png", "gif"]
-        fn = "data/trustybot/dickbutt.{}".format(choice(extension))
-        chn = ctx.message.channel
-        if ctx.message.server.id != "261565811309674499":
-            await self.bot.send_file(chn, fn)
-
-    @commands.command(pass_context=True)
-    async def cookie(self, ctx, user=None):
-        """cookie"""
-        chn = ctx.message.channel
-        fn = "data/trustybot/cookie2.png"
-        msg = "Here's a cookie {}! :smile:"
-        if user is None:
-            await self.bot.send_file(chn, fn)
-        else:
-            await self.bot.send_file(chn, fn, content=msg.format(user))
-
-    @commands.command(pass_context=True,)
-    async def donate(self, ctx):
-        """Donate some bitcoin!"""
-        gabcoin = "1471VCzShn9kBSrZrSX1Y3KwjrHeEyQtup"
-        DONATION = "1DMfQgbyEW1u6M2XbUt5VFP6JARNs8uptQ"
-        msg = "Feel free to send bitcoin donations to `{}` :smile:"
-        gabimg = "data/trustybot/gabbtc.jpg"
-        img = "data/trustybot/btc.png"
-        chn = ctx.message.channel
-        if ctx.message.server.id == "261565811309674499":
-            await self.bot.send_file(chn, gabimg)
-            await self.bot.say(msg.format(gabcoin))
-        else:
-            await self.bot.send_file(chn, img)
-            await self.bot.say(msg.format(DONATION))
-
-    @commands.command(pass_context=True, aliases=["tf"])
-    async def tinfoil(self, ctx):
-        """Liquid Metal Embrittlement"""
-        fn = "data/trustybot/tinfoil{}.gif".format(choice(["1", "2"]))
-        chn = ctx.message.channel
-        await self.bot.send_file(chn, fn)
 
     @commands.command(pass_context=True)
     async def flipm(self, ctx, *message):
