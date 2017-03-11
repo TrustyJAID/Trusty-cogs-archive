@@ -19,9 +19,8 @@ class AutoTweets():
     def __init__(self, bot):
         self.bot = bot
         self.settings_file = 'data/autotweet/settings.json'
-        self.lasttweets = 'data/autotweet/lasttweet.json'
-        self.accounts = dataIO.load_json("data/tweets/accounts.json")
-        settings = dataIO.load_json(self.settings_file)
+        self.settings = dataIO.load_json(self.settings_file)
+        settings = self.settings["api"]
         if 'consumer_key' in list(settings.keys()):
             self.consumer_key = settings['consumer_key']
         if 'consumer_secret' in list(settings.keys()):
@@ -40,55 +39,59 @@ class AutoTweets():
     @commands.command(hidden=True, pass_context=True)
     @checks.admin_or_permissions(manage_roles=True)
     async def addautotweet(self, ctx, account, channel=None):
-        if channel is None:
-            try:
-                self.accounts[account].append(ctx.message.channel.id)
-            except KeyError:
-                self.accounts[account] = [ctx.message.channel.id]
-            await self.bot.say("{} Added to this channel!".format(account))
-            dataIO.save_json("data/tweets/accounts.json", self.accounts)
+        if account in self.settings["accounts"]:
+            accountlist = self.settings["accounts"][account]
         else:
-            channelname = self.bot.get_channel(channel)
-            try:
-                self.accounts[account].append(channel)
-            except KeyError:
-                self.accounts[account] = [channel]
-            await self.bot.say("{0} Added to channel {1}!".format(account, channelname))
-            dataIO.save_json("data/tweets/accounts.json", self.accounts)
+            self.settings["accounts"][account] = []
+            accountlist = self.settings["accounts"][account]
+        channelname = self.bot.get_channel(channel)
+
+        if channel is None:
+            channel = ctx.message.channel.id
+        if "<#" in channel:
+            channel = channel.strip("<#>")
+
+        if channel in accountlist:
+            await self.bot.say("I am already posting in <#{}>".format(channel))
+            return
+        accountlist.append(channel)
+        await self.bot.say("{0} Added to <#{1}>!".format(account, channel))
+        dataIO.save_json(self.settings_file, self.settings)
+
 
     @commands.command(hidden=True, pass_context=True)
     @checks.admin_or_permissions(manage_roles=True)
     async def delautotweet(self, ctx, account, channel=None):
+        try:
+            accountlist = self.settings["accounts"][account]
+        except KeyError:
+            await self.bot.say("{} is not in my list of accounts!"
+                               .format(account))
+            return
+
+        channelname = self.bot.get_channel(channel)
         if channel is None:
             channel = ctx.message.channel.id
-            try:
-                if channel in self.accounts[account]:
-                    self.accounts[account].remove(channel)
-                    dataIO.save_json("data/tweets/accounts.json", self.accounts)
-                    await self.bot.say("{} removed from this channel!".format(account))
-                else:
-                    await self.bot.say("{} doesn't seem to be posting here!".format(account))
-            except KeyError:
-                await self.bot.say("{} is not in my list of accounts!".format(account))
-                pass
+        if "<#" in channel:
+            channel = channel.strip("<#>")
+
+        if channel in accountlist:
+            if len(accountlist) < 2:
+                self.settings["accounts"].pop(account, None)
+            else:
+                accountlist.remove(channel)
+            dataIO.save_json(self.settings_file, self.settings)
+            await self.bot.say("{0} removed from <#{1}>!"
+                               .format(account, channel))
         else:
-            channelname = self.bot.get_channel(channel)
-            try:
-                if channel in self.accounts[account]:
-                    self.accounts[account].remove(channel)
-                    dataIO.save_json("data/tweets/accounts.json", self.accounts)
-                    await self.bot.say("{0} removed from channel {1}!".format(account, channelname))
-                else:
-                    await self.bot.say("{0} doesn't seem to be posting in {1}!".format(account, channelname))
-            except KeyError:
-                await self.bot.say("{} is not in my list of accounts!".format(account))
-                pass
+            await self.bot.say("{0} doesn't seem to be posting in <#{1}>!"
+                               .format(account, channel))
 
     async def gettweet(self, username: str):
         """Gets the specified number of tweets for the specified username"""
         api = self.authenticate()
         msg = ""
-        lasttweet = dataIO.load_json(self.lasttweets)
+        lasttweet = self.settings["lasttweet"]
         try:
             for status in tw.Cursor(api.user_timeline, id=username).items(1):
                 msg = status
@@ -103,22 +106,21 @@ class AutoTweets():
             pass
 
         lasttweet[username] = str(msg.id)
-        lasttweet = dataIO.save_json(self.lasttweets, lasttweet)
-        post_url =\
-            "https://twitter.com/{}/status/{}".format(msg.user.screen_name, msg.id)
+        lasttweet = dataIO.save_json(self.settings_file, self.settings)
+        post_url = "https://twitter.com/{}/status/{}".format(msg.user.screen_name, msg.id)
         created_at = msg.created_at.strftime("%Y-%m-%d %H:%M:%S")
         desc = "{}".format(created_at)
         em = discord.Embed(title="Tweet by {}".format(msg.user.name),
                            colour=discord.Colour.gold(),
                            url=post_url)
         em.add_field(name=desc, value=msg.text)
-        for channel in self.accounts[username]:
+        for channel in self.settings["accounts"][username]:
             await self.bot.send_message(self.bot.get_channel(channel), embed=em)
 
     async def post_tweets(self):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed:
-            for key, value in self.accounts.items():
+            for key in self.settings["accounts"].keys():
                 try:
                     await self.gettweet(key)
                 except:
@@ -138,9 +140,9 @@ class AutoTweets():
         """Sets the consumer key"""
         message = ""
         if cons_key is not None:
-            settings = dataIO.load_json(self.settings_file)
+            settings = self.settings["api"]
             settings["consumer_key"] = cons_key
-            settings = dataIO.save_json(self.settings_file, settings)
+            settings = dataIO.save_json(self.settings_file, self.settings)
             message = "Consumer key saved!"
         else:
             message = "No consumer key provided!"
@@ -152,9 +154,9 @@ class AutoTweets():
         """Sets the consumer secret"""
         message = ""
         if cons_secret is not None:
-            settings = dataIO.load_json(self.settings_file)
+            settings = self.settings["api"]
             settings["consumer_secret"] = cons_secret
-            settings = dataIO.save_json(self.settings_file, settings)
+            settings = dataIO.save_json(self.settings_file, self.settings)
             message = "Consumer secret saved!"
         else:
             message = "No consumer secret provided!"
@@ -166,9 +168,9 @@ class AutoTweets():
         """Sets the access token"""
         message = ""
         if token is not None:
-            settings = dataIO.load_json(self.settings_file)
+            settings = self.settings["api"]
             settings["access_token"] = token
-            settings = dataIO.save_json(self.settings_file, settings)
+            settings = dataIO.save_json(self.settings_file, self.settings)
             message = "Access token saved!"
         else:
             message = "No access token provided!"
@@ -180,9 +182,9 @@ class AutoTweets():
         """Sets the access secret"""
         message = ""
         if secret is not None:
-            settings = dataIO.load_json(self.settings_file)
+            settings = self.settings["api"]
             settings["access_secret"] = secret
-            settings = dataIO.save_json(self.settings_file, settings)
+            settings = dataIO.save_json(self.settings_file, self.settings)
             message = "Access secret saved!"
         else:
             message = "No access secret provided!"
@@ -196,21 +198,12 @@ def check_folder():
 
 
 def check_file():
-    data = {'consumer_key': '', 'consumer_secret': '',
-            'access_token': '', 'access_secret': ''}
+    data = {"api": {'consumer_key': '', 'consumer_secret': '',
+            'access_token': '', 'access_secret': ''}, "lasttweet": {}, "accounts": {}}
     f = "data/autotweet/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")
         dataIO.save_json(f, data)
-    f = "data/autotweet/lasttweet.json"
-    if not dataIO.is_valid_json(f):
-        print("Creating default settings.json...")
-        dataIO.save_json(f, "{}")
-    f = "data/autotweet/accounts.json"
-    if not dataIO.is_valid_json(f):
-        print("Creating default settings.json...")
-        dataIO.save_json(f, "{}")
-
 
 
 def setup(bot):
