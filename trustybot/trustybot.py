@@ -18,6 +18,102 @@ class TrustyBot:
         self.text = dataIO.load_json("data/trustybot/messages.json")
         self.links = dataIO.load_json("data/trustybot/links.json")
         self.faces = dataIO.load_json("data/trustybot/CIAJapaneseStyleFaces.json")
+        self.images = dataIO.load_json("data/trustybot/images.json")
+
+    def first_word(self, msg):
+        return msg.split(" ")[0]
+
+    def get_prefix(self, server, msg):
+        prefixes = self.bot.settings.get_prefixes(server)
+        for p in prefixes:
+            if msg.startswith(p):
+                return p
+        return None
+
+    def part_of_existing_command(self, alias, server):
+        '''Command or alias'''
+        for command in self.bot.commands:
+            if alias.lower() == command.lower():
+                return True
+        return False
+
+    async def on_message(self, message):
+        if len(message.content) < 2 or message.channel.is_private:
+            return
+
+        msg = message.content
+        server = message.server
+        channel = message.channel
+        prefix = self.get_prefix(server, msg)
+
+        if message.attachments != [] and ";addimage" in msg.split(" ")[0]:
+            filename = message.attachments[0]["filename"]
+            directory = "data/trustybot/img/" + filename
+            try:
+                command = msg.split(" ")[1]
+            except IndexError:
+                command = filename.split(".")[0]
+
+            if command in self.images or self.part_of_existing_command(command, server):
+                await self.bot.say("{} is already in the list, try another!".format(command))
+                return
+
+            if directory not in self.images.values():
+                self.images[command] = directory
+                dataIO.save_json("data/trustybot/images.json", self.images)
+                with aiohttp.ClientSession() as session:
+                    async with session.get(message.attachments[0]["url"]) as resp:
+                        test = await resp.read()
+                        with open(self.images[command], "wb") as f:
+                            f.write(test)
+                await self.bot.send_message(channel, "{} has been added to my files!".format(command))
+
+        if not prefix:
+            return
+
+        alias = self.first_word(msg[len(prefix):]).lower()
+        if alias in self.images:
+            image = self.images[alias]
+            await self.bot.send_file(channel, image)
+
+    @commands.command(pass_context=True, aliases=["db"])
+    async def dickbutt(self, ctx):
+        """DickButt"""
+        ext = ["png", "gif"]
+        if ctx.message.server.id != "261565811309674499":
+            await self.bot.upload(self.images["dickbutt"]
+                                  .format(choice(ext)))
+
+    @commands.command(pass_context=True)
+    async def cookie(self, ctx, user=None):
+        """cookie"""
+        msg = "Here's a cookie {}! :smile:"
+        if user is None:
+            await self.bot.upload(self.images["cookie"])
+        else:
+            await self.bot.upload(self.images["cookie"],
+                                  content=msg.format(user))
+
+    @commands.command(pass_context=True, aliases=["tf"])
+    async def tinfoil(self, ctx):
+        """Liquid Metal Embrittlement"""
+        await self.bot.upload(self.images["tinfoil"]
+                              .format(choice(["1", "2"])))
+
+    @commands.command(pass_context=True,)
+    async def donate(self, ctx):
+        """Donate some bitcoin!"""
+        gabcoin = "1471VCzShn9kBSrZrSX1Y3KwjrHeEyQtup"
+        DONATION = "1DMfQgbyEW1u6M2XbUt5VFP6JARNs8uptQ"
+        msg = "Feel free to send bitcoin donations to `{}` :smile:"
+        gabimg = "data/trustybot/gabbtc.jpg"
+        img = "data/trustybot/btc.png"
+        if ctx.message.server.id == "261565811309674499":
+            await self.bot.upload(gabimg)
+            await self.bot.say(msg.format(gabcoin))
+        else:
+            await self.bot.upload(img)
+            await self.bot.say(msg.format(DONATION))
 
     # Text Commands #
     @commands.command(hidden=False)
@@ -41,8 +137,8 @@ class TrustyBot:
         """Wikileaks Vault7"""
         await self.bot.say("https://wikileaks.org/ciav7p1/")
 
-    @commands.command(name="repos", aliases=["github"])
-    async def repos(self):
+    @commands.command()
+    async def github(self):
         """Links to github"""
         await self.bot.say(self.links["github"])
 
