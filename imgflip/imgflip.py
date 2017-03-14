@@ -3,6 +3,9 @@ from discord.ext import commands
 from .utils.chat_formatting import box
 from .utils.dataIO import dataIO
 from .utils import checks
+from random import choice
+import asyncio
+import json
 import aiohttp
 import os
 
@@ -12,7 +15,38 @@ class Imgflip:
         self.bot = bot
         self.settings_file = "data/imgflip/settings.json"
         self.settings = dataIO.load_json(self.settings_file)
-        self.search = "https://api.imgflip.com/caption_image?template_id={0}&username={1}&password={2}&text0={3}&text1={4}"
+        self.url = "https://api.imgflip.com/caption_image?template_id={0}&username={1}&password={2}&text0={3}&text1={4}"
+        self.search = "https://api.imgflip.com/get_memes?username={0}&password={1}"
+        self.username = self.settings["IMGFLIP_USERNAME"]
+        self.password = self.settings["IMGFLIP_PASSWORD"]
+
+    async def get_meme_id(self, meme):
+        url = self.search.format(self.username, self.password)
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.search) as r:
+                    results = await r.json()
+                for memes in results["data"]["memes"]:
+                    if meme.lower() in memes["name"].lower():
+                        print(meme)
+                        return memes["id"]
+        except:
+            await self.get_memes()
+
+    @commands.command(pass_context=True, alias=["listmemes"])
+    async def getmemes(self, ctx):
+        url = self.search.format(self.username, self.password)
+        prefix = self.get_prefix(ctx.message.server, ctx.message.content)
+        memelist = "```{} meme id;text1;text2\n\n".format(prefix)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(self.search) as r:
+                results = await r.json()
+            for memes in results["data"]["memes"]:
+                memelist += memes["name"] + ", "
+                if len(memelist) > 1500:
+                    await self.bot.say(memelist + "```")
+                    memelist = "```"
+            await self.bot.say(memelist + "```")
 
     @commands.command(pass_context=True)
     async def meme(self, ctx, *, memeText:str):
@@ -21,25 +55,26 @@ class Imgflip:
         prefix = self.get_prefix(ctx.message.server, ctx.message.content)
         if len(msg) == 3:
             if len(msg[0]) > 1 and len([msg[1]]) < 20 and len([msg[2]]) < 20:
+                username = self.settings["IMGFLIP_USERNAME"]
+                password = self.settings["IMGFLIP_PASSWORD"]
+                meme = msg[0]
+                text1 = msg[1]
+                text2 = msg[2]
+                if not meme.isdigit():
+                    meme = await self.get_meme_id(meme)
+                url = self.url.format(meme, username, password, text1, text2)
                 try:
-                    username = self.settings["IMGFLIP_USERNAME"]
-                    password = self.settings["IMGFLIP_PASSWORD"]
-                    memeid = msg[0]
-                    text1 = msg[1]
-                    text2 = msg[2]
-                    search = self.search.format(memeid, username, password, text1, text2)
-                    async with aiohttp.get(search) as r:
+                    async with aiohttp.get(url) as r:
                         result = await r.json()
                     if result["data"] != []:
                         url = result["data"]["url"]
                         await self.bot.say(url)
                 except:
-                    error = result["error_message"]
-                    await self.bot.say(error)
+                    await self.bot.process_commands("getmemes")
             else:
-                await self.bot.say("`" + prefix + "meme id;text1;text2`")
+                await self.bot.process_commands("getmemes")
         else:
-            await self.bot.say("`" + prefix + "meme id;text1;text2`")
+            await self.bot.process_commands("getmemes")
 
     def get_prefix(self, server, msg):
         prefixes = self.bot.settings.get_prefixes(server)
