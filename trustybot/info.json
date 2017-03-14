@@ -4,7 +4,6 @@
     "DESCRIPTION" : "Custom commands and page for general ideas and print functions.",
     "DISABLED" : false,
     "NAME" : "TrustyBot",
-    "REQUIREMENTS" : [""],
     "TAGS" : ["general"],
     "INSTALL_MSG" : "Various commands."
 }

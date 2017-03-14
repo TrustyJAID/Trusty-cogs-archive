@@ -4,6 +4,6 @@
     "DESCRIPTION" : "Recreation of Red v1 meme generator",
     "DISABLED" : false,
     "NAME" : "imgflip",
-    "TAGS" : ["imgflip"],
+    "TAGS" : ["memes"],
     "INSTALL_MSG" : "Recreation of Red v1 meme generator cog!"
 }
