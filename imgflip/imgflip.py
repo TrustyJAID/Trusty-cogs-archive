@@ -37,7 +37,7 @@ class Imgflip:
     async def getmemes(self, ctx):
         url = self.search.format(self.username, self.password)
         prefix = self.get_prefix(ctx.message.server, ctx.message.content)
-        memelist = "```{} meme id;text1;text2\n\n".format(prefix)
+        memelist = "```{}meme or id;text1;text2\n\n".format(prefix)
         async with aiohttp.ClientSession() as session:
             async with session.get(self.search) as r:
                 results = await r.json()
@@ -46,7 +46,7 @@ class Imgflip:
                 if len(memelist) > 1500:
                     await self.bot.say(memelist + "```")
                     memelist = "```"
-            await self.bot.say(memelist + "```")
+            await self.bot.say(memelist[:len(memelist)-2] + "``` Find a meme https://imgflip.com/memetemplates click blank template and get the Template ID for more!")
 
     @commands.command(pass_context=True)
     async def meme(self, ctx, *, memeText:str):
