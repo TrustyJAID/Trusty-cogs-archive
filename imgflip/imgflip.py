@@ -46,10 +46,12 @@ class Imgflip:
                 if len(memelist) > 1500:
                     await self.bot.say(memelist + "```")
                     memelist = "```"
-            await self.bot.say(memelist[:len(memelist)-2] + "``` Find a meme https://imgflip.com/memetemplates click blank template and get the Template ID for more!")
+            await self.bot.say(memelist[:len(memelist)-2] + 
+                               "``` Find a meme https://imgflip.com/memetemplates \
+                               click blank template and get the Template ID for more!")
 
     @commands.command(pass_context=True)
-    async def meme(self, ctx, *, memeText:str):
+    async def meme(self, ctx, *, memeText: str):
         """ Pulls a custom meme from imgflip"""
         msg = memeText.split(";")
         prefix = self.get_prefix(ctx.message.server, ctx.message.content)
