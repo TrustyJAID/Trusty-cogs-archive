@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "Twentysix/TrustyJAID",
+    "SHORT" : "Recreation of Red v1 meme generator",
+    "DESCRIPTION" : "Recreation of Red v1 meme generator",
+    "DISABLED" : false,
+    "NAME" : "imgflip",
+    "REQUIREMENTS" : [""],
+    "TAGS" : ["imgflip"],
+    "INSTALL_MSG" : "Recreation of Red v1 meme generator cog!"
+}
