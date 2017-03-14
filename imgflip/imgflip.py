@@ -35,6 +35,9 @@ class Imgflip:
 
     @commands.command(pass_context=True, alias=["listmemes"])
     async def getmemes(self, ctx):
+        await self.get_memes(ctx)
+
+    async def get_memes(self, ctx):
         url = self.search.format(self.username, self.password)
         prefix = self.get_prefix(ctx.message.server, ctx.message.content)
         memelist = "```{}meme or id;text1;text2\n\n".format(prefix)
@@ -47,8 +50,7 @@ class Imgflip:
                     await self.bot.say(memelist + "```")
                     memelist = "```"
             await self.bot.say(memelist[:len(memelist)-2] + 
-                               "``` Find a meme https://imgflip.com/memetemplates \
-                               click blank template and get the Template ID for more!")
+                               "``` Find a meme https://imgflip.com/memetemplates click blank template and get the Template ID for more!")
 
     @commands.command(pass_context=True)
     async def meme(self, ctx, *, memeText: str):
@@ -72,11 +74,11 @@ class Imgflip:
                         url = result["data"]["url"]
                         await self.bot.say(url)
                 except:
-                    await self.bot.process_commands("getmemes")
+                    await self.get_memes(ctx)
             else:
-                await self.bot.process_commands("getmemes")
+                await self.get_memes(ctx)
         else:
-            await self.bot.process_commands("getmemes")
+            await self.get_memes(ctx)
 
     def get_prefix(self, server, msg):
         prefixes = self.bot.settings.get_prefixes(server)
