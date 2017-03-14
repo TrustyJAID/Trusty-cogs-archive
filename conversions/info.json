@@ -4,7 +4,6 @@
     "DESCRIPTION" : "Conversions for BTC, currencies, precious metals, and stocks.",
     "DISABLED" : false,
     "NAME" : "TrustyBot",
-    "REQUIREMENTS" : [""],
     "TAGS" : ["general"],
     "INSTALL_MSG" : "Various commands."
 }
