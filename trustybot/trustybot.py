@@ -6,7 +6,6 @@ from .utils.dataIO import fileIO
 from cogs.utils import checks
 from random import choice
 import random
-import urllib.request
 import hashlib
 import aiohttp
 import asyncio
@@ -19,6 +18,7 @@ class TrustyBot:
         self.links = dataIO.load_json("data/trustybot/links.json")
         self.faces = dataIO.load_json("data/trustybot/CIAJapaneseStyleFaces.json")
         self.images = dataIO.load_json("data/trustybot/images.json")
+        self.files = dataIO.load_json("data/trustybot/files.json")
 
     def first_word(self, msg):
         return msg.split(" ")[0]
@@ -46,35 +46,61 @@ class TrustyBot:
         channel = message.channel
         prefix = self.get_prefix(server, msg)
 
-        if message.attachments != [] and ";addimage" in msg.split(" ")[0]:
-            filename = message.attachments[0]["filename"]
-            directory = "data/trustybot/img/" + filename
-            try:
-                command = msg.split(" ")[1]
-            except IndexError:
-                command = filename.split(".")[0]
+        if not prefix:
+            return
+        ignorelist = ["dickbutt", "cookie", "tinfoil", "donate"]
 
+        if server == "288845138887704576" and message.attachments != []:
+            self.filenames[message.id] = message.attachments[0]["filename"]
+
+        alias = self.first_word(msg[len(prefix):]).lower()
+        if alias in ignorelist:
+            return
+
+        if alias in self.images:
+            image = self.images[alias]
+            await self.bot.send_typing(channel)
+            await self.bot.send_file(channel, image)
+
+    @commands.command(pass_context=True)
+    async def addimage(self, ctx, command=None):
+        """Add an image to direct upload. Add the command after ;addimage"""
+        author = ctx.message.author
+        server = ctx.message.server
+        channel = ctx.message.channel
+        prefix = self.get_prefix(server, ctx.message.content)
+        msg = ctx.message
+        if command is not None:
             if command in self.images or self.part_of_existing_command(command, server):
                 await self.bot.say("{} is already in the list, try another!".format(command))
                 return
+            else:
+                await self.bot.say("{} added as the command!".format(command))
+        await self.bot.say("Upload an image for me to use!")
+        while msg is not None:
+            msg = await self.bot.wait_for_message(author=author, timeout=60)
+            if msg is None:
+                await self.bot.say("No image uploaded then.")
+                break
 
-            if directory not in self.images.values():
-                self.images[command] = directory
-                dataIO.save_json("data/trustybot/images.json", self.images)
-                with aiohttp.ClientSession() as session:
-                    async with session.get(message.attachments[0]["url"]) as resp:
-                        test = await resp.read()
-                        with open(self.images[command], "wb") as f:
-                            f.write(test)
-                await self.bot.send_message(channel, "{} has been added to my files!".format(command))
-
-        if not prefix:
-            return
-
-        alias = self.first_word(msg[len(prefix):]).lower()
-        if alias in self.images:
-            image = self.images[alias]
-            await self.bot.send_file(channel, image)
+            if msg.attachments != []:
+                filename = msg.attachments[0]["filename"]
+                directory = "data/trustybot/img/" + filename
+                if command is None:
+                    command = filename.split(".")[0]
+                if directory not in self.images.values():
+                    self.images[command] = directory
+                    dataIO.save_json("data/trustybot/images.json", self.images)
+                    with aiohttp.ClientSession() as session:
+                        async with session.get(msg.attachments[0]["url"]) as resp:
+                            test = await resp.read()
+                            with open(self.images[command], "wb") as f:
+                                f.write(test)
+                    await self.bot.send_message(channel, "{} has been added to my files!"
+                                                .format(command))
+            if msg.content.lower().strip() == "exit":
+                await self.bot.say("Your changes have been saved.")
+                break
 
     @commands.command(pass_context=True, aliases=["db"])
     async def dickbutt(self, ctx):
@@ -221,6 +247,12 @@ class TrustyBot:
     async def goodshit(self):
         """GOODSHIT"""
         await self.bot.say(self.text["goodshit"])
+    
+    @commands.command(hidden=False)
+    @commands.cooldown(1, 60, commands.BucketType.server)
+    async def wiggle(self):
+        """WIGGLE"""
+        await self.bot.say(self.text["wiggle"])
 
     @commands.command(name="maga", aliases=["MAGA", "nevercomedown"])
     async def maga(self):
