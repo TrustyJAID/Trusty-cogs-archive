@@ -5,10 +5,12 @@ from .utils.dataIO import dataIO
 from .utils.dataIO import fileIO
 from cogs.utils import checks
 from random import choice
+from binascii import unhexlify
 import random
 import hashlib
 import aiohttp
 import asyncio
+import string
 
 
 class TrustyBot:
@@ -63,14 +65,14 @@ class TrustyBot:
             await self.bot.send_file(channel, image)
 
     @commands.command(pass_context=True)
-    async def addimage(self, ctx, command=None):
-        """Add an image to direct upload. Add the command after ;addimage"""
+    async def addimage(self, ctx, command):
+        """Add an image to direct upload."""
         author = ctx.message.author
         server = ctx.message.server
         channel = ctx.message.channel
         prefix = self.get_prefix(server, ctx.message.content)
         msg = ctx.message
-        if command is not None:
+        if command is not "":
             if command in self.images or self.part_of_existing_command(command, server):
                 await self.bot.say("{} is already in the list, try another!".format(command))
                 return
@@ -88,6 +90,9 @@ class TrustyBot:
                 directory = "data/trustybot/img/" + filename
                 if command is None:
                     command = filename.split(".")[0]
+                if directory in self.images.values():
+                    seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+                    directory = "data/trustybot/img/" + seed + filename
                 if directory not in self.images.values():
                     self.images[command] = directory
                     dataIO.save_json("data/trustybot/images.json", self.images)
@@ -98,9 +103,18 @@ class TrustyBot:
                                 f.write(test)
                     await self.bot.send_message(channel, "{} has been added to my files!"
                                                 .format(command))
+                    break
             if msg.content.lower().strip() == "exit":
                 await self.bot.say("Your changes have been saved.")
                 break
+    
+    @commands.command()
+    async def listimages(self):
+        """List images added to bot"""
+        msg = ""
+        for image in self.images.keys():
+            msg += image + ", "
+        await self.bot.say(msg[:len(msg)-2])
 
     @commands.command(pass_context=True, aliases=["db"])
     async def dickbutt(self, ctx):
@@ -152,6 +166,11 @@ class TrustyBot:
     async def passphrase(self):
         """Wikileaks Vault7 Part 1 passphrase"""
         await self.bot.say("`SplinterItIntoAThousandPiecesAndScatterItIntoTheWinds`")
+    
+    @commands.command(hidden=False)
+    async def onetruegod(self):
+        """lol"""
+        await self.bot.say("<@218773382617890828> is the One True God!")
 
     @commands.command(hidden=False)
     async def torrent(self):
@@ -203,6 +222,23 @@ class TrustyBot:
         """Bitcoin China Comic"""
         await self.bot.say(self.links["btcchina"])
 
+    @commands.command(pass_context=True)
+    @checks.admin_or_permissions(manage_roles=True)
+    async def changeusernicks(self, ctx, nickname=None):
+        users = ""
+        members = list(ctx.message.server.members)
+        for user in members:
+            asyncio.sleep(1)
+            try:
+                await self.bot.change_nickname(ctx.message.server.get_member(user.id), nickname)
+            except:
+                await self.bot.say("I could not change {}".format(user.mention))
+                pass
+        if nickname is None:
+            await self.bot.say("Done! All usernames reset!")
+        else:
+            await self.bot.say("Done! All users are now named {}!".format(nickname))
+
     @commands.command(hidden=False)
     async def smarm(self):
         """Gawker Smarm Article"""
@@ -247,12 +283,18 @@ class TrustyBot:
     async def goodshit(self):
         """GOODSHIT"""
         await self.bot.say(self.text["goodshit"])
-    
+
     @commands.command(hidden=False)
     @commands.cooldown(1, 60, commands.BucketType.server)
     async def wiggle(self):
         """WIGGLE"""
         await self.bot.say(self.text["wiggle"])
+
+    @commands.command(hidden=False, aliases=["pn"])
+    @commands.cooldown(1, 60, commands.BucketType.server)
+    async def pumpkinnoodle(self):
+        """WIGGLE"""
+        await self.bot.say(self.text["pumpkinnoodle"])
 
     @commands.command(name="maga", aliases=["MAGA", "nevercomedown"])
     async def maga(self):
@@ -309,11 +351,6 @@ class TrustyBot:
         """Lenny"""
         await self.bot.say(self.text["lenny"])
 
-    @commands.command(hidden=True, pass_context=True, aliases=["meme_queen"])
-    async def mq(self, ctx):
-        """Lol"""
-        await self.bot.say("You're cute <@245862769054711809> :smile:")
-
     @commands.command(hidden=False)
     async def kawaii(self):
         """kawaii"""
@@ -334,6 +371,16 @@ class TrustyBot:
     async def party(self):
         """Party"""
         await self.bot.say(self.text["party"])
+
+    @commands.command(hidden=False)
+    async def oshit(self):
+        """oshit waddup"""
+        await self.bot.say(self.text["oshit"])
+
+    @commands.command(hidden=False)
+    async def friendarino(self):
+        """Friendarino"""
+        await self.bot.say(self.text["friendarino"])
 
     @commands.command(hidden=False)
     async def takeaction(self):
@@ -387,14 +434,10 @@ class TrustyBot:
             await self.bot.say(choice(self.faces))
             return
         if "<@" in str(number):
-            if "245862769054711809" in number:
-                await self.bot.say(self.faces[328])
-                return
-            else:
-                random.seed(number.strip("<@!>"))
-                userface = self.faces[random.randint(0, len(self.faces))]
-                await self.bot.say(userface)
-                return
+            random.seed(number.strip("<@!>"))
+            userface = self.faces[random.randint(0, len(self.faces))]
+            await self.bot.say(userface)
+            return
         if number.isdigit():
             if int(number) <= len(self.faces):
                 await self.bot.say(self.faces[int(number)-1])
