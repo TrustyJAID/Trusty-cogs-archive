@@ -12,6 +12,7 @@ except:
     twInstalled = False
 import os
 import asyncio
+import time
 
 
 class AutoTweets():
@@ -35,97 +36,128 @@ class AutoTweets():
         auth = tw.OAuthHandler(self.consumer_key, self.consumer_secret)
         auth.set_access_token(self.access_token, self.access_secret)
         return tw.API(auth)
+    
+    @commands.group(pass_context=True, name='autotweet')
+    @checks.admin_or_permissions(manage_channels=True)
+    async def _autotweet(self, ctx):
+        """Command for setting accounts and channels for posting"""
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
+    
+    @_autotweet.command(pass_context=True, name="replies")
+    async def _replies(self, ctx, account, replies):
+        account = account.lower()
+        if account not in self.settings["accounts"]:
+            await self.bot.say("{} is not posting anywhere!".format(account))
+            return
+        if replies.lower() == "true":
+            self.settings["accounts"][account]["replies"] = True
+            dataIO.save_json(self.settings_file, self.settings)
+            await self.bot.say("I will post replies for {} now!".format(account))
+        if replies.lower() == "false":
+            self.settings["accounts"][account]["replies"] = False
+            dataIO.save_json(self.settings_file, self.settings)
+            await self.bot.say("I will stop posting replies for {} now!".format(account))
 
-    @commands.command(hidden=True, pass_context=True)
-    @checks.admin_or_permissions(manage_roles=True)
-    async def addautotweet(self, ctx, account, channel=None):
+    @_autotweet.command(pass_context=True, name="add")
+    async def _add(self, ctx, account, channel:discord.Channel=None):
+        """Adds a twitter account to the specified channel"""
+        account = account.lower()
         if account in self.settings["accounts"]:
-            accountlist = self.settings["accounts"][account]
+            try:
+                accountlist = self.settings["accounts"][account]["channel"]
+            except TypeError:
+                self.settings["accounts"][account] = {"channel" : [], "lasttweet": "", "replies": False}
+                accountlist = self.settings["accounts"][account]
         else:
-            self.settings["accounts"][account] = []
-            accountlist = self.settings["accounts"][account]
-        channelname = self.bot.get_channel(channel)
+            self.settings["accounts"][account] = {"channel" : [], "lasttweet": "", "replies": False}
+            accountlist = self.settings["accounts"][account]["channel"]
+            api = self.authenticate()
+            lasttweet = self.settings["accounts"][account]["lasttweet"]
+            for status in tw.Cursor(api.user_timeline, id=account).items(1):
+                lasttweet = status.id
+            dataIO.save_json(self.settings_file, self.settings)
 
         if channel is None:
-            channel = ctx.message.channel.id
-        if "<#" in channel:
-            channel = channel.strip("<#>")
+            channel = ctx.message.channel
 
-        if channel in accountlist:
-            await self.bot.say("I am already posting in <#{}>".format(channel))
+        if channel.id in accountlist:
+            await self.bot.say("I am already posting in {}".format(channel.mention))
             return
-        accountlist.append(channel)
-        await self.bot.say("{0} Added to <#{1}>!".format(account, channel))
+        accountlist.append(channel.id)
+        await self.bot.say("{0} Added to {1}!".format(account, channel.mention))
         dataIO.save_json(self.settings_file, self.settings)
 
 
-    @commands.command(hidden=True, pass_context=True)
-    @checks.admin_or_permissions(manage_roles=True)
-    async def delautotweet(self, ctx, account, channel=None):
+    @_autotweet.command(pass_context=True, name="del", aliases=["delete", "rem", "remove"])
+    async def _del(self, ctx, account, channel:discord.Channel=None):
+        """Removes a twitter account to the specified channel"""
+        account = account.lower()
         try:
-            accountlist = self.settings["accounts"][account]
+            accountlist = self.settings["accounts"][account]["channel"]
         except KeyError:
-            await self.bot.say("{} is not in my list of accounts!"
-                               .format(account))
+            await self.bot.say("{} is not in my list of accounts!".format(account))
             return
 
-        channelname = self.bot.get_channel(channel)
         if channel is None:
-            channel = ctx.message.channel.id
-        if "<#" in channel:
-            channel = channel.strip("<#>")
+            channel = ctx.message.channel
 
-        if channel in accountlist:
+        if channel.id in accountlist:
             if len(accountlist) < 2:
-                self.settings["accounts"].pop(account, None)
+                del self.settings["accounts"][account]
             else:
-                accountlist.remove(channel)
+                accountlist.remove(channel.id)
             dataIO.save_json(self.settings_file, self.settings)
-            await self.bot.say("{0} removed from <#{1}>!"
-                               .format(account, channel))
+            await self.bot.say("{0} removed from {1}!"
+                               .format(account, channel.mention))
         else:
-            await self.bot.say("{0} doesn't seem to be posting in <#{1}>!"
-                               .format(account, channel))
+            await self.bot.say("{0} doesn't seem to be posting in {1}!"
+                               .format(account, channel.mention))
 
-    async def gettweet(self, username: str):
-        """Gets the specified number of tweets for the specified username"""
-        api = self.authenticate()
-        msg = ""
-        lasttweet = self.settings["lasttweet"]
-        try:
+    async def get_tweet(self, api, username: str):
+        """Posts the tweets to the channel"""
+        lasttweet = self.settings["accounts"][username]["lasttweet"]
+        if lasttweet is "":
             for status in tw.Cursor(api.user_timeline, id=username).items(1):
-                msg = status
-        except tw.TweepError as e:
-            await self.bot.say("Whoops! Something went wrong here. \
-                The error code is " + str(e))
-            return
+                self.settings["accounts"][username]["lasttweet"] = status.id
+            lasttweet = dataIO.save_json(self.settings_file, self.settings)
         try:
-            if lasttweet[username] == str(msg.id):
-                return
-        except KeyError:
-            pass
-
-        lasttweet[username] = str(msg.id)
-        lasttweet = dataIO.save_json(self.settings_file, self.settings)
-        post_url = "https://twitter.com/{}/status/{}".format(msg.user.screen_name, msg.id)
-        created_at = msg.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        desc = "{}".format(created_at)
-        em = discord.Embed(title="Tweet by {}".format(msg.user.name),
-                           colour=discord.Colour.gold(),
-                           url=post_url)
-        em.add_field(name=desc, value=msg.text)
-        for channel in self.settings["accounts"][username]:
-            await self.bot.send_message(self.bot.get_channel(channel), embed=em)
+            for status in tw.Cursor(api.user_timeline, id=username, 
+                                    since_id=self.settings["accounts"][username]["lasttweet"]).items(1):
+                if hasattr(status, "in_reply_to_screen_name") and not self.settings["accounts"][username]["replies"]:
+                    return
+                post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
+                created_at = status.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                desc = "{}".format(created_at)
+                colour =''.join([randchoice('0123456789ABCDEF')for x in range(6)])
+                colour = int(colour, 16)
+                em = discord.Embed(description=status.text,
+                                colour=discord.Colour(value=colour),
+                                url=post_url,
+                                timestamp=status.created_at)
+                try:                                
+                    em.set_author(name=status.user.name, icon_url=status.user.profile_image_url)
+                except:
+                    print(status.user.name + " could not get profile image!")
+                if hasattr(status, "extended_entities"):
+                    em.set_image(url=status.extended_entities["media"][0]["media_url"])
+                for channel in list(self.settings["accounts"][username]["channel"]):
+                    await self.bot.send_message(self.bot.get_channel(channel), embed=em)
+                    await asyncio.sleep(1)
+                self.settings["accounts"][username]["lasttweet"] = status.id
+            dataIO.save_json(self.settings_file, self.settings)
+        except tw.TweepError as e:
+            print("Whoops! Something went wrong here. \
+                The error code is " + str(e) + username)
+            return
 
     async def post_tweets(self):
-        await self.bot.wait_until_ready()
-        while not self.bot.is_closed:
-            for key in self.settings["accounts"].keys():
-                try:
-                    await self.gettweet(key)
-                except:
-                    await self.bot.say("Something must be wrong with that username!")
-            await asyncio.sleep(60)
+        while self is self.bot.get_cog("AutoTweets"):
+            api = self.authenticate()
+            for key in list(self.settings["accounts"]):
+                await self.get_tweet(api, key)
+                await asyncio.sleep(1)
+            await asyncio.sleep(120)
 
     @commands.group(pass_context=True, name='autotweetset')
     @checks.admin_or_permissions(manage_server=True)
@@ -199,7 +231,7 @@ def check_folder():
 
 def check_file():
     data = {"api": {'consumer_key': '', 'consumer_secret': '',
-            'access_token': '', 'access_secret': ''}, "lasttweet": {}, "accounts": {}}
+            'access_token': '', 'access_secret': ''}, "accounts": {}}
     f = "data/autotweet/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")
@@ -211,7 +243,8 @@ def setup(bot):
     check_file()
     if twInstalled:
         n = AutoTweets(bot)
-        bot.loop.create_task(n.post_tweets())
+        loop = asyncio.get_event_loop()
+        loop.create_task(n.post_tweets())
         bot.add_cog(n)
     else:
         raise RuntimeError("You need to do 'pip3 install tweepy'")
