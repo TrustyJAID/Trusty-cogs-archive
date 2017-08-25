@@ -73,10 +73,14 @@ class AutoTweets():
             self.settings["accounts"][account] = {"channel" : [], "lasttweet": "", "replies": False}
             accountlist = self.settings["accounts"][account]["channel"]
             api = self.authenticate()
-            lasttweet = self.settings["accounts"][account]["lasttweet"]
-            for status in tw.Cursor(api.user_timeline, id=account).items(1):
-                lasttweet = status.id
-            dataIO.save_json(self.settings_file, self.settings)
+            try:
+                for status in tw.Cursor(api.user_timeline, id=account).items(1):
+                    self.settings["accounts"][account]["lasttweet"] = status.id
+            except tw.TweepError as e:
+                print("Whoops! Something went wrong here. \
+                      The error code is " + str(e) + account)
+                await self.bot.say("That account does not exist! Try again")
+                return
 
         if channel is None:
             channel = ctx.message.channel
@@ -124,11 +128,9 @@ class AutoTweets():
         try:
             for status in tw.Cursor(api.user_timeline, id=username, 
                                     since_id=self.settings["accounts"][username]["lasttweet"]).items(1):
-                if hasattr(status, "in_reply_to_screen_name") and not self.settings["accounts"][username]["replies"]:
+                if hasattr(status, "in_reply_to_screen_name") and self.settings["accounts"][username]["replies"]:
                     return
                 post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-                created_at = status.created_at.strftime("%Y-%m-%d %H:%M:%S")
-                desc = "{}".format(created_at)
                 colour =''.join([randchoice('0123456789ABCDEF')for x in range(6)])
                 colour = int(colour, 16)
                 em = discord.Embed(description=status.text,
@@ -141,6 +143,7 @@ class AutoTweets():
                     print(status.user.name + " could not get profile image!")
                 if hasattr(status, "extended_entities"):
                     em.set_image(url=status.extended_entities["media"][0]["media_url"])
+
                 for channel in list(self.settings["accounts"][username]["channel"]):
                     await self.bot.send_message(self.bot.get_channel(channel), embed=em)
                     await asyncio.sleep(1)
