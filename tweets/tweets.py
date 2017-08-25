@@ -220,8 +220,6 @@ class Tweets():
                 if hasattr(status, "extended_entities"):
                     em.set_image(url=status.extended_entities["media"][0]["media_url"])
 
-                if status.text.startswith("RELEASE:") and username == "wikileaks":
-                    await self.bot.send_message(self.bot.get_channel("239232811662311425"), embed=em)
                 for channel in list(self.settings["accounts"][username]["channel"]):
                     await self.bot.send_message(self.bot.get_channel(channel), embed=em)
                     # await asyncio.sleep(1)
@@ -233,7 +231,7 @@ class Tweets():
             return
 
     async def post_tweets(self):
-        while self is self.bot.get_cog("AutoTweets"):
+        while self is self.bot.get_cog("Tweets"):
             api = await self.authenticate()
             for key in list(self.settings["accounts"]):
                 await self.auto_get_tweet(api, key)
