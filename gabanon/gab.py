@@ -3,16 +3,10 @@ from discord.ext import commands
 from .utils.chat_formatting import *
 from .utils.dataIO import dataIO
 from cogs.utils import checks
-from random import randint
-from random import choice
-from enum import Enum
-from binascii import hexlify
-import urllib.request
-import hashlib
-import datetime
-import time
-import aiohttp
 import asyncio
+import os
+import urllib.request
+import aiohttp
 import json
 
 class Gab:
@@ -22,7 +16,7 @@ class Gab:
     def __init__(self, bot):
         self.bot = bot
         self.tags = dataIO.load_json("data/gab/gabtags.json")
-        self.servers = ["261565811309674499", "261636805370183691", "288845138887704576"]
+        self.servers = ["261565811309674499", "261636805370183691", "288845138887704576", "321105104931389440"]
 
     def savetags(self, server, usertag, username):
         self.tags[server][username] = usertag
@@ -32,8 +26,8 @@ class Gab:
     @commands.command(hidden=False)
     async def patreon(self):
         """Help on petreon!"""
-        await self.bot.say("Support <@142525247357321216>  and their\
-                            server/work here: https://www.patreon.com/gabanon")
+        msg = "Support <@142525247357321216>  and their server/work here: https://www.patreon.com/gabanon"
+        await self.bot.say(msg)
 
     @commands.command(hiddent=False, pass_context=True)
     async def invite(self, ctx):
@@ -86,15 +80,17 @@ class Gab:
     async def remuser(self, ctx, *, username: discord.Member=None):
         """Remomves gab tag and user"""
         server = ctx.message.server.id
-        if server in self.servers:
-            if str(username.id) in self.tags[server]:
-                del self.tags[server][str(username.id)]
-                await self.bot.say("{} has been removed from the list!"
-                                   .format(username))
-                dataIO.save_json("data/gab/gabtags.json", self.tags)
-            else:
-                msg = "That username is not in the list or has already been removed!"
-                await self.bot.say(msg)
+        if server not in self.servers:
+            return
+
+        if str(username.id) in self.tags[server]:
+            del self.tags[server][str(username.id)]
+            await self.bot.say("{} has been removed from the list!"
+                               .format(username))
+            dataIO.save_json("data/gab/gabtags.json", self.tags)
+        else:
+            msg = "That username is not in the list or has already been removed!"
+            await self.bot.say(msg)
 
     @commands.command(pass_context=True)
     @checks.admin_or_permissions(manage_roles=True)
@@ -156,6 +152,28 @@ class Gab:
     async def getid(self, ctx, username):
         name = ctx.message.server.get_member_named(username)
         await self.bot.say(name)
+    
+    @commands.command(pass_context=True)
+    async def gabuser(self, ctx, username):
+        apilink = "https://devsquad.pro/api/gab.php?method=profile&query={}".format(username)
+        with aiohttp.ClientSession() as session:
+            async with session.get(apilink) as resp:
+                data = await resp.json()
+        if "status" in data:
+            await self.bot.say("That username could not be found!")
+            return
+        embed = discord.Embed(title="User profile for {}".format(data["name"]),
+                              description=data["bio"])
+        embed.set_author(name=data["username"],
+                         icon_url=data["picture_url"],
+                         url="https://gab.ai/{}".format(data["username"]))
+        embed.set_image(url=data["cover_url"])
+        embed.add_field(name="Followers:", value=data["follower_count"], inline=True)
+        embed.add_field(name="Following:", value=data["following_count"], inline=True)
+        embed.add_field(name="Posts:", value=data["post_count"], inline=True)
+        embed.add_field(name="Score:", value=data["score"], inline=True)
+        await self.bot.send_message(ctx.message.channel, embed=embed)
+
 
     def getroles(self, ctx, role):
         return {r.name: r for r in ctx.message.server.roles}[role]
@@ -164,6 +182,16 @@ class Gab:
         await asyncio.sleep(2)
         await self.bot.add_roles(ctx.message.author, self.getroles(ctx, role))
         return
+
+    async def check_gab_usernames(self, username):
+        apilink = "https://devsquad.pro/api/gab.php?method=profile&query={}".format(username)
+        with aiohttp.ClientSession() as session:
+            async with session.get(apilink) as resp:
+                data = await resp.json()
+        if "status" in data:
+            return False
+        else:
+            return True
 
     @commands.command(pass_context=True, aliases=["Gab", "GAB"])
     async def gab(self, ctx, usertag):
@@ -182,6 +210,13 @@ class Gab:
         if "<@" in usertag:
             usertag = ctx.message.author.name
         username = ctx.message.author.id
+
+        is_real_account = await self.check_gab_usernames(usertag)
+
+        if not is_real_account:
+            await self.bot.say("That gab account does not exist! Please try again or ask for some help.")
+            return
+
         if username in self.tags[server]:
             await self.bot.say("You have already supplied a gab tag {}!"
                                .format(ctx.message.author.mention))
@@ -202,7 +237,17 @@ class Gab:
             if server == "261565811309674499":
                 await self.bot.remove_roles(ctx.message.author, self.getroles(ctx, "newcomer"))
 
-        # TODO: Remove gab tag after message sent
+    async def member_leave(self, member):
+        server = str(member.server.id)
+        if server not in self.servers:
+            return
+
+        if str(member.id) in self.tags[server]:
+            del self.tags[server][str(member.id)]
+            dataIO.save_json("data/gab/gabtags.json", self.tags)
+        else:
+            print("{} not in the list".format(member.name))
+
 
 def check_folder():
     if not os.path.exists("data/gab"):
@@ -221,5 +266,7 @@ def check_file():
 def setup(bot):
     check_folder()
     check_file()
-    bot.add_cog(Gab(bot))
+    n = Gab(bot)
+    # bot.add_listener(n.member_leave, "on_member_remove")
+    bot.add_cog(n)
 
