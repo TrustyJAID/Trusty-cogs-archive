@@ -4,27 +4,27 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 
 **About Cogs**
 
->Rainbow - a cog to change the colour of a role every 2-5 minutes
+>Rainbow - a cog to change the colour of a role every 2-5 minutes.
 
->REKT - a command to see how rekt someone is
+>REKT - a command to see how rekt someone is.
 
->Pillconvert - a cog to upload any colour pill image
+>Pillconvert - a cog to upload any colour pill image.
 
 >insult - added compliments as well, there's no reason to be so hostile!
 
->Trustybot - custom image upload and text upload commands
+>Weather - check the current weather in many cities around the world including in Kelvin.
 
->Weather - check the current weather in many cities around the world including in Kelvin
+>Star - add a starboard channel with custom reaction's.
 
->Star - add a starboard channel with custom reaction's
+>imgflip - A recreation of the meme generator from red V1.
 
->imgflip - A recreation of the meme generator from red V1
+>conversions - Currency, crypto, and stocks commands.
 
->conversions - Currency, crypto, and stocks commands
-
->Tweets - A modified version of Palm's twitter cog utilising twitter streams to setup a twitter channel to post user tweets
+>Tweets - A modified version of Palm's twitter cog utilising twitter streams to setup a twitter channel to post user tweets.
 
 **Special cogs uploaded for visibility**
+
+>Trustybot - custom image upload and text upload commands. Includes adding an image command similar to Alias.
 
 >Gabanon - a custom cog to ensure users supply an external username from gab.ai to join a server. Cog is here for reference.
 
