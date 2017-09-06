@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "General commands",
+    "DESCRIPTION" : "Japanese faces courtesy of the CIA",
+    "DISABLED" : false,
+    "NAME" : "Faces",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Find what your face is like!"
+}

@@ -1,16 +1,12 @@
+from random import choice
+import random
+import aiohttp
 import discord
 from discord.ext import commands
 from .utils.chat_formatting import *
 from .utils.dataIO import dataIO
 from .utils.dataIO import fileIO
 from cogs.utils import checks
-from random import choice
-from binascii import unhexlify
-import random
-import hashlib
-import aiohttp
-import asyncio
-import string
 
 
 class TrustyBot:
@@ -18,9 +14,9 @@ class TrustyBot:
         self.bot = bot
         self.text = dataIO.load_json("data/trustybot/messages.json")
         self.links = dataIO.load_json("data/trustybot/links.json")
-        self.faces = dataIO.load_json("data/trustybot/CIAJapaneseStyleFaces.json")
         self.images = dataIO.load_json("data/trustybot/images.json")
         self.files = dataIO.load_json("data/trustybot/files.json")
+        self.donotdo = dataIO.load_json("data/dnd/donotdo.json")
 
     def first_word(self, msg):
         return msg.split(" ")[0]
@@ -50,10 +46,7 @@ class TrustyBot:
 
         if not prefix:
             return
-        ignorelist = ["dickbutt", "cookie", "tinfoil", "donate"]
-
-        if server == "288845138887704576" and message.attachments != []:
-            self.filenames[message.id] = message.attachments[0]["filename"]
+        ignorelist = ["dickbutt", "cookie", "tinfoil", "donate", "dreams", "memes"]
 
         alias = self.first_word(msg[len(prefix):]).lower()
         if alias in ignorelist:
@@ -63,6 +56,16 @@ class TrustyBot:
             image = self.images[alias]
             await self.bot.send_typing(channel)
             await self.bot.send_file(channel, image)
+        
+        if alias in self.links:
+            link = self.links[alias]
+            await self.bot.send_typing(channel)
+            await self.bot.send_message(channel, link)
+        
+        if alias in self.text:
+            msg = self.text[alias]
+            await self.bot.send_typing(channel)
+            await self.bot.send_message(channel, msg)
 
     @commands.command(pass_context=True)
     async def addimage(self, ctx, command):
@@ -114,7 +117,24 @@ class TrustyBot:
         msg = ""
         for image in self.images.keys():
             msg += image + ", "
-        await self.bot.say(msg[:len(msg)-2])
+        await self.bot.say("```" + msg[:len(msg)-2] + "```")
+    
+    @commands.command()
+    async def listtext(self):
+        """List phrases added to bot"""
+        msg = ""
+        for text in self.text.keys():
+            msg += text + ", "
+        await self.bot.say("```" + msg[:len(msg)-2] + "```")
+    
+    @commands.command()
+    async def listlinks(self):
+        """List links added to bot"""
+        msg = ""
+        for link in self.links.keys():
+            msg += link + ", "
+        await self.bot.say("```" + msg[:len(msg)-2] + "```")
+    
 
     @commands.command(pass_context=True, aliases=["db"])
     async def dickbutt(self, ctx):
@@ -123,6 +143,15 @@ class TrustyBot:
         if ctx.message.server.id != "261565811309674499":
             await self.bot.upload(self.images["dickbutt"]
                                   .format(choice(ext)))
+    
+    @commands.command(pass_context=True)
+    async def neat(self, ctx, number=None):
+        """Neat"""
+        files = "data/trustybot/img/neat{}.gif"
+        if number is None:
+            await self.bot.upload(files.format(str(choice(range(1, 6)))))
+        elif number.isdigit() and (int(number) > 0 or int(number) < 8):
+            await self.bot.upload(files.format(number))
 
     @commands.command(pass_context=True)
     async def cookie(self, ctx, user=None):
@@ -146,8 +175,8 @@ class TrustyBot:
         gabcoin = "1471VCzShn9kBSrZrSX1Y3KwjrHeEyQtup"
         DONATION = "1DMfQgbyEW1u6M2XbUt5VFP6JARNs8uptQ"
         msg = "Feel free to send bitcoin donations to `{}` :smile:"
-        gabimg = "data/trustybot/gabbtc.jpg"
-        img = "data/trustybot/btc.png"
+        gabimg = "data/trustybot/img/gabbtc.jpg"
+        img = "data/trustybot/img/btc.png"
         if ctx.message.server.id == "261565811309674499":
             await self.bot.upload(gabimg)
             await self.bot.say(msg.format(gabcoin))
@@ -161,88 +190,20 @@ class TrustyBot:
     async def grep(self):
         """Get the fuck out of here with grep!"""
         await self.bot.say("Get the fuck out of here with grep!")
+    
+    @commands.command(pass_context=True)
+    async def dnd(self, ctx, number=None):
+        if number is None:
+            await self.bot.say(choice(self.donotdo))
+        elif number.isdigit():
+            await self.bot.say(self.donotdo[int(number)-1])
+        else:
+            await self.bot.say(choice(self.donotdo))
 
     @commands.command(hidden=False)
     async def passphrase(self):
         """Wikileaks Vault7 Part 1 passphrase"""
         await self.bot.say("`SplinterItIntoAThousandPiecesAndScatterItIntoTheWinds`")
-    
-    @commands.command(hidden=False)
-    async def onetruegod(self):
-        """lol"""
-        await self.bot.say("<@218773382617890828> is the One True God!")
-
-    @commands.command(hidden=False)
-    async def torrent(self):
-        """Wikileaks Vault7 Part 1 torrent file"""
-        await self.bot.say("https://t.co/gpBxJAoYD5")
-
-    @commands.command(hidden=False)
-    async def vault7(self):
-        """Wikileaks Vault7"""
-        await self.bot.say("https://wikileaks.org/ciav7p1/")
-
-    @commands.command()
-    async def github(self):
-        """Links to github"""
-        await self.bot.say(self.links["github"])
-
-    @commands.command(name="wlff", aliases=["WLFF"])
-    async def wlff(self):
-        """Links to github"""
-        await self.bot.say(self.links["wlff"])
-
-    @commands.command(name="pol", aliases=["POL", "proofoflife"])
-    async def pol(self):
-        """Links to Proof of life timeline"""
-        await self.bot.say(self.links["pol"])
-
-    @commands.command(name="disinfo", aliases=["DISINFO"])
-    async def disinfo(self):
-        """Links to disinfo thread"""
-        await self.bot.say(self.links["disinfo"])
-
-    @commands.command(hidden=False)
-    async def python(self):
-        """Links to github"""
-        await self.bot.say(self.links["python"])
-
-    @commands.command(hidden=False)
-    async def go(self):
-        """Links to github"""
-        await self.bot.say(self.links["go"])
-
-    @commands.command(hidden=False)
-    async def documentation(self):
-        """Links to github"""
-        await self.bot.say(self.links["documentation"])
-
-    @commands.command(hidden=False)
-    async def btcchina(self):
-        """Bitcoin China Comic"""
-        await self.bot.say(self.links["btcchina"])
-
-    @commands.command(pass_context=True)
-    @checks.admin_or_permissions(manage_roles=True)
-    async def changeusernicks(self, ctx, nickname=None):
-        users = ""
-        members = list(ctx.message.server.members)
-        for user in members:
-            asyncio.sleep(1)
-            try:
-                await self.bot.change_nickname(ctx.message.server.get_member(user.id), nickname)
-            except:
-                await self.bot.say("I could not change {}".format(user.mention))
-                pass
-        if nickname is None:
-            await self.bot.say("Done! All usernames reset!")
-        else:
-            await self.bot.say("Done! All users are now named {}!".format(nickname))
-
-    @commands.command(hidden=False)
-    async def smarm(self):
-        """Gawker Smarm Article"""
-        await self.bot.say(self.links["smarm"])
 
     @commands.command(name="pineal", aliases=["pineal gland"])
     async def pinealGland(self, message=None):
@@ -253,12 +214,6 @@ class TrustyBot:
             await self.bot.say(self.links["pineal"][2])
         if message is None:
             await self.bot.say(self.links["pineal"][0])
-
-    @commands.command(hidden=False, pass_context=True)
-    @commands.cooldown(1, 60, commands.BucketType.server)
-    async def wew(self, ctx):
-        """wew"""
-        await self.bot.say(self.text["wew"])
 
     @commands.command(hiddent=False, pass_context=True)
     async def illuminati(self, ctx):
@@ -279,115 +234,6 @@ class TrustyBot:
             await self.bot.say(msg.format(user))
 
     @commands.command(hidden=False)
-    @commands.cooldown(1, 60, commands.BucketType.server)
-    async def goodshit(self):
-        """GOODSHIT"""
-        await self.bot.say(self.text["goodshit"])
-
-    @commands.command(hidden=False)
-    @commands.cooldown(1, 60, commands.BucketType.server)
-    async def wiggle(self):
-        """WIGGLE"""
-        await self.bot.say(self.text["wiggle"])
-
-    @commands.command(hidden=False, aliases=["pn"])
-    @commands.cooldown(1, 60, commands.BucketType.server)
-    async def pumpkinnoodle(self):
-        """WIGGLE"""
-        await self.bot.say(self.text["pumpkinnoodle"])
-
-    @commands.command(name="maga", aliases=["MAGA", "nevercomedown"])
-    async def maga(self):
-        """I don't care if I ever come down!"""
-        await self.bot.say(self.links["maga"])
-
-    @commands.command(hidden=True, name="kara", aliases=["nevercomedown2"])
-    async def kara(self):
-        """I don't care if I ever come down!"""
-        await self.bot.say(self.links["kara"])
-
-    @commands.command(hidden=True, aliases=["elder", "phoenix"])
-    async def elderphoenix(self):
-        """lol"""
-        await self.bot.say(choice(self.links["elder"]))
-
-    @commands.command(hidden=True, aliases=["directthecheckerd"])
-    async def elmyr(self):
-        """lol"""
-        await self.bot.say(choice(self.links["elmyr"]))
-
-    @commands.command(name="straya", aliases=["ec", "embassycat", "thorium", "sympoz"])
-    async def straya(self):
-        """Straya"""
-        await self.bot.say(choice(self.links["straya"]))
-
-    @commands.command(hidden=True, name="kingdonald", aliases=["KD", "kd"])
-    async def kingdonald(self):
-        """KingDonald"""
-        await self.bot.say(choice(self.links["KingDonald"]))
-
-    @commands.command(hidden=True, name="wsa", aliases=["WSA"])
-    async def wsa(self):
-        """lol"""
-        await self.bot.say(self.links["wsa"])
-
-    @commands.command(hidden=True, name="neon", aliases=["NEON"])
-    async def neon(self):
-        """lol"""
-        await self.bot.say(self.links["neon"])
-
-    @commands.command(name="death", aliases=["DEATH"])
-    async def death(self):
-        """lol"""
-        await self.bot.say(self.links["death"])
-
-    @commands.command(hidden=True, name="ventucky", aliases=["ven"])
-    async def ventucky(self):
-        """lol"""
-        await self.bot.say(choice(self.links["ventucky"]))
-
-    @commands.command(hidden=False)
-    async def lenny(self):
-        """Lenny"""
-        await self.bot.say(self.text["lenny"])
-
-    @commands.command(hidden=False)
-    async def kawaii(self):
-        """kawaii"""
-        await self.bot.say(self.text["kawaii"])
-
-    @commands.command(hidden=False)
-    @checks.is_owner()
-    async def crash(self):
-        """wew"""
-        await self.bot.say(self.text["iOSCrash"])
-
-    @commands.command(hidden=False)
-    async def fuckyou(self):
-        """What did you fucking say about me"""
-        await self.bot.say(self.text["fuckyou"])
-
-    @commands.command(hidden=False)
-    async def party(self):
-        """Party"""
-        await self.bot.say(self.text["party"])
-
-    @commands.command(hidden=False)
-    async def oshit(self):
-        """oshit waddup"""
-        await self.bot.say(self.text["oshit"])
-
-    @commands.command(hidden=False)
-    async def friendarino(self):
-        """Friendarino"""
-        await self.bot.say(self.text["friendarino"])
-
-    @commands.command(hidden=False)
-    async def takeaction(self):
-        """Take Action"""
-        await self.bot.say(self.text["takeaction"])
-
-    @commands.command(hidden=False)
     async def dreams(self):
         """don't let your dreams be dreams"""
         await self.bot.say(self.text["dreams"].format("dreams"))
@@ -397,61 +243,8 @@ class TrustyBot:
         """don't let your memes be dreams"""
         await self.bot.say(self.text["dreams"].format("memes"))
 
-    @commands.command(hidden=False)
-    async def awsum(self):
-        """awsum"""
-        await self.bot.say(self.text["awsum"])
-
-    @commands.command(hidden=False)
-    async def wut(self):
-        """wut"""
-        await self.bot.say(self.text["wut"])
-
-    @commands.command(hidden=False, pass_context=True)
-    async def shrug(self, ctx):
-        """shrug"""
-        await self.bot.say(self.text["shrug"])
-
-    @commands.command(pass_context=True, name="soon", aliases=["s"])
-    async def soon(self, ctx):
-        """Soon™"""
-        await self.bot.say(self.text["soon"])
-
-    @commands.command(pass_context=True, aliases=["areyoukiddingme"])
-    async def aykm(self, ctx):
-        """ಠ_ಠ"""
-        await self.bot.say(self.text["aykm"])
-
     @commands.command(pass_context=True)
-    async def topkek(self, ctx):
-        """topkek"""
-        await self.bot.say(self.text["topkek"])
-
-    @commands.command(pass_context=True, aliases=["japaneseface"])
-    async def face(self, ctx, number=None):
-        """Japanese Faces at random courtesy of the CIA"""
-        if number is None:
-            await self.bot.say(choice(self.faces))
-            return
-        if "<@" in str(number):
-            random.seed(number.strip("<@!>"))
-            userface = self.faces[random.randint(0, len(self.faces))]
-            await self.bot.say(userface)
-            return
-        if number.isdigit():
-            if int(number) <= len(self.faces):
-                await self.bot.say(self.faces[int(number)-1])
-                return
-            else:
-                await self.bot.say("That number is too large, pick less than {}!"
-                                   .format(len(self.faces)))
-                return
-        if not number.isdigit() and "<@!" not in number:
-            await self.bot.say(self.faces[len(number)])
-
-
-    @commands.command(pass_context=True)
-    async def flipm(self, ctx, *message):
+    async def flipm(self, ctx, *, message):
         """Flips a message"""
         msg = ""
         name = ""
