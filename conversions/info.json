@@ -3,7 +3,7 @@
     "SHORT" : "Conversions",
     "DESCRIPTION" : "Conversions for BTC, currencies, precious metals, and stocks.",
     "DISABLED" : false,
-    "NAME" : "TrustyBot",
+    "NAME" : "Conversions",
     "TAGS" : ["general"],
     "INSTALL_MSG" : "Various commands."
 }
