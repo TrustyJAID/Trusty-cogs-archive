@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "General commands",
+    "DESCRIPTION" : "Have the bot correct the current year to the Juche Calendar",
+    "DISABLED" : false,
+    "NAME" : "TrustyBot",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Various commands."
+}

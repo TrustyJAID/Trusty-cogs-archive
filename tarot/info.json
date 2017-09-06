@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "General commands",
+    "DESCRIPTION" : "Get your Tarot reading done!",
+    "DISABLED" : false,
+    "NAME" : "TarotReading",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Usage: `[p]tarots life` `[p]tarots reading` `[p]tarots card`"
+}
