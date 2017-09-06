@@ -4,6 +4,10 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 
 **About Cogs**
 
+>Tarotreading - Find your tarot reading, your life reading, or pull a random tarot card! Can also search for a card.
+
+>Faces - Find your own Japanese style emoji face courtesy of the CIA.
+
 >Rainbow - a cog to change the colour of a role every 2-5 minutes.
 
 >REKT - a command to see how rekt someone is.
