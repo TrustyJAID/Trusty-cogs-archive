@@ -1,5 +1,6 @@
 import discord
 from random import choice
+import random
 from discord.ext import commands
 from .utils.dataIO import dataIO
 
