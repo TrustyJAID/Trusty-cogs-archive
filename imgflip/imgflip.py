@@ -4,7 +4,6 @@ from .utils.dataIO import dataIO
 from .utils import checks
 from random import choice
 import asyncio
-import json
 import aiohttp
 import os
 
@@ -27,13 +26,13 @@ class Imgflip:
                     results = await r.json()
                 for memes in results["data"]["memes"]:
                     if meme.lower() in memes["name"].lower():
-                        print(meme)
                         return memes["id"]
         except:
             await self.get_memes()
 
     @commands.command(pass_context=True, alias=["listmemes"])
     async def getmemes(self, ctx):
+        await self.bot.send_typing(ctx.message.channel)
         await self.get_memes(ctx)
 
     async def get_memes(self, ctx):
@@ -56,27 +55,28 @@ class Imgflip:
         """ Pulls a custom meme from imgflip"""
         msg = memeText.split(";")
         prefix = self.get_prefix(ctx.message.server, ctx.message.content)
+        await self.bot.send_typing(ctx.message.channel)
+        if len(msg) == 1:
+            meme, text1, text2 = msg[0], " ", " "
+        if len(msg) == 2:
+            meme, text1, text2 = msg[0], msg[1], " "
         if len(msg) == 3:
-            if len(msg[0]) > 1 and len([msg[1]]) < 20 and len([msg[2]]) < 20:
-                username = self.settings["IMGFLIP_USERNAME"]
-                password = self.settings["IMGFLIP_PASSWORD"]
-                meme = msg[0]
-                text1 = msg[1]
-                text2 = msg[2]
-                if not meme.isdigit():
-                    meme = await self.get_meme_id(meme)
-                url = self.url.format(meme, username, password, text1, text2)
-                try:
-                    async with aiohttp.get(url) as r:
-                        result = await r.json()
-                    if result["data"] != []:
-                        url = result["data"]["url"]
-                        await self.bot.say(url)
-                except:
-                    await self.get_memes(ctx)
-            else:
-                await self.get_memes(ctx)
-        else:
+            meme, text1, text2 = msg[0], msg[1], msg[2]
+        
+        text1 = text1[:20] if len(text1) > 20 else text1
+        text2 = text1[:20] if len(text2) > 20 else text2
+        username = self.settings["IMGFLIP_USERNAME"]
+        password = self.settings["IMGFLIP_PASSWORD"]
+        if not meme.isdigit():
+            meme = await self.get_meme_id(meme)
+        url = self.url.format(meme, username, password, text1, text2)
+        try:
+            async with aiohttp.get(url) as r:
+                result = await r.json()
+            if result["data"] != []:
+                url = result["data"]["url"]
+                await self.bot.say(url)
+        except:
             await self.get_memes(ctx)
 
     def get_prefix(self, server, msg):
