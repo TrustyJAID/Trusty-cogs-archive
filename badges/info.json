@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Create your own badge!",
+    "DESCRIPTION" : "Create your own 3 letter agency badge! Works with gif avatars too.",
+    "DISABLED" : false,
+    "NAME" : "Badges",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Type [p]badges to see what badges are available!"
+}
