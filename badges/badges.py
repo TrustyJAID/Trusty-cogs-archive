@@ -39,7 +39,7 @@ class Badges:
         with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 test = await resp.read()
-                with open(self.files + "temp." + ext, "wb") as f:
+                with open(self.files + "temp/temp." + ext, "wb") as f:
                     f.write(test)
     
     async def get_barcode(self, userid):
@@ -95,7 +95,7 @@ class Badges:
         # adds user level
         draw.text((60, 585), str(user.joined_at), fill=(0, 0, 0), font=font2)
         if ext == "gif":
-            for image in glob.glob("data/tempgif/*"):
+            for image in glob.glob("data/badges/temp/tempgif/*"):
                 os.remove(image)
             gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
             img_list = []
@@ -108,10 +108,10 @@ class Badges:
                 id_image = frame.resize((165, 165))
                 template.paste(watermark, (845,45, 945,145), watermark)
                 template.paste(id_image, (60,95, 225, 260))
-                template.save("data/badges/tempgif/{}.png".format(str(num)))
+                template.save("data/badges/temp/tempgif/{}.png".format(str(num)))
                 num += 1
-            img_list = [Image.open(file) for file in glob.glob("data/badges/tempgif/*")]
-            template.save("data/badges/tempbadge.gif", save_all=True, append_images=img_list, duration=1, loop=10)
+            img_list = [Image.open(file) for file in glob.glob("data/badges/temp/tempgif/*")]
+            template.save("data/badges/temp/tempbadge.gif", save_all=True, append_images=img_list, duration=1, loop=10)
         else:
             watermark = avatar.convert("RGBA")
             watermark.putalpha(128)
@@ -119,7 +119,7 @@ class Badges:
             id_image = avatar.resize((165, 165))
             template.paste(watermark, (845,45, 945,145), watermark)
             template.paste(id_image, (60,95, 225, 260))
-            template.save("data/badges/tempbadge.png")
+            template.save("data/badges/temp/tempbadge.png")
     
     @commands.command(hidden=True, pass_context=True)
     async def badges(self, ctx, badge, user:discord.Member=None):
@@ -134,10 +134,17 @@ class Badges:
         if "gif" in avatar:
             ext = "gif"
         await self.create_badge(user, badge.lower())
-        await self.bot.send_file(ctx.message.channel, "data/badges/tempbadge." + ext)
+        await self.bot.send_file(ctx.message.channel, "data/badges/temp/tempbadge." + ext)
 
+def check_folder():
+    if not os.path.exists("data/badges"):
+        print("Creating temporary badge folders folder")
+        os.makedirs("data/badges")
+        os.makedirs("data/badges/temp")
+        os.makedirs("data/badges/temp/tempgif")
 
 def setup(bot):
+    check_folder
     if not importavailable:
         raise NameError("You need to run `pip3 install pillow` and `pip3 install numpy`")
     n = Badges(bot)
