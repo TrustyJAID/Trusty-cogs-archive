@@ -1,5 +1,6 @@
 {"NAME": "Trusty-cogs",
 "AUTHOR" : "TrustyJAID",
+"INSTALL_MSG": "Thanks for installing Trusty-Cogs!",
 "SHORT": "General purpose cogs",
 "DESCRIPTION" : "Cogs built for learning and testing!"
 }
