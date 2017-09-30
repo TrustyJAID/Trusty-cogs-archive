@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Emoji Reaction",
+    "DESCRIPTION" : "React to messages containing any emojis!",
+    "DISABLED" : false,
+    "NAME" : "EmojiReact",
+    "TAGS" : ["general"],
+    "REQUIREMENTS" : ["emoji"],
+    "INSTALL_MSG" : "React to message emojis automatically!"
+}
