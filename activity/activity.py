@@ -82,9 +82,11 @@ class ActivityChecker():
         if self.settings[server.id]["invite"]:
             self.settings[server.id]["invite"] = False
             await self.bot.send_message(ctx.message.channel, "No longer sending invite links!")
+            return
         if not self.settings[server.id]["invite"]:
             self.settings[server.id]["invite"] = True
             await self.bot.send_message(ctx.message.channel, "Sending invite links to kicked users!")
+            return
         
 
     @activity.command(pass_context=True)
