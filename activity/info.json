@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Check for activity on your server and remove old users!",
+    "DESCRIPTION" : "Tracks activity on a server and kicks members not active in a while! Also sends an invite URL",
+    "DISABLED" : false,
+    "NAME" : "activity",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Type [p]activity to see the options and set it up!"
+}
