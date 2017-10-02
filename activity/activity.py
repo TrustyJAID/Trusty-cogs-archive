@@ -77,7 +77,7 @@ class ActivityChecker():
         """Toggles sending user invite links to re-join the server"""
         server = ctx.message.server
         if server.id not in self.settings:
-            await self.bot.send_message(ctx.message.channel, "I am not setup to check activity here!")
+            await self.bot.send_message(ctx.message.channel, "I am not setup to check activity on this server!")
             return
         if self.settings[server.id]["invite"]:
             self.settings[server.id]["invite"] = False
@@ -124,9 +124,22 @@ class ActivityChecker():
         dataIO.save_json(self.settings_file, self.settings)
         await self.bot.send_message(ctx.message.channel, "Okay, setting the server time check to {}".format(seconds))
 
+    @activity.command(pass_context=True, name="channel")
+    async def set_channel(self, ctx, channel:discord.Channel=None):
+        """Set the channel to post activity messages"""
+        server = ctx.message.server
+        if channel is None:
+            channel = ctx.message.channel
+        if server.id not in self.settings:
+            await self.bot.send_message(ctx.message.channel, "I am not setup to check activity on this server!")
+            return
+        self.settings[server.id]["channel"] = channel.id
+        dataIO.save_json(self.settings_file, self.settings)
+
+
     @activity.command(pass_context=True, name="set")
     async def add_server(self, ctx, channel:discord.Channel=None, role:discord.Role=None):
-        """Sets the channel for messaging users and offers to refresh the list"""
+        """Set the server for activity checking"""
         server = ctx.message.server
         if channel is None:
             channel = ctx.message.channel
@@ -143,6 +156,7 @@ class ActivityChecker():
                                     "time": 604800,
                                     "invite": True}
         dataIO.save_json(self.settings_file, self.settings)
+        await self.bot.send_message(ctx.message.channel, "Sending activity check messages to {}".format(channel.mention))
 
     def check_roles(self, member, roles):
         """Checks if a role name is in a members roles."""
