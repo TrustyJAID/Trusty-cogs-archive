@@ -29,6 +29,7 @@ class ActivityChecker():
 
     @activity.command(pass_context=True, name="list")
     async def list_roles(self, ctx):
+        """lists the roles checked"""
         server = ctx.message.server
         if server.id not in self.log:
             await self.bot.send_message(ctx.message.channel, "I am not setup to check activity on this server!")
