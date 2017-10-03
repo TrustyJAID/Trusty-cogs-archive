@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "chatterbot",
+    "DESCRIPTION" : "Talk to your bot and build a unique dataset for conversations!",
+    "DISABLED" : false,
+    "NAME" : "Chatterbot",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Talk to your bot and have it learn how to talk in conversations! Recommended you unload the cleverbot cog before running."
+}
