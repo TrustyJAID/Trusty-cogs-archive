@@ -1,0 +1,235 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"last",
+				"last_message"
+			],
+			[
+				"settings",
+				"settings"
+			],
+			[
+				"server",
+				"server_roles"
+			],
+			[
+				"check",
+				"check_gab_usernames"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 170.0,
+		"last_filter": "git push",
+		"selected_items":
+		[
+			[
+				"git push",
+				"Git: Push"
+			],
+			[
+				"git pull",
+				"Git: Pull"
+			],
+			[
+				"git stat",
+				"Git: Status"
+			]
+		],
+		"width": 444.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/E/github/Trusty-cogs"
+	],
+	"file_history":
+	[
+		"/E/github/Trusty-Bot/cogs/activity.py",
+		"/E/github/Trusty-Bot/cogs/tweets.py",
+		"/E/github/Trusty-Bot/.gitignore",
+		"/E/github/Trusty-Bot/data/chatterbot/log.json",
+		"/E/github/Trusty-Bot/data/red/cogs.json",
+		"/E/github/Trusty-Bot/data/activity/settings.json",
+		"/E/github/Trusty-Bot/data/activity/log.json",
+		"/E/github/Trusty-Bot/data/RSS/feeds.json",
+		"/E/github/Trusty-Bot/cogs/acceptrules.py",
+		"/E/github/Trusty-Bot/cogs/remindme.py",
+		"/E/github/Trusty-cogs/activity/info.json",
+		"/E/github/Trusty-Bot/cogs/owner.py",
+		"/E/github/Trusty-Bot/cogs/lmao.py",
+		"/E/github/Trusty-Bot/cogs/emojireact.py",
+		"/E/github/Trusty-Bot/cogs/dnadecode.py",
+		"/E/github/Trusty-Bot/cogs/trustybot.py",
+		"/E/github/Trusty-Bot/cogs/reee.py",
+		"/E/github/Trusty-Bot/cogs/gab.py",
+		"/E/github/Trusty-Bot/cogs/badges.py",
+		"/E/github/Trusty-Bot/data/gab/settings.json",
+		"/E/github/Trusty-Bot/cogs/bartender.py",
+		"/E/github/Discord-Selfbot/requirements.txt",
+		"/E/github/Discord-Selfbot/cogs/getfortune.py"
+	],
+	"find":
+	{
+		"height": 41.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 40.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git-commit":
+	{
+		"height": 121.0
+	},
+	"output.git-pull":
+	{
+		"height": 121.0
+	},
+	"output.git-push":
+	{
+		"height": 121.0
+	},
+	"pinned_build_system": "",
+	"project": "trusty-cogs.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"E:\\github\\Red-DiscordBot\\TrustyBot.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 196.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
