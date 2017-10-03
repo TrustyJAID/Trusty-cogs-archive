@@ -169,6 +169,7 @@ class ActivityChecker():
         return has_role
 
     async def activity_checker(self):
+        await self.bot.wait_until_ready()
         while self is self.bot.get_cog("ActivityChecker"):
             for server_id in self.log:
                 server = self.bot.get_server(id=server_id)
@@ -177,11 +178,12 @@ class ActivityChecker():
                 cur_time = time.time()
                 for member_id in self.log[server.id]:
                     member = server.get_member(member_id)
-                    user = await self.bot.get_user_info(member.id)
+                    if member is None:
+                        continue
                     if not self.check_roles(member, roles):
                         continue
-                    if user.bot or member is server.owner or member.id == self.bot.settings.owner:
-                        print("I Should ignore this user " + user.name)
+                    if member.bot or member is server.owner or member.id == self.bot.settings.owner:
+                        # print("I Should ignore this user " + member.name)
                         continue
                     last_msg_time = cur_time - self.log[server.id][member.id]
                     if last_msg_time > self.settings[server.id]["time"]:
@@ -204,7 +206,7 @@ class ActivityChecker():
                             await self.bot.kick(member)
                             del self.log[server.id][member.id]
                             dataIO.save_json(self.log_file, self.log)
-            await asyncio.sleep(5)
+            await asyncio.sleep(15)
 
 
 
