@@ -9,6 +9,7 @@ import urllib.request
 import aiohttp
 import json
 import time
+from datetime import datetime
 
 class ActivityChecker():
 
@@ -38,6 +39,27 @@ class ActivityChecker():
             for role in self.settings[server.id]["check_roles"]:
                 msg += role + ", "
         await self.bot.send_message(ctx.message.channel, "```" + msg[:-2] + "```")
+
+    @activity.command(pass_context=True, name="next")
+    async def get_time_left(self, ctx):
+        last_post_time = time.time()
+        server = ctx.message.server
+        for member_id in self.log[server.id]:
+            member = server.get_member(member_id)
+            roles = self.settings[server.id]["check_roles"]
+            if member is None:
+                continue
+            if not self.check_roles(member, roles):
+                continue
+            if member.bot or member is server.owner or member.id == self.bot.settings.owner:
+                # print("I Should ignore this user " + member.name)
+                continue
+            member_time = self.log[server.id][member.id]
+            if member_time <= last_post_time:
+                last_post_time = member_time
+        time_left = (time.time() - last_post_time)
+        clean_time = time.strftime("%j days %H hours %M minutes %S seconds", time.gmtime(time_left))
+        await self.bot.send_message(ctx.message.channel, "{} until purging starts!".format(clean_time))
 
     @activity.command(pass_context=True, name="remove")
     async def rem_server(self, ctx, server:discord.server=None):
