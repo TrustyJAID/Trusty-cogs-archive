@@ -171,12 +171,12 @@ class ActivityChecker():
     async def activity_checker(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("ActivityChecker"):
-            for server_id in self.log:
+            for server_id in (self.log):
                 server = self.bot.get_server(id=server_id)
                 channel = self.bot.get_channel(id=self.settings[server.id]["channel"])
                 roles = self.settings[server.id]["check_roles"]
                 cur_time = time.time()
-                for member_id in self.log[server.id]:
+                for member_id in list(self.log[server.id]):
                     member = server.get_member(member_id)
                     if member is None:
                         continue
@@ -193,6 +193,8 @@ class ActivityChecker():
                         answer = await self.bot.wait_for_reaction(emoji="☑", user=member, message=msg, timeout=15.0)
                         if answer is not None:
                             await self.bot.send_message(channel, "Good, you decided to stay!")
+                            self.log[server.id][member.id] = time.time()
+                            dataIO.save_json(self.log_file, self.log)
                         if answer is None:
                             await self.bot.send_message(channel, "Goodbye {}!".format(member.mention))
                             if self.settings[server.id]["invite"]:
@@ -213,6 +215,8 @@ class ActivityChecker():
     async def on_message(self, message):
         server = message.server
         author = message.author
+        if message.channel.is_private:
+            return
         if server.id not in self.log:
             return
         if author.id not in self.log[server.id]:
