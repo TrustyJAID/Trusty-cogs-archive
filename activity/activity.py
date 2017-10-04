@@ -9,7 +9,7 @@ import urllib.request
 import aiohttp
 import json
 import time
-from datetime import datetime
+from datetime import timedelta
 
 class ActivityChecker():
 
@@ -37,29 +37,52 @@ class ActivityChecker():
         else:
             msg = ""
             for role in self.settings[server.id]["check_roles"]:
-                msg += role + ", "
+                role_name = "".join(x.name for x in server.roles if x.id == role)
+                msg += role_name + ", "
         await self.bot.send_message(ctx.message.channel, "```" + msg[:-2] + "```")
+
+    async def check_ignored_users(self, server, member_id):
+        member = server.get_member(member_id)
+        roles = self.settings[server.id]["check_roles"]
+        if member is None:
+            # print("member doesn't exist on the server I should remove them from the list")
+            del self.log[server.id][member_id]
+            dataIO.save_json(self.log_file, self.log)
+            return True
+        if member.bot:
+            # print("member is a bot account, we don't care about those " + member.name)
+            return True
+        if  member is server.owner:
+            # print("member is the server owner, we can't kick them anyways " + member.name)
+            return True
+        if  member.id == self.bot.settings.owner:
+            # print("member is the bot owner, we don't want to kick them do we? " + member.name)
+            return True
+        for role in member.roles:
+            # print(role.id)
+            if role.id in roles:
+                return False
+        return True
 
     @activity.command(pass_context=True, name="next")
     async def get_time_left(self, ctx):
+        """View how much time until the next purge starts!"""
         last_post_time = time.time()
         server = ctx.message.server
-        for member_id in self.log[server.id]:
+        member_name = ""
+        for member_id in list(self.log[server.id]):
             member = server.get_member(member_id)
-            roles = self.settings[server.id]["check_roles"]
-            if member is None:
+            if await self.check_ignored_users(server, member_id):
                 continue
-            if not self.check_roles(member, roles):
-                continue
-            if member.bot or member is server.owner or member.id == self.bot.settings.owner:
-                # print("I Should ignore this user " + member.name)
-                continue
-            member_time = self.log[server.id][member.id]
+            member_time = self.log[server.id][member_id]
             if member_time <= last_post_time:
                 last_post_time = member_time
-        time_left = (time.time() - last_post_time)
-        clean_time = time.strftime("%j days %H hours %M minutes %S seconds", time.gmtime(time_left))
-        await self.bot.send_message(ctx.message.channel, "{} until purging starts!".format(clean_time))
+                member_name = member.name
+        time_left = timedelta(seconds=abs(time.time() - last_post_time - self.settings[server.id]["time"]), microseconds=0)
+        time_left = time_left - timedelta(microseconds=time_left.microseconds)
+        clean_time = "{} seconds until purging starts with {}!".format(time_left, member_name)
+        # clean_time = time.strftime("%j days %H hours %M minutes %S seconds", time.gmtime(time_left))
+        await self.bot.send_message(ctx.message.channel, clean_time)
 
     @activity.command(pass_context=True, name="remove")
     async def rem_server(self, ctx, server:discord.server=None):
@@ -67,11 +90,17 @@ class ActivityChecker():
         if server is None:
             server = ctx.message.server
         if server.id in self.settings:
-            del self.log[server.id]
             del self.settings[server.id]
-        dataIO.save_json(self.log_file, self.log)
-        dataIO.save_json(self.settings_file, self.settings)
+            dataIO.save_json(self.settings_file, self.settings)
+        if server.id in self.log:
+            del self.log[server.id]
+            dataIO.save_json(self.log_file, self.log)
         await self.bot.send_message(ctx.message.channel, "Done! No more activity checking in {}!".format(server.name))
+
+    async def get_everyone_role(self, server):
+        for role in server.roles:
+            if role.is_everyone:
+                return role.id
 
     @activity.command(pass_context=True, name="role")
     async def role_ignore(self, ctx, role:discord.Role):
@@ -80,18 +109,19 @@ class ActivityChecker():
         server_roles = self.settings[server.id]["check_roles"]
         channel = ctx.message.channel
         added_role = False
-        if role.name in server_roles:
-            self.settings[server.id]["check_roles"].remove(role.name)
+        everyone_role = await self.get_everyone_role(server)
+        if role.id in server_roles:
+            self.settings[server.id]["check_roles"].remove(role.id)
             await self.bot.send_message(channel, "Now ignoring {}!".format(role.name))
             added_role = True
-        if role.name not in server_roles and not added_role:
-            self.settings[server.id]["check_roles"].append(role.name)
+        if role.id not in server_roles and not added_role:
+            self.settings[server.id]["check_roles"].append(role.id)
             await self.bot.send_message(channel, "Now checking {}!".format(role.name))
         if len(server_roles) < 1:
-            self.settings[server.id]["check_roles"].append("@everyone")
+            self.settings[server.id]["check_roles"].append(everyone_role)
             await self.bot.send_message(channel, "Now checking everyone!")
-        if len(server_roles) > 1 and "@everyone" in server_roles:
-            self.settings[server.id]["check_roles"].remove("@everyone")
+        if len(server_roles) > 1 and everyone_role in server_roles:
+            self.settings[server.id]["check_roles"].remove(everyone_role)
         dataIO.save_json(self.settings_file, self.settings)
 
     @activity.command(pass_context=True, name="invite")
@@ -124,6 +154,8 @@ class ActivityChecker():
         cur_time = time.time()
         self.log[server.id] = {}
         for member in server.members:
+            if await self.check_ignored_users(server, member.id):
+                continue
             self.log[server.id][member.id] = cur_time
         dataIO.save_json(self.log_file, self.log)
         return
@@ -168,18 +200,18 @@ class ActivityChecker():
         if channel is None:
             channel = ctx.message.channel
         if role is not None:
-            role = role.name
+            role = role.id
         if role is None:
-            role = "@everyone"
+            role = await self.get_everyone_role(server)
         if server.id in self.log:
             await self.bot.say("This server is already checking for activity!")
             return
-        await self.build_list(ctx, server)
         self.settings[server.id] = {"channel": channel.id,
                                     "check_roles": [role],
                                     "time": 604800,
                                     "invite": True}
         dataIO.save_json(self.settings_file, self.settings)
+        await self.build_list(ctx, server)
         await self.bot.send_message(ctx.message.channel, "Sending activity check messages to {}".format(channel.mention))
 
     def check_roles(self, member, roles):
@@ -200,12 +232,7 @@ class ActivityChecker():
                 cur_time = time.time()
                 for member_id in list(self.log[server.id]):
                     member = server.get_member(member_id)
-                    if member is None:
-                        continue
-                    if not self.check_roles(member, roles):
-                        continue
-                    if member.bot or member is server.owner or member.id == self.bot.settings.owner:
-                        # print("I Should ignore this user " + member.name)
+                    if await self.check_ignored_users(server, member_id):
                         continue
                     last_msg_time = cur_time - self.log[server.id][member.id]
                     if last_msg_time > self.settings[server.id]["time"]:
@@ -221,8 +248,9 @@ class ActivityChecker():
                             await self.bot.send_message(channel, "Goodbye {}!".format(member.mention))
                             if self.settings[server.id]["invite"]:
                                 invite = await self.bot.create_invite(server, unique=False)
+                                invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite.url)
                                 try:
-                                    await self.bot.send_message(discord.User(id=member.id), invite.url)
+                                    await self.bot.send_message(discord.User(id=member.id), invite_msg)
                                 except(discord.errors.Forbidden, discord.errors.NotFound):
                                     await self.bot.send_message(channel, "RIP")
                                 except discord.errors.HTTPException:
@@ -242,7 +270,10 @@ class ActivityChecker():
         if server.id not in self.log:
             return
         if author.id not in self.log[server.id]:
-            self.log[server.id][author.id] = time.time()
+            if not await self.check_ignored_users(server, author.id):
+                self.log[server.id][author.id] = time.time()
+            else:
+                return
         self.log[server.id][author.id] = time.time()
         dataIO.save_json(self.log_file, self.log)
 
