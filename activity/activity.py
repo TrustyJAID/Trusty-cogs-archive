@@ -191,6 +191,7 @@ class ActivityChecker():
             return
         self.settings[server.id]["channel"] = channel.id
         dataIO.save_json(self.settings_file, self.settings)
+        await self.bot.send_message(ctx.message.channel, "Okay, sending warning messages to {}".format(channel.mention))
 
 
     @activity.command(pass_context=True, name="set")
