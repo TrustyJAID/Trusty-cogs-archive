@@ -251,7 +251,7 @@ class ActivityChecker():
                                 invite = await self.bot.create_invite(server, unique=False)
                                 invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite.url)
                                 try:
-                                    await self.bot.send_message(discord.User(id=member.id), invite_msg)
+                                    await self.bot.send_message(member, invite_msg)
                                 except(discord.errors.Forbidden, discord.errors.NotFound):
                                     await self.bot.send_message(channel, "RIP")
                                 except discord.errors.HTTPException:
