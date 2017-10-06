@@ -73,6 +73,9 @@ class ActivityChecker():
         last_post_time = time.time()
         server = ctx.message.server
         member_name = ""
+        if server.id not in self.log:
+            await self.bot.send_message(ctx.message.channel, "I don't have activity checking set on this server!")
+            return
         for member_id in list(self.log[server.id]):
             member = server.get_member(member_id)
             if await self.check_ignored_users(server, member_id):
@@ -251,14 +254,22 @@ class ActivityChecker():
                         if answer is None:
                             await self.bot.send_message(channel, "Goodbye {}!".format(member.mention))
                             if self.settings[server.id]["invite"]:
-                                invite = await self.bot.create_invite(server, unique=False)
-                                invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite.url)
                                 try:
-                                    await self.bot.send_message(member, invite_msg)
-                                except(discord.errors.Forbidden, discord.errors.NotFound):
-                                    await self.bot.send_message(channel, "RIP")
-                                except discord.errors.HTTPException:
-                                    pass
+                                    invite = await self.bot.create_invite(server, unique=False)
+                                except(discord.errors.NotFound):
+                                    invite = await self.bot.create_invite(server.default_channel, unique=False)
+                                except(discord.errors.NotFound):
+                                    invite = None
+                                if invite is not None:
+                                    invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite.url)
+                                    try:
+                                        await self.bot.send_message(member, invite_msg)
+                                    except(discord.errors.Forbidden, discord.errors.NotFound):
+                                        await self.bot.send_message(channel, "RIP")
+                                    except discord.errors.HTTPException:
+                                        pass
+                                else:
+                                    print("I can't create invites for some reason!")
                             await self.bot.kick(member)
                             del self.log[server.id][member.id]
                             dataIO.save_json(self.log_file, self.log)
