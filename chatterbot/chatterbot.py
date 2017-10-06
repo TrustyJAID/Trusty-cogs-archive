@@ -19,7 +19,7 @@ class Chatterbot():
         self.bot = bot
         self.settings = dataIO.load_json("data/chatterbot/settings.json")
         self.log = dataIO.load_json("data/chatterbot/log.json")
-        self.chatbot = chatterbot.ChatBot("TrustyBot", 
+        self.chatbot = chatterbot.ChatBot(self.bot.user.display_name, 
                                           storage_adapter="chatterbot.storage.MongoDatabaseAdapter",
                                           # database="data/chatterbot/db",
                                           logic_adapters=[
