@@ -296,8 +296,9 @@ class ActivityChecker():
                                 if invite is None:
                                     # tries to create an invite link
                                     invite = self.get_invite_link(server)
+                                    invite = invite.url
                                 if invite is not None:
-                                    invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite.url)
+                                    invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite)
                                     try:
                                         await self.bot.send_message(member, invite_msg)
                                     except(discord.errors.Forbidden, discord.errors.NotFound):
