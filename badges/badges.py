@@ -14,6 +14,8 @@ try:
     from PIL import ImageDraw
     from PIL import ImageSequence
     import numpy as np
+    from barcode import generate
+    from barcode.writer import ImageWriter
     importavailable = True
 except ImportError:
     importavailable = False
@@ -32,7 +34,9 @@ class Badges:
                                "gab":"data/badges/gab-template.png",
                                "dop":"data/badges/dop-template.png",
                                "shit":"data/badges/shit-template.png",
-                               "bunker":"data/badges/bunker-template.png"}
+                               "bunker":"data/badges/bunker-template.png",
+                               "nk":"data/badges/nk-template.png",
+                               "kek": "data/badges/kek-template.png"}
         
 
     async def dl_image(self, url, ext="png"):
@@ -41,14 +45,7 @@ class Badges:
                 test = await resp.read()
                 with open(self.files + "temp/temp." + ext, "wb") as f:
                     f.write(test)
-    
-    async def get_barcode(self, userid):
-        with aiohttp.ClientSession() as session:
-            async with session.get("http://api-bwipjs.rhcloud.com/?bcid=telepen&text={}&scale=2&includetext".format(userid)) as resp:
-                test = await resp.read()
-                with open(self.files + "bar_code_temp.png", "wb") as f:
-                    f.write(test)
-    
+
     async def create_badge(self, user, badge):
         avatar = user.avatar_url if user.avatar_url != "" else user.default_avatar_url
         username = user.display_name
@@ -67,14 +64,16 @@ class Badges:
         if "gif" in avatar:
             ext = "gif"
         await self.dl_image(avatar, ext)
-        await self.get_barcode(userid)
+        temp_barcode = generate("code39", userid, 
+                                writer=ImageWriter(), 
+                                output="data/badges/temp/bar_code_temp")
         template = Image.open(self.blank_template[badge])
         template = template.convert("RGBA")
-        avatar = Image.open(self.files + "temp." + ext)
-        barcode = Image.open(self.files + "bar_code_temp.png")
+        avatar = Image.open(self.files + "temp/temp." + ext)
+        barcode = Image.open(self.files + "temp/bar_code_temp.png")
         barcode = barcode.convert("RGBA")
-        barcode.thumbnail((535,125))
-        template.paste(barcode, (420,520), barcode)
+        barcode = barcode.resize((555,125), Image.ANTIALIAS)
+        template.paste(barcode, (400,520), barcode)
         # font for user information
         font1 = ImageFont.truetype("data/badges/arial.ttf", 30)
         # font for extra information
@@ -146,7 +145,7 @@ def check_folder():
 def setup(bot):
     check_folder
     if not importavailable:
-        raise NameError("You need to run `pip3 install pillow` and `pip3 install numpy`")
+        raise NameError("You need to run `pip3 install pillow` and `pip3 install numpy` and `pip3 install pybarcode`")
     n = Badges(bot)
     bot.add_cog(n)
 
