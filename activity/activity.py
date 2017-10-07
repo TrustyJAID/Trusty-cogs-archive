@@ -254,7 +254,8 @@ class ActivityChecker():
                                     "check_roles": [role],
                                     "time": 604800,
                                     "invite": True,
-                                    "link": invite_link}
+                                    "link": invite_link,
+                                    "rip_count": 0}
         dataIO.save_json(self.settings_file, self.settings)
         await self.build_list(ctx, server)
         await self.bot.send_message(ctx.message.channel, "Sending activity check messages to {}".format(channel.mention))
@@ -302,11 +303,19 @@ class ActivityChecker():
                                     try:
                                         await self.bot.send_message(member, invite_msg)
                                     except(discord.errors.Forbidden, discord.errors.NotFound):
-                                        await self.bot.send_message(channel, "RIP")
+                                        if "rip_count" not in self.settings[server.id]:
+                                            self.settings[server.id]["rip_count"] = 0
+                                        self.settings[server.id]["rip_count"] += 1
+                                        dataIO.save_json(self.settings_file, self.settings)
+                                        await self.bot.send_message(channel, "RIP #{0} {1}".format(self.settings[server.id]["rip_count"], member.name))
                                     except discord.errors.HTTPException:
                                         pass
                                 else:
-                                    await self.bot.send_message(channel, "RIP")
+                                    if "rip_count" not in self.settings[server.id]:
+                                        self.settings[server.id]["rip_count"] = 0
+                                    self.settings[server.id]["rip_count"] += 1
+                                    dataIO.save_json(self.settings_file, self.settings)
+                                    await self.bot.send_message(channel, "RIP #{0} {1}".format(self.settings[server.id]["rip_count"], member.name))
                                     print("I can't create invites for some reason! Set a link for me to use!")
                             await self.bot.kick(member)
                             del self.log[server.id][member.id]
