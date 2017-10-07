@@ -258,7 +258,7 @@ class ActivityChecker():
                                     invite = await self.bot.create_invite(server, unique=False)
                                 except(discord.errors.NotFound):
                                     invite = await self.bot.create_invite(server.default_channel, unique=False)
-                                except(discord.errors.NotFound):
+                                except AttributeError:
                                     invite = None
                                 if invite is not None:
                                     invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite.url)
