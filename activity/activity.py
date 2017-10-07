@@ -20,6 +20,11 @@ class ActivityChecker():
         self.settings = dataIO.load_json(self.settings_file)
         self.log = dataIO.load_json(self.log_file)
         self.units = {"minute" : 60, "hour" : 3600, "day" : 86400, "week": 604800, "month": 2592000}
+        # loop = asyncio.get_event_loop()
+        self.activitycheck = bot.loop.create_task(self.activity_checker())
+
+    def __unload(self):
+        self.activitycheck.cancel()
 
     @commands.group(pass_context=True)
     @checks.mod_or_permissions(kick_members=True)
@@ -361,6 +366,4 @@ def setup(bot):
     check_folder()
     check_file()
     n = ActivityChecker(bot)
-    loop = asyncio.get_event_loop()
-    loop.create_task(n.activity_checker())
     bot.add_cog(n)
