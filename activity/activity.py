@@ -171,7 +171,7 @@ class ActivityChecker():
             # tries to create a server link
             link = await self.bot.create_invite(server, unique=False)
             return link
-        except(discord.errors.NotFound):
+        except discord.errors.NotFound:
             # tries to create a server default channel link
             link = await self.bot.create_invite(server.default_channel, unique=False)
             return link
@@ -292,9 +292,10 @@ class ActivityChecker():
                         if answer is None:
                             await self.bot.send_message(channel, "Goodbye {}!".format(member.mention))
                             if self.settings[server.id]["invite"]:
-                                invite = await self.get_invite_link(server)
+                                invite = self.settings[server.id]["link"]
                                 if invite is None:
-                                    invite = self.settings[server.id]["link"]
+                                    # tries to create an invite link
+                                    invite = self.get_invite_link(server)
                                 if invite is not None:
                                     invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite.url)
                                     try:
@@ -304,6 +305,7 @@ class ActivityChecker():
                                     except discord.errors.HTTPException:
                                         pass
                                 else:
+                                    await self.bot.send_message(channel, "RIP")
                                     print("I can't create invites for some reason! Set a link for me to use!")
                             await self.bot.kick(member)
                             del self.log[server.id][member.id]
