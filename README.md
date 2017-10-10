@@ -24,6 +24,12 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 
 >conversions - Currency, crypto, and stocks commands.
 
+>chatterbot - Teach your bot how to talk by watching conversations on servers and reply. Uses chatterbot library.
+
+>emojireact - Have your bot react to emojis in messages with the emoji!
+
+>badges - Create your own badge with from discord information. Includes templates for fake CIA, NSA, FBI, and a special "shitposting" badge.
+
 >Tweets - A modified version of Palm's twitter cog utilising twitter streams to setup a twitter channel to post user tweets.
 
 **Special cogs**
