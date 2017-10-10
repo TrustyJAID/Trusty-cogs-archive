@@ -26,11 +26,7 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 
 >Tweets - A modified version of Palm's twitter cog utilising twitter streams to setup a twitter channel to post user tweets.
 
-**Special cogs uploaded for visibility**
-
->Trustybot - custom image upload and text upload commands. Includes adding an image command similar to Alias.
-
->Gabanon - a custom cog to ensure users supply an external username from gab.ai to join a server. Cog is here for reference.
+**Special cogs**
 
 >Blockchain - a cog to download and the bitcoin blockchain for hidden files and data. Requires bitcoin RPC connection and complicated setup **don't use** unless you know what you're doing.
 
