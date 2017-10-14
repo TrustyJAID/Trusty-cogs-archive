@@ -40,6 +40,7 @@ class Star:
     @starboard.command(pass_context=True, name="set")
     async def setup_starboard(self, ctx, channel: discord.Channel=None, emoji="⭐", role:discord.Role=None):
         """Sets the starboard channel, emoji and role"""
+        server = ctx.message.server
         if channel is None:
             channel = ctx.message.channel
         if "<" in emoji and ">" in emoji:
@@ -49,7 +50,7 @@ class Star:
                 return
             else:
                 emoji = ":" + emoji.name + ":" + emoji.id
-        server = ctx.message.server
+        
         if role is None:
             role = await self.get_everyone_role(server)
         self.settings[server.id] = {"emoji": emoji, 
