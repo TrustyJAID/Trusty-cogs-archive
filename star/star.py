@@ -203,15 +203,7 @@ class Star:
             else:
                 em = discord.Embed(timestamp=reaction.message.timestamp)
                 em.color = author.top_role.color
-                if "<:" in msg.content and ">" in msg.content:
-                    if msg.content.count("<:") == 1:
-                        emoji = re.findall(r'<(.*?)>', msg.content)[0]
-                        emoji_id= emoji.split(":")[-1]
-                        newmsg = re.sub('<[^>]+>', '', msg.content)
-                        em.description = newmsg
-                        em.set_image(url="https://cdn.discordapp.com/emojis/{}.png".format(emoji_id))
-                else:
-                    em.description = msg.clean_content
+                em.description = msg.content
                 em.set_author(name=author.name, icon_url=author.avatar_url)
                 em.set_footer(text='{} | {}'.format(channel.server.name, channel.name))
                 if reaction.message.attachments != []:
