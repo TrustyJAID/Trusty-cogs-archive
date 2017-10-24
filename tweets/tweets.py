@@ -58,23 +58,32 @@ class Tweets():
         default_global = {"api":{'consumer_key': '', 'consumer_secret': '',
             'access_token': '', 'access_secret': ''}, "accounts":[]}
         self.config.register_global(**default_global)
-        # auth = tw.OAuthHandler(self.config.consumer_key, self.config.consumer_secret)
-        # auth.set_access_token(self.config.access_token, self.config.access_secret)
-        # api = tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5, retry_errors=5)
-        # tweet_list = [x for x in self.config.accounts]
-        # stream_start = TweetListener(api, self.bot)
-        # self.mystream = tw.Stream(auth, stream_start)
-        # self.mystream.filter(follow=tweet_list, async=True)
+        self.loop = bot.loop.create_task(self.start_stream())
         
     def __unload(self):
-        self.mystream.disconnect()
+        if self.mystream.running:
+            self.mystream.disconnect()
+        self.loop.cancel()
+
+    async def start_stream(self):
+        await self.bot.wait_until_ready()
+        api = await self.authenticate()
+        tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
+        stream_start = TweetListener(api, self.bot)
+        self.mystream = tw.Stream(api.auth, stream_start)
+        self.start_stream_loop(tweet_list)
+
+    def start_stream_loop(self, tweet_list):
+        self.mystream.filter(follow=tweet_list, async=True)
         
 
     async def authenticate(self):
         """Authenticate with Twitter's API"""
-        auth = tw.OAuthHandler(self.config.api.consumer_key, self.config.consumer_secret)
-        auth.set_access_token(self.config.access_token, self.config.access_secret)
-        return tw.API(auth)
+        auth = tw.OAuthHandler(await self.config.api.consumer_key(), 
+                               await self.config.api.consumer_secret())
+        auth.set_access_token(await self.config.api.access_token(), 
+                              await self.config.api.access_secret())
+        return tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5, retry_errors=5)
 
     async def tweet_menu(self, ctx, post_list: list,
                          message: discord.Message=None,
@@ -99,63 +108,66 @@ class Tweets():
         em.set_footer(text="Retweet count: " + str(s.retweet_count))
         if hasattr(s, "extended_entities"):
             em.set_image(url=s.extended_entities["media"][0]["media_url"] + ":thumb")
+        print(message)
         if not message:
-            message =\
-                await ctx.send(embed=em)
+            message = await ctx.send(embed=em)
+            print(message)
             await message.add_reaction("⬅")
             await message.add_reaction("❌")
             await message.add_reaction("➡")
         else:
-            message = await message.edit(embed=em)
-        def check(reaction, user):
-            return user == ctx.message.author and reaction.emoji in ["➡", "⬅", "❌"]
-        react, user = await ctx.wait_for("reaction_add", check=check, timeout=timeout)
-
-        if react is None:
-            await ctx.remove_reaction("⬅", ctx.user)
-            await ctx.remove_reaction("❌", ctx.user)
-            await ctx.remove_reaction("➡", ctx.user)
+            # message edits don't return the message object anymore lol
+            await message.edit(embed=em)
+        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"]
+        try:
+            react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
+        except asyncio.TimeoutError:
+            await message.remove_reaction("⬅", self.bot.user)
+            await message.remove_reaction("❌", self.bot.user)
+            await message.remove_reaction("➡", self.bot.user)
             return None
-        reacts = {v: k for k, v in numbs.items()}
-        react = reacts[react.reaction.emoji]
-        if react == "next":
-            next_page = 0
-            if page == len(post_list) - 1:
-                next_page = 0  # Loop around to the first item
-            else:
-                next_page = page + 1
-            return await self.tweet_menu(ctx, post_list, message=message,
-                                         page=next_page, timeout=timeout)
-        elif react == "back":
-            next_page = 0
-            if page == 0:
-                next_page = len(post_list) - 1  # Loop around to the last item
-            else:
-                next_page = page - 1
-            return await self.tweet_menu(ctx, post_list, message=message,
-                                         page=next_page, timeout=timeout)
         else:
-            return await\
-                ctx.delete_message(message)
+            reacts = {v: k for k, v in numbs.items()}
+            react = reacts[react.emoji]
+            if react == "next":
+                next_page = 0
+                if page == len(post_list) - 1:
+                    next_page = 0  # Loop around to the first item
+                else:
+                    next_page = page + 1
+                return await self.tweet_menu(ctx, post_list, message=message,
+                                             page=next_page, timeout=timeout)
+            elif react == "back":
+                next_page = 0
+                if page == 0:
+                    next_page = len(post_list) - 1  # Loop around to the last item
+                else:
+                    next_page = page - 1
+                return await self.tweet_menu(ctx, post_list, message=message,
+                                             page=next_page, timeout=timeout)
+            else:
+                return await ctx.delete(message)
 
-    @commands.group(pass_context=True, no_pm=True, name='tweets')
+    @commands.group( no_pm=True, name='tweets')
     async def _tweets(self, ctx):
         """Gets various information from Twitter's API"""
         if ctx.invoked_subcommand is None:
-            await ctx.send_cmd_help(ctx)
+            await ctx.send_help()
 
-    @_tweets.command(pass_context=True, name="send")
+    @_tweets.command( name="send")
     @checks.is_owner()
     async def send_tweet(self, ctx, *, message: str):
+        """Allows the owner to send tweets through discord"""
         api = await self.authenticate()
         api.update_status(message)
         await ctx.send_message(ctx.message.channel, "Tweet sent!")
 
 
     def random_colour(self):
+        """Returns a random hex colour for discord.Colour() objects"""
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
 
-    @_tweets.command(pass_context=True, no_pm=True, name='getuser')
+    @_tweets.command( no_pm=True, name='getuser')
     async def get_user(self, ctx, username: str):
         """Get info about the specified user"""
         message = ""
@@ -176,27 +188,24 @@ class Tweets():
                 emb.add_field(name="Verified", value="No")
             footer = "Created at " + user.created_at.strftime("%Y-%m-%d %H:%M:%S")
             emb.set_footer(text=footer)
-            await ctx.send_message(ctx.message.channel, embed=emb)
+            await ctx.send(ctx.message.channel, embed=emb)
         else:
             message = "Uh oh, an error occurred somewhere!"
             await ctx.send(message)
 
-    @_tweets.command(pass_context=True, no_pm=True, name='gettweets')
-    async def get_tweets(self, ctx, username: str, count: int):
+    @_tweets.command( no_pm=True, name='gettweets')
+    async def get_tweets(self, ctx, username: str, count: int=1):
         """Gets the specified number of tweets for the specified username"""
         cnt = count
         if count > 25:
             cnt = 25
-        if username not in self.settings["accounts"]:
-            replies_on = False
+        followed_accounts = [x for x in await self.config.accounts()]
+        if username.lower() in [x["twitter_name"].lower() for x in followed_accounts]:
+            account = [x for x in followed_accounts if username.lower() == x["twitter_name"].lower()]
+            replies_on = account[0]["replies"]
         else:
-            replies_on = self.settings["accounts"][username]["replies"]
-
+            replies_on = False
         if username is not None:
-            if cnt < 1:
-                await ctx.send("I can't do that, silly! Please specify a \
-                    number greater than or equal to 1")
-                return
             msg_list = []
             api = await self.authenticate()
             try:
@@ -216,16 +225,24 @@ class Tweets():
         else:
             await ctx.send("No username specified!")
             return
+
+    @commands.command()
+    async def testingtweets(self, ctx, user_id=34713362):
+        account = [x for x in await self.get_followed_accounts() if x.twitter_id == user_id]
+        print(account[0].twitter_name)
     
     async def on_tweet_status(self, status):
         """Posts the tweets to the channel"""
-        # await ctx.send_message(ctx.get_channel("321105104931389440"), status.text)
         username = status.user.screen_name
-        user_id = str(status.user.id)
-        if user_id not in self.config.accounts:
+        user_id = status.user.id
+        account = None
+        for accounts in await self.get_followed_accounts():
+            if accounts.twitter_id == user_id:
+                account = accounts
+        if not account:
             return
         try:
-            if status.in_reply_to_screen_name is not None and not self.settings["accounts"][user_id]["replies"]:
+            if status.in_reply_to_screen_name is not None and not account[0].replies:
                 return
             post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
             em = discord.Embed(description=status.text,
@@ -240,43 +257,34 @@ class Tweets():
                 em.set_image(url=status.extended_entities["media"][0]["media_url"])
 
             if status.text.startswith("RELEASE:") and username == "wikileaks":
-                channel_send = await self.bot.get_channel(365376327278395393)
+                channel_send = self.bot.get_channel(365376327278395393)
                 await channel_send.send_message(embed=em)
-            for channel in list(self.config.accounts.user_id.channel):
-                channel_send = await self.bot.get_channel(int(channel))
+            channel_list = account.channel
+            for channel in channel_list:
+                channel_send = self.bot.get_channel(int(channel))
                 await channel_send.send(embed=em)
-            # self.settings["accounts"][user_id]["lasttweet"] = status.id
-            # dataIO.save_json(self.settings_file, self.settings)
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
             return
     
-    @commands.group(pass_context=True, name='autotweet')
+    @commands.group(name='autotweet')
     @checks.admin_or_permissions(manage_channels=True)
     async def _autotweet(self, ctx):
         """Command for setting accounts and channels for posting"""
         if ctx.invoked_subcommand is None:
-            await ctx.send_cmd_help(ctx)
+            await ctx.send_help()
 
-    @_autotweet.command(pass_context=True, name="restart")
+    @_autotweet.command( name="restart")
     async def restart_stream(self, ctx):
         """Restarts the twitter stream if any issues occur."""
-        self.autotweet_restart()
+        if self.mystream.running:
+            self.mystream.disconnect()
+            self.loop.cancel()
+        await self.start_stream()
         await ctx.send("Restarting the twitter stream.")
-
-    def autotweet_restart(self):
-        """Restarts the stream by disconnecting the old one and starting it again with new data"""
-        self.mystream.disconnect()
-        auth = tw.OAuthHandler(self.config.consumer_key, self.config.consumer_secret)
-        auth.set_access_token(self.config.access_token, self.config.access_secret)
-        api = tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5, retry_errors=5)
-        tweet_list = list(self.config.accounts)
-        stream_start = TweetListener(api, self.bot)
-        self.mystream = tw.Stream(auth, stream_start)
-        self.mystream.filter(follow=tweet_list, async=True)
     
-    @_autotweet.command(pass_context=True, name="replies")
+    @_autotweet.command( name="replies")
     async def _replies(self, ctx, account, replies):
         """Enable or disable twitter replies from being posted for an account"""
         account = account.lower()
@@ -300,17 +308,18 @@ class Tweets():
         return (TweetEntry.from_json(d) for d in (await self.config.accounts()))
 
     async def is_followed_account(self, twitter_id) -> bool:
-        followed_accounts = await self.get_followed_accounts()
+        followed_accounts = [x for x in await self.config.accounts()]
 
         for account in followed_accounts:
-            if account.id == twitter_id:
+            if account["twitter_id"] == twitter_id:
                 return True, account
         return False, None
 
-    @_autotweet.command(pass_context=True, name="add")
-    async def _add(self, ctx, account, channel:discord.TextChannel=None):
+    @_autotweet.command(name="add")
+    async def _add(self, ctx, account:str, channel:discord.TextChannel=None):
         """Adds a twitter account to the specified channel"""
         api = await self.authenticate()
+        print(account)
         try:
             for status in tw.Cursor(api.user_timeline, id=account).items(1):
                 user_id = status.user.id
@@ -323,45 +332,49 @@ class Tweets():
             return
         if channel is None:
             channel = ctx.message.channel
-        followed_accounts = await self.config.accounts()
+        followed_accounts = [x for x in await self.config.accounts()]
 
         is_followed, twitter_account = await self.is_followed_account(user_id)
         if is_followed:
-            if channel.id in twitter_account.channel:
+            if channel.id in twitter_account["channel"]:
                 await ctx.send("I am already posting {} tweets in {}".format(screen_name, channel.mention))
                 return
             else:
-                twitter_account.channel.append(channel.id)
-                return
+                followed_accounts.remove(twitter_account)
+                twitter_account["channel"].append(channel.id)
+                followed_accounts.append(twitter_account)
+                await self.config.accounts.set(followed_accounts)
         else:
             twitter_account = TweetEntry(user_id, screen_name, [channel.id], last_id)
             followed_accounts.append(twitter_account.to_json())
             await self.config.accounts.set(followed_accounts)
         await ctx.send("{0} Added to {1}!".format(account, channel.mention))
-        self.autotweet_restart()
+        # self.autotweet_restart()
 
-    @_autotweet.command(pass_context=True, name="list")
+    @_autotweet.command( name="list")
     async def _list(self, ctx):
-        """Lists the autotweet accounts on the server"""
+        """Lists the autotweet accounts on the guild"""
         account_list = ""
-        server = ctx.message.server
-        server_channels = [x.id for x in server.channels]
-        for account in self.config.accounts:
-            for channel_id in account.channel:
-                if channel_id in server_channels:
-                    account_list += account.twitter_name + ", "
-        if account_list != "":
-            embed = discord.Embed(title="Twitter accounts posting in {}".format(server.name),
+        guild = ctx.message.guild
+
+        accounts = [x for x in await self.config.accounts()]
+        embed = discord.Embed(title="Twitter accounts posting in {}".format(guild.name),
                                   colour=discord.Colour(value=self.random_colour()),
-                                  description=account_list[:-2],
-                                  timestamp=ctx.message.timestamp)
-            embed.set_author(name=server.name, icon_url=server.icon_url)
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send("I don't seem to have autotweets setup here!")
+                                  # description=account_list[:-2],
+                                  timestamp=ctx.message.created_at)
+        embed.set_author(name=guild.name, icon_url=guild.icon_url)
+        for channel in guild.channels:
+            account_list = ""
+            for account in accounts:
+                if channel.id in account["channel"]:
+                    account_list += account["twitter_name"] + ", "
+            if account_list != "":
+                embed.add_field(name=channel.name, value=account_list[:-2])
+        await ctx.send(embed=embed)
 
 
-    @_autotweet.command(pass_context=True, name="del", aliases=["delete", "rem", "remove"])
+
+    @_autotweet.command( name="del", aliases=["delete", "rem", "remove"])
     async def _del(self, ctx, account, channel:discord.TextChannel=None):
         """Removes a twitter account to the specified channel"""
         account = account.lower()
@@ -370,33 +383,36 @@ class Tweets():
             channel = ctx.message.channel
         try:
             for status in tw.Cursor(api.user_timeline, id=account).items(1):
-                user_id = str(status.user.id)      
+                user_id = status.user.id     
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                     The error code is " + str(e) + account)
-            await ctx.send("That account does not exist! Try again")
+            await ctx.send("Something went wrong here! Try again")
             return
-        if user_id not in self.settings["accounts"]:
+        account_ids = [x["twitter_id"] for x in await self.config.accounts()]
+        if user_id not in account_ids:
             await ctx.send("{} is not in my list of accounts!".format(account))
             return
-
-        channel_list = self.settings["accounts"][user_id]["channel"]
-        if channel.id in channel_list:
-            self.settings["accounts"][user_id]["channel"].remove(channel.id)
-            dataIO.save_json(self.settings_file, self.settings)
-            self.autotweet_restart()
-            await ctx.send("{} has been removed from {}".format(account, channel.mention))
-            if len(self.settings["accounts"][user_id]["channel"]) < 2:
-                del self.settings["accounts"][user_id]
-                dataIO.save_json(self.settings_file, self.settings)
-                self.autotweet_restart()
+        account_list = [x for x in await self.config.accounts()]
+        twitter_account = [x for x in account_list if user_id == x["twitter_id"]][0]
+        if channel.id in twitter_account["channel"]:
+            account_list.remove(twitter_account)
+            twitter_account["channel"].remove(channel.id)
+            account_list.append(twitter_account)
+            await self.config.accounts.set(account_list)
+            # self.autotweet_restart()
+            await ctx.send("{} has been removed from {}".format(twitter_account["twitter_name"], channel.mention))
+            if len(twitter_account["channel"]) < 1:
+                account_list.remove(twitter_account)
+                await self.config.accounts.set(account_list)
+                # self.autotweet_restart()
         else:
             await ctx.send("{0} doesn't seem to be posting in {1}!"
                                .format(account, channel.mention))
 
 
-    @commands.group(pass_context=True, name='tweetset')
-    @checks.admin_or_permissions(manage_server=True)
+    @commands.group( name='tweetset')
+    @checks.admin_or_permissions(manage_guild=True)
     async def _tweetset(self, ctx):
         """Command for setting required access information for the API.
         To get this info, visit https://apps.twitter.com and create a new application.
@@ -404,30 +420,13 @@ class Tweets():
         button that sends Create my access token and click that. Once that is done,
         use the subcommands of this command to set the access details"""
         if ctx.invoked_subcommand is None:
-            await ctx.send_cmd_help(ctx)
+            await ctx.send_help()
 
     @_tweetset.command(name='creds')
     @checks.is_owner()
-    async def set_creds(self, consumer_key: str, consumer_secret: str, access_token: str, access_secret: str):
+    async def set_creds(self, ctx, consumer_key: str, consumer_secret: str, access_token: str, access_secret: str):
         """Sets the access credentials. See [p]help tweetset for instructions on getting these"""
-        if consumer_key is not None:
-           self.config.consumer_key = consumer_key
-        else:
-            await ctx.send("No consumer key provided!")
-            return
-        if consumer_secret is not None:
-            self.config.consumer_secret = consumer_secret
-        else:
-            ctx.send("No consumer secret provided!")
-            return
-        if access_token is not None:
-            self.config.access_token = access_token
-        else:
-            ctx.send("No access token provided!")
-            return
-        if access_secret is not None:
-            self.config.access_secret = access_secret
-        else:
-            await ctx.send("No access secret provided!")
-            return
+        api = {'consumer_key': consumer_key, 'consumer_secret': consumer_secret,
+            'access_token': access_token, 'access_secret': access_secret}
+        await self.config.api.set(api)
         await ctx.send('Set the access credentials!')
