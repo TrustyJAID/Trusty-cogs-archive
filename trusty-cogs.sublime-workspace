@@ -32,10 +32,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    master E:\\github\\Trusty-cogs\nHead:     d296679 Updated cog to not be blocking still requires elaborate setup\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     c52ad1f Updated to V3 rewrite\n\n\nUntracked files:\n\trainbow/__init__.py\n\nChanges:\n\tModified   rainbow/rainbow.py\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 991,
+				"buffer_size": 1025,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -43,28 +43,11 @@
 			}
 		},
 		{
-			"file": "activity/activity.py",
+			"file": ".gitignore",
 			"settings":
 			{
-				"buffer_size": 17788,
+				"buffer_size": 661,
 				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "blockchain/blockchain.py",
-			"settings":
-			{
-				"buffer_size": 12582,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "README.md",
-			"settings":
-			{
-				"buffer_size": 1653,
 				"line_ending": "Windows"
 			}
 		}
@@ -114,15 +97,23 @@
 	"expanded_folders":
 	[
 		"/E/github/Trusty-cogs",
-		"/E/github/Trusty-cogs/blockchain",
-		"/E/github/Trusty-cogs/blockchain/data",
-		"/E/github/Trusty-cogs/chatterbot",
-		"/E/github/Trusty-cogs/halo",
+		"/E/github/Trusty-cogs/faces",
 		"/E/github/Trusty-cogs/star",
 		"/E/github/Trusty-cogs/tweets"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-Bot/data/blockchain/sdata.txt",
+		"/E/github/Trusty-Bot/data/blockchain/originaldata.txt",
+		"/E/github/Trusty-Bot/data/blockchain/idata.txt",
+		"/E/github/Trusty-cogs/rainbow/__init__.py",
+		"/E/github/Trusty-cogs/rainbow/rainbow.py",
+		"/E/github/Trusty-cogs/juche/juche.py",
+		"/E/github/Trusty-cogs/tweets/__init__.py",
+		"/E/github/Trusty-cogs/juche/__init__.py",
+		"/E/github/Trusty-cogs/README.md",
+		"/E/github/Trusty-cogs/blockchain/blockchain.py",
+		"/E/github/Trusty-cogs/activity/activity.py",
 		"/E/github/Trusty-cogs/chatterbot/chatterbot.py",
 		"/E/github/Trusty-cogs/tweets/tweets.py",
 		"/E/github/Trusty-cogs/badges/badges.py",
@@ -172,6 +163,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"re",
+			"string",
+			"server",
 			"raw_input"
 		],
 		"highlight": true,
@@ -180,6 +174,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"guild"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -198,15 +193,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 991,
+						"buffer_size": 1025,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								186,
-								186
+								142,
+								142
 							]
 						],
 						"settings":
@@ -229,90 +224,30 @@
 				},
 				{
 					"buffer": 1,
-					"file": "activity/activity.py",
+					"file": ".gitignore",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 17788,
+						"buffer_size": 661,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								17788
+								661,
+								661
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
-						"translation.x": 18.0,
+						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "blockchain/blockchain.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 12582,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								8060,
-								8060
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 444.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "README.md",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1653,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								206,
-								206
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Markdown/Markdown.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
 					"type": "text"
 				}
 			]
