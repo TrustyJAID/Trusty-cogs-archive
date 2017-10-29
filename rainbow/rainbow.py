@@ -3,10 +3,6 @@ import time
 from discord.ext import commands
 from random import choice, randint
 import asyncio
-from .utils import checks
-from .utils import dataIO
-from .utils.dataIO import fileIO
-from .utils.dataIO import dataIO
 import os
 import time
 
@@ -79,25 +75,3 @@ class Rainbow:
                     await self.bot.edit_role(server, role, colour=discord.Colour(value=colour))
             # print("Roles updated!")
             await asyncio.sleep(self.settings["delay"])
-    
-
-def check_folders():
-    if not os.path.exists("data/rainbow"):
-        print("Creating data/rainbow folder...")
-        os.makedirs("data/rainbow")
-
-def check_files():
-    settings = {"delay" : 300, "servers": {}}
-    f = "data/rainbow/settings.json"
-    if not fileIO(f, "check"):
-        print("Creating empty settings.json...")
-        dataIO.save_json(f, settings)
-
-
-def setup(bot):
-    check_folders()
-    check_files()
-    n = Rainbow(bot)
-    loop = asyncio.get_event_loop()
-    loop.create_task(n.change_colours())
-    bot.add_cog(n)
