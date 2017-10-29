@@ -37,17 +37,20 @@ class TweetListener(tw.StreamListener):
 
     def on_error(self, status_code):
         msg = "A tweet stream error has occured! " + str(status_code)
+        print(msg)
         self.bot.dispatch("tweet_error", msg)
         if status_code in [420, 504, 503, 502, 500, 400, 401, 403, 404]:
             return False
 
     def on_disconnect(self, notice):
         msg = "Twitter has sent a disconnect code"
+        print(msg)
         self.bot.dispatch("tweet_error", msg)
         return False
 
     def on_warning(self, notice):
         msg = "Twitter has sent a disconnection warning"
+        print(msg)
         self.bot.dispatch("tweet_error", msg)
         return True
 
@@ -227,11 +230,10 @@ class Tweets():
 
     async def on_tweet_error(self, error):
         """Posts error messages to a specified channel by the owner"""
-        try:
+        if self.settings["error_channel"] is not None:
             channel = await self.bot.get_channel(self.settings["error_channel"])
             await self.bot.send_message(channel, error)
-        except:
-            return
+        return
 
     
     async def on_tweet_status(self, status):
@@ -265,6 +267,9 @@ class Tweets():
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
+            if self.settings["error_channel"] is not None:
+                error_channel = await self.bot.get_channel(self.settings["error_channel"])
+                await self.bot.send_message(error_channel, "{} :username {}".format(e, username))
             return
     
     @commands.group(pass_context=True, name='autotweet')
@@ -456,7 +461,7 @@ def check_folder():
 
 def check_file():
     data = {"api":{'consumer_key': '', 'consumer_secret': '',
-            'access_token': '', 'access_secret': ''}, 'accounts': {}}
+            'access_token': '', 'access_secret': ''}, 'accounts': {}, 'error_channel': None}
     f = "data/tweets/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")
