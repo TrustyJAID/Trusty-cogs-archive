@@ -37,16 +37,22 @@ class TweetListener(tw.StreamListener):
             return True
 
     def on_error(self, status_code):
-        print("A tweet stream error has occured! " + str(status_code))
+        msg = "A tweet stream error has occured! " + str(status_code)
+        print(msg)
+        self.bot.dispatch("tweet_error", msg)
         if status_code in [420, 504, 503, 502, 500, 400, 401, 403, 404]:
             return False
 
     def on_disconnect(self, notice):
-        print("Twitter has sent a disconnect code")
+        msg = "Twitter has sent a disconnect code"
+        print(msg)
+        self.bot.dispatch("tweet_error", msg)
         return False
 
     def on_warning(self, notice):
-        print("Twitter has sent a disconnection warning")
+        msg = "Twitter has sent a disconnection warning"
+        print(msg)
+        self.bot.dispatch("tweet_error", msg)
         return True
 
 
@@ -56,7 +62,7 @@ class Tweets():
         self.bot = bot
         self.config = Config.get_conf(self, 133926854)
         default_global = {"api":{'consumer_key': '', 'consumer_secret': '',
-            'access_token': '', 'access_secret': ''}, "accounts":[]}
+            'access_token': '', 'access_secret': ''}, "accounts":[], "error_channel": None}
         self.config.register_global(**default_global)
         self.loop = bot.loop.create_task(self.start_stream())
         
@@ -226,10 +232,12 @@ class Tweets():
             await ctx.send("No username specified!")
             return
 
-    @commands.command()
-    async def testingtweets(self, ctx, user_id=34713362):
-        account = [x for x in await self.get_followed_accounts() if x.twitter_id == user_id]
-        print(account[0].twitter_name)
+    async def on_tweet_error(self, error):
+        """Posts tweet stream errors to a specified channel"""
+        if await self.config.error_channel() is not None:
+            channel = self.bot.get_channel(await self.config.error_channel())
+            await channel.send(error)
+        return
     
     async def on_tweet_status(self, status):
         """Posts the tweets to the channel"""
@@ -255,10 +263,6 @@ class Tweets():
                 print(status.user.name + " could not get profile image!")
             if hasattr(status, "extended_entities"):
                 em.set_image(url=status.extended_entities["media"][0]["media_url"])
-
-            if status.text.startswith("RELEASE:") and username == "wikileaks":
-                channel_send = self.bot.get_channel(365376327278395393)
-                await channel_send.send_message(embed=em)
             channel_list = account.channel
             for channel in channel_list:
                 channel_send = self.bot.get_channel(int(channel))
@@ -266,6 +270,9 @@ class Tweets():
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
+            if await self.error_channel() is not None:
+                error_channel = await self.bot.get_channel(await self.error_channel())
+                error_channel.send(e + ": Username" + username)
             return
     
     @commands.group(name='autotweet')
@@ -275,14 +282,24 @@ class Tweets():
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
+    @_autotweet.command(name="error")
+    async def _error(self, ctx, channel:discord.TextChannel=None):
+        if not channel:
+            channel = ctx.channel
+        await self.config.error_channel.set(channel.id)
+        await ctx.send("Twitter error channel set to {}".format(channel.mention))
+
     @_autotweet.command( name="restart")
     async def restart_stream(self, ctx):
         """Restarts the twitter stream if any issues occur."""
+        await self.autotweet_restart()
+        await ctx.send("Restarting the twitter stream.")
+
+    async def autotweet_restart(self):
         if self.mystream.running:
             self.mystream.disconnect()
             self.loop.cancel()
         await self.start_stream()
-        await ctx.send("Restarting the twitter stream.")
     
     @_autotweet.command( name="replies")
     async def _replies(self, ctx, account, replies):
@@ -319,7 +336,6 @@ class Tweets():
     async def _add(self, ctx, account:str, channel:discord.TextChannel=None):
         """Adds a twitter account to the specified channel"""
         api = await self.authenticate()
-        print(account)
         try:
             for status in tw.Cursor(api.user_timeline, id=account).items(1):
                 user_id = status.user.id
@@ -349,7 +365,7 @@ class Tweets():
             followed_accounts.append(twitter_account.to_json())
             await self.config.accounts.set(followed_accounts)
         await ctx.send("{0} Added to {1}!".format(account, channel.mention))
-        # self.autotweet_restart()
+        await self.autotweet_restart()
 
     @_autotweet.command( name="list")
     async def _list(self, ctx):
@@ -400,12 +416,11 @@ class Tweets():
             twitter_account["channel"].remove(channel.id)
             account_list.append(twitter_account)
             await self.config.accounts.set(account_list)
-            # self.autotweet_restart()
             await ctx.send("{} has been removed from {}".format(twitter_account["twitter_name"], channel.mention))
             if len(twitter_account["channel"]) < 1:
                 account_list.remove(twitter_account)
                 await self.config.accounts.set(account_list)
-                # self.autotweet_restart()
+            await self.autotweet_restart()
         else:
             await ctx.send("{0} doesn't seem to be posting in {1}!"
                                .format(account, channel.mention))
