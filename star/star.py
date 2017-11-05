@@ -9,7 +9,8 @@ class Star:
 
     def __init__(self, bot):
         self.bot = bot
-        default_guild = {"enabled": False, "channel": None, "emoji": None, "role":[], "messages":[]}
+        default_guild = {"enabled": False, "channel": None, "emoji": None, 
+                         "role":[], "messages":[], "ignore":[]}
         self.config = Config.get_conf(self, 356488795)
         self.config.register_guild(**default_guild)
 
@@ -71,6 +72,20 @@ class Star:
         """Enables the starboard for this guild."""
         await self.config.guild(ctx.guild).enabled.set(True)
         await ctx.send("Starboard disabled here!")
+
+    @starboard.command(name="ignore")
+    async def toggle_channel_ignore(self, ctx, channel:discord.TextChannel=None):
+        """Adds channel to ignored list of channels"""
+        if channel is None:
+            channel = ctx.message.channel
+        ignore_list = await self.config.guild(ctx.guild).ignore()
+        if channel.id in ignore_list:
+            ignore_list.remove(channel.id)
+            await ctx.send("{} removed from the ignored channel list!".format(channel.mention))
+        else:
+            ignore_list.append(channel.id)
+            await ctx.send("{} added to the ignored channel list!".format(channel.mention))
+        await self.config.guild(ctx.guild).ignore.set(ignore_list)
 
     @starboard.command(pass_context=True, name="emoji")
     async def set_emoji(self, ctx, emoji="⭐"):
@@ -185,6 +200,8 @@ class Star:
     async def on_reaction_add(self, reaction, user):
         guild = reaction.message.guild
         msg = reaction.message
+        if msg.channel.id in await self.config.guild(guild).ignore():
+            return
         if not await self.config.guild(guild).enabled():
             return
         if not await self.check_roles(user, msg.author, guild):
