@@ -68,7 +68,7 @@ class Star:
         dataIO.save_json("data/star/settings.json", self.settings)
         await self.bot.send_message(ctx.message.channel, "Done! I will no longer track starred messages older than right now.")
 
-    @strarboard.command(pass_context=True, name="ignore")
+    @starboard.command(pass_context=True, name="ignore")
     async def toggle_channel_ignore(self, ctx, channel:discord.Channel=None):
         if channel is None:
             channel = ctx.message.channel
@@ -207,7 +207,7 @@ class Star:
             channel = reaction.message.channel
             channel2 = self.bot.get_channel(id=self.settings[server.id]["channel"])
             if reaction.message.embeds != []:
-                embed = reaction.message.embeds[0].to_dict()
+                embed = reaction.message.embeds[0] # .to_dict()
                 # print(embed)
                 em = discord.Embed(timestamp=reaction.message.timestamp)
                 if "title" in embed:
