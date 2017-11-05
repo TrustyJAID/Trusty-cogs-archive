@@ -56,7 +56,8 @@ class Star:
         self.settings[server.id] = {"emoji": emoji, 
                                     "channel": channel.id, 
                                     "role": [role.id],
-                                    "messages": []}
+                                    "messages": [],
+                                    "ignore": []}
         dataIO.save_json("data/star/settings.json", self.settings)
         await self.bot.say("Starboard set to {}".format(channel.mention))
 
@@ -66,6 +67,18 @@ class Star:
         self.settings[ctx.message.server.id]["messages"] = []
         dataIO.save_json("data/star/settings.json", self.settings)
         await self.bot.send_message(ctx.message.channel, "Done! I will no longer track starred messages older than right now.")
+
+    @strarboard.command(pass_context=True, name="ignore")
+    async def toggle_channel_ignore(self, ctx, channel:discord.Channel=None):
+        if channel is None:
+            channel = ctx.message.channel
+        if channel.id in self.settings[ctx.message.server.id]["ignore"]:
+            self.settings[ctx.message.server.id]["ignore"].remove(channel.id)
+            await self.bot.send_message(ctx.message.channel, "{} removed from the ignored channel list!".format(channel.mention))
+        else:
+            self.settings[ctx.message.server.id]["ignore"].append(channel.id)
+            await self.bot.send_message(ctx.message.channel, "{} added to the ignored channel list!".format(channel.mention))
+        dataIO.save_json("data/star/settings.json", self.settings)
 
     @starboard.command(pass_context=True, name="emoji")
     async def set_emoji(self, ctx, emoji="⭐"):
@@ -177,6 +190,8 @@ class Star:
         server = reaction.message.server
         msg = reaction.message
         if server.id not in self.settings:
+            return
+        if msg.channel.id in self.settings[server.id]["ignore"]:
             return
         if not await self.check_roles(user, msg.author, server):
             return
