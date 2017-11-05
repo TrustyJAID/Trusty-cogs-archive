@@ -1,178 +1,217 @@
 import discord
-import asyncio
-from .utils.dataIO import dataIO
+from redbot.core import Config
+from redbot.core import checks
 from discord.ext import commands
-from cogs.utils import checks
-import os
+from .message_entry import StarboardMessage
 import re
 
 class Star:
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = dataIO.load_json("data/star/settings.json")
+        default_guild = {"enabled": False, "channel": None, "emoji": None, "role":[], "messages":[]}
+        self.config = Config.get_conf(self, 356488795)
+        self.config.register_guild(**default_guild)
 
     @commands.group(pass_context=True)
     @checks.admin_or_permissions(manage_channels=True)
     async def starboard(self, ctx):
         """Commands for managing the starboard"""
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
     @starboard.group(pass_context=True, name="role", aliases=["roles"])
     async def _roles(self, ctx):
         """Add or remove roles allowed to add to the starboard"""
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
-    async def get_everyone_role(self, server):
-        for role in server.roles:
-            if role.is_everyone:
+    async def get_everyone_role(self, guild):
+        for role in guild.roles:
+            if role.is_default():
                 return role
 
-    async def check_server_emojis(self, server, emoji):
-        server_emoji = None
-        for emojis in server.emojis:
-            if emojis.id in emoji:
-                server_emoji = emojis
-        return server_emoji
+    async def check_guild_emojis(self, guild, emoji):
+        guild_emoji = None
+        for emojis in guild.emojis:
+            if str(emojis.id) in emoji:
+                guild_emoji = emojis
+        return guild_emoji
     
     @starboard.command(pass_context=True, name="setup", aliases=["set"])
-    async def setup_starboard(self, ctx, channel: discord.Channel=None, emoji="⭐", role:discord.Role=None):
+    async def setup_starboard(self, ctx, channel: discord.TextChannel=None, emoji="⭐", role:discord.Role=None):
         """Sets the starboard channel, emoji and role"""
-        server = ctx.message.server
+        guild = ctx.message.guild
         if channel is None:
             channel = ctx.message.channel
         if "<" in emoji and ">" in emoji:
-            emoji = await self.check_server_emojis(server, emoji)
+            emoji = await self.check_guild_emojis(guild, emoji)
             if emoji is None:
-                await self.bot.send_message(ctx.message.channel, "That emoji is not on this server!")
+                await ctx.send("That emoji is not on this guild!")
                 return
             else:
-                emoji = ":" + emoji.name + ":" + emoji.id
+                emoji = ":" + emoji.name + ":" + str(emoji.id)
         
         if role is None:
-            role = await self.get_everyone_role(server)
-        self.settings[server.id] = {"emoji": emoji, 
-                                    "channel": channel.id, 
-                                    "role": [role.id]}
-        dataIO.save_json("data/star/settings.json", self.settings)
-        await self.bot.say("Starboard set to {}".format(channel.mention))
+            role = await self.get_everyone_role(guild)
+        await self.config.guild(ctx.guild).emoji.set(emoji)
+        await self.config.guild(ctx.guild).channel.set(channel.id)
+        await self.config.guild(ctx.guild).role.set([role.id])
+        await self.config.guild(ctx.guild).enabled.set(True)
+        await ctx.send("Starboard set to {}".format(channel.mention))
+
+    @starboard.command(name="disable")
+    async def disable_starboard(self, ctx):
+        """Disables the starboard for this guild."""
+        await self.config.guild(ctx.guild).enabled.set(False)
+        await ctx.send("Starboard disabled here!")
+
+    @starboard.command(name="enable")
+    async def enable_starboard(self, ctx):
+        """Enables the starboard for this guild."""
+        await self.config.guild(ctx.guild).enabled.set(True)
+        await ctx.send("Starboard disabled here!")
 
     @starboard.command(pass_context=True, name="emoji")
     async def set_emoji(self, ctx, emoji="⭐"):
         """Set the emoji for the starboard defaults to ⭐"""
-        server = ctx.message.server
-        if server.id not in self.settings:
-            await self.bot.send_message(ctx.message.channel, 
-                                        "I am not setup for the starboard on this server!\
-                                         \nuse starboard set to set it up.")
+        guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup for the starboard on this guild!\
+                            \nuse `[p]starboard set` to set it up.")
             return
-        is_server_emoji = False
+        is_guild_emoji = False
         if "<" in emoji and ">" in emoji:
-            emoji = await self.check_server_emojis(server, emoji)
+            emoji = await self.check_guild_emojis(guild, emoji)
             if emoji is None:
-                await self.bot.send_message(ctx.message.channel, "That emoji is not on this server!")
+                await self.bot.send_message(ctx.message.channel, "That emoji is not on this guild!")
                 return
             else:
-                is_server_emoji = True
-                emoji = ":" + emoji.name + ":" + emoji.id
-        self.settings[server.id]["emoji"] = emoji
-        dataIO.save_json("data/star/settings.json", self.settings)
-        if is_server_emoji:
-            await self.bot.send_message(ctx.message.channel, "Starboard emoji set to <{}>.".format(emoji))
+                is_guild_emoji = True
+                emoji = ":" + emoji.name + ":" + str(emoji.id)
+        await self.config.guild(guild).emoji.set(emoji)
+        if is_guild_emoji:
+            await ctx.send("Starboard emoji set to <{}>.".format(emoji))
         else:
-            await self.bot.send_message(ctx.message.channel, "Starboard emoji set to {}.".format(emoji))
+            await ctx.send("Starboard emoji set to {}.".format(emoji))
 
     @starboard.command(pass_context=True, name="channel")
-    async def set_channel(self, ctx, channel:discord.Channel=None):
+    async def set_channel(self, ctx, channel:discord.TextChannel=None):
         """Set the channel for the starboard"""
-        server = ctx.message.server
-        if server.id not in self.settings:
+        guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
             await self.bot.send_message(ctx.message.channel, 
-                                        "I am not setup for the starboard on this server!\
-                                         \nuse starboard set to set it up.")
+                                        "I am not setup for the starboard on this guild!\
+                                         \nuse `[p]starboard set` to set it up.")
             return
         if channel is None:
             channel = ctx.message.channel
-        self.settings[server.id]["channel"] = channel.id
-        dataIO.save_json("data/star/settings.json", self.settings)
-        await self.bot.send_message(ctx.message.channel, "Starboard channel set to {}.".format(channel.mention))
+        await self.config.guild(guild).channel.set(channel.id)
+        await ctx.send("Starboard channel set to {}.".format(channel.mention))
 
     @_roles.command(pass_context=True, name="add")
     async def add_role(self, ctx, role:discord.Role=None):
         """Add a role allowed to add messages to the starboard defaults to @everyone"""
-        server = ctx.message.server
-        if server.id not in self.settings:
+        guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
             await self.bot.send_message(ctx.message.channel, 
-                                        "I am not setup for the starboard on this server!\
+                                        "I am not setup for the starboard on this guild!\
                                          \nuse starboard set to set it up.")
             return
-        everyone_role = await self.get_everyone_role(server)
+        everyone_role = await self.get_everyone_role(guild)
+        guild_roles = await self.config.guild(guild).role()
         if role is None:
             role = everyone_role
-        if role.id in self.settings[server.id]["role"]:
-            await self.bot.send_message(ctx.message.channel, "{} can already add to the starboard!".format(role.name))
+        if role.id in guild_roles:
+            await ctx.send("{} can already add to the starboard!".format(role.name))
             return
-        if everyone_role.id in self.settings[server.id]["role"] and role != everyone_role:
-            self.settings[server.id]["role"].remove(everyone_role.id)
-        self.settings[server.id]["role"].append(role.id)
-        dataIO.save_json("data/star/settings.json", self.settings)
-        await self.bot.send_message(ctx.message.channel, "Starboard role set to {}.".format(role.name))
+        if everyone_role.id in guild_roles and role != everyone_role:
+            guild_roles.remove(everyone_role.id)
+        guild_roles.append(role.id)
+        await self.config.guild(guild).role.set(guild_roles)
+        await ctx.send("Starboard role set to {}.".format(role.name))
 
     @_roles.command(pass_context=True, name="remove", aliases=["del", "rem"])
     async def remove_role(self, ctx, role:discord.Role):
         """Remove a role allowed to add messages to the starboard"""
-        server = ctx.message.server
-        everyone_role = await self.get_everyone_role(server)
-        if role.id in self.settings[server.id]["role"]:
-            self.settings[server.id]["role"].remove(role.id)
-        if self.settings[server.id]["role"] == []:
-            self.settings[server.id]["role"].append(everyone_role.id)
-        dataIO.save_json("data/star/settings.json", self.settings)
-        await self.bot.send_message(ctx.message.channel, "{} removed from starboard.".format(role.name))
+        if not await self.config.guild(guild).enabled():
+            await self.bot.send_message(ctx.message.channel, 
+                                        "I am not setup for the starboard on this guild!\
+                                         \nuse starboard set to set it up.")
+            return
+        guild = ctx.message.guild
+        everyone_role = await self.get_everyone_role(guild)
+        guild_roles = await self.config.guild(guild).role()
+        if role.id in guild_roles:
+            guild_roles.remove(role.id)
+        if guild_roles == []:
+            guild_roles.append(everyone_role.id)
+        await self.config.guild(guild).role.set(guild_roles)
+        await ctx.send("{} removed from starboard.".format(role.name))
 
-    async def check_roles(self, user, author, server):
+    async def check_roles(self, user, author, guild):
         """Checks if the user is allowed to add to the starboard
            Allows bot owner to always add messages for testing
            disallows users from adding their own messages"""
         has_role = False
         for role in user.roles:
-            if role.id in self.settings[server.id]["role"]:
+            if role.id in await self.config.guild(guild).role():
                 has_role = True
         if user is author:
             has_role = False
-        if user.id == self.bot.settings.owner:
+        if user.id == self.bot.owner_id:
+            # Owner should always be allowed to add messages
             has_role = True
         return has_role
+
+    async def check_is_posted(self, guild, message):
+        is_posted = False
+        for past_message in await self.config.guild(guild).messages():
+            if message.id == past_message["original_message"]:
+                is_posted = True
+        return is_posted
+
+    async def get_posted_message(self, guild, message):
+        msg_list = await self.config.guild(guild).messages()
+        for past_message in msg_list:
+            if message.id == past_message["original_message"]:
+                msg = past_message
+        msg_list.remove(msg)
+        msg["count"] += 1
+        msg_list.append(msg)
+        await self.config.guild(guild).messages.set(msg_list)
+        return msg["new_message"], msg["count"]
   
     async def on_reaction_add(self, reaction, user):
-        server = reaction.message.server
+        guild = reaction.message.guild
         msg = reaction.message
-        if server.id not in self.settings:
+        if not await self.config.guild(guild).enabled():
             return
-        if not await self.check_roles(user, msg.author, server):
+        if not await self.check_roles(user, msg.author, guild):
             return
-        react = self.settings[server.id]["emoji"]
+        react = await self.config.guild(guild).emoji()
         if react in str(reaction.emoji):
-            if reaction.count > 1:
+            if await self.check_is_posted(guild, msg):
+                channel = self.bot.get_channel(await self.config.guild(guild).channel())
+                msg_id, count = await self.get_posted_message(guild, msg)
+                msg_edit = await channel.get_message(msg_id)
+                await msg_edit.edit(content="{} **#{}**".format(reaction.emoji, count))
                 return
             author = reaction.message.author
             channel = reaction.message.channel
-            channel2 = self.bot.get_channel(id=self.settings[server.id]["channel"])
+            channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
             if reaction.message.embeds != []:
-                embed = reaction.message.embeds[0]
+                embed = reaction.message.embeds[0].to_dict()
                 # print(embed)
-                em = discord.Embed(timestamp=reaction.message.timestamp)
+                em = discord.Embed(timestamp=reaction.message.created_at)
                 if "title" in embed:
                     em.title = embed["title"]
                 if "thumbnail" in embed:
                     em.set_thumbnail(url=embed["thumbnail"]["url"])
                 if "description" in embed:
-                    if embed["description"] is None:
-                        em.description = msg.clean_content
-                    else:
-                        em.description = embed["description"]
+                    em.description = msg.clean_content + embed["description"]
+                if "description" not in embed:
+                    em.description = msg.clean_content
                 if "url" in embed:
                     em.url = embed["url"]
                 if "footer" in embed:
@@ -183,8 +222,12 @@ class Star:
                         em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
                     else:
                         em.set_author(name=postauthor["name"])
+                if "author" not in embed:
+                    em.set_author(name=author.name, icon_url=author.avatar_url)
                 if "color" in embed:
                     em.color = embed["color"]
+                if "color" not in embed:
+                    em.color = author.top_role.color
                 if "image" in embed:
                     em.set_image(url=embed["image"]["url"])
                 if embed["type"] == "image":
@@ -201,31 +244,17 @@ class Star:
                     em.set_image(url=embed["url"]+".gif")
                 
             else:
-                em = discord.Embed(timestamp=reaction.message.timestamp)
+                em = discord.Embed(timestamp=reaction.message.created_at)
                 em.color = author.top_role.color
                 em.description = msg.content
                 em.set_author(name=author.name, icon_url=author.avatar_url)
-                em.set_footer(text='{} | {}'.format(channel.server.name, channel.name))
                 if reaction.message.attachments != []:
                     em.set_image(url=reaction.message.attachments[0]["url"])
-            post_msg = await self.bot.send_message(channel2, embed=em)
-            await self.bot.add_reaction(post_msg, emoji=react)
+            em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
+            post_msg = await channel2.send(embed=em)
+            past_message_list = await self.config.guild(guild).messages()
+            past_message_list.append(StarboardMessage(msg.id, post_msg.id, 1).to_json())
+            await self.config.guild(guild).messages.set(past_message_list)
+
         else:
             return
-
-def check_folder():
-    if not os.path.exists('data/star'):
-        os.mkdir('data/star')
-
-
-def check_files():
-    data = {}
-    f = 'data/star/settings.json'
-    if not os.path.exists(f):
-        dataIO.save_json(f, data)
-
-
-def setup(bot):
-    check_folder()
-    check_files()
-    bot.add_cog(Star(bot))
