@@ -55,9 +55,17 @@ class Star:
             role = await self.get_everyone_role(server)
         self.settings[server.id] = {"emoji": emoji, 
                                     "channel": channel.id, 
-                                    "role": [role.id]}
+                                    "role": [role.id],
+                                    "messages": []}
         dataIO.save_json("data/star/settings.json", self.settings)
         await self.bot.say("Starboard set to {}".format(channel.mention))
+
+    @starboard.command(pass_context=True, name="clear")
+    async def clear_post_history(self, ctx):
+        """Clears the database of previous starred messages"""
+        self.settings[ctx.message.server.id]["messages"] = []
+        dataIO.save_json("data/star/settings.json", self.settings)
+        await self.bot.send_message(ctx.message.channel, "Done! I will no longer track starred messages older than right now.")
 
     @starboard.command(pass_context=True, name="emoji")
     async def set_emoji(self, ctx, emoji="⭐"):
@@ -146,6 +154,25 @@ class Star:
             has_role = True
         return has_role
   
+    async def check_is_posted(self, server, message):
+        is_posted = False
+        for past_message in self.settings[server.id]["messages"]:
+            if message.id == past_message["original_message"]:
+                is_posted = True
+        return is_posted
+
+    async def get_posted_message(self, server, message):
+        msg_list = self.settings[server.id]["messages"]
+        for past_message in msg_list:
+            if message.id == past_message["original_message"]:
+                msg = past_message
+        msg_list.remove(msg)
+        msg["count"] += 1
+        msg_list.append(msg)
+        self.settings[server.id]["messages"] = msg_list
+        dataIO.save_json("data/star/settings.json", self.settings)
+        return msg["new_message"], msg["count"]
+  
     async def on_reaction_add(self, reaction, user):
         server = reaction.message.server
         msg = reaction.message
@@ -153,15 +180,19 @@ class Star:
             return
         if not await self.check_roles(user, msg.author, server):
             return
-        react = self.settings[server.id]["emoji"]
+        react =self.settings[server.id]["emoji"]
         if react in str(reaction.emoji):
-            if reaction.count > 1:
+            if await self.check_is_posted(server, msg):
+                channel = self.bot.get_channel(self.settings[server.id]["channel"])
+                msg_id, count = await self.get_posted_message(server, msg)
+                msg_edit = await self.bot.get_message(channel, msg_id)
+                await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count))
                 return
             author = reaction.message.author
             channel = reaction.message.channel
             channel2 = self.bot.get_channel(id=self.settings[server.id]["channel"])
             if reaction.message.embeds != []:
-                embed = reaction.message.embeds[0]
+                embed = reaction.message.embeds[0].to_dict()
                 # print(embed)
                 em = discord.Embed(timestamp=reaction.message.timestamp)
                 if "title" in embed:
@@ -169,10 +200,9 @@ class Star:
                 if "thumbnail" in embed:
                     em.set_thumbnail(url=embed["thumbnail"]["url"])
                 if "description" in embed:
-                    if embed["description"] is None:
-                        em.description = msg.clean_content
-                    else:
-                        em.description = embed["description"]
+                    em.description = msg.clean_content + embed["description"]
+                if "description" not in embed:
+                    em.description = msg.clean_content
                 if "url" in embed:
                     em.url = embed["url"]
                 if "footer" in embed:
@@ -183,8 +213,12 @@ class Star:
                         em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
                     else:
                         em.set_author(name=postauthor["name"])
+                if "author" not in embed:
+                    em.set_author(name=author.name, icon_url=author.avatar_url)
                 if "color" in embed:
                     em.color = embed["color"]
+                if "color" not in embed:
+                    em.color = author.top_role.color
                 if "image" in embed:
                     em.set_image(url=embed["image"]["url"])
                 if embed["type"] == "image":
@@ -205,11 +239,14 @@ class Star:
                 em.color = author.top_role.color
                 em.description = msg.content
                 em.set_author(name=author.name, icon_url=author.avatar_url)
-                em.set_footer(text='{} | {}'.format(channel.server.name, channel.name))
                 if reaction.message.attachments != []:
                     em.set_image(url=reaction.message.attachments[0]["url"])
+            em.set_footer(text='{} | {}'.format(channel.server.name, channel.name))
             post_msg = await self.bot.send_message(channel2, embed=em)
-            await self.bot.add_reaction(post_msg, emoji=react)
+            past_message_list = self.settings[server.id]["messages"]
+            past_message_list.append({"original_message":msg.id, "new_message":post_msg.id,"count":1})
+            dataIO.save_json("data/star/settings.json", self.settings)
+
         else:
             return
 
