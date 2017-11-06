@@ -1,4 +1,4 @@
-from .rainbow import rainbow
+from .rainbow import Rainbow
 
 def setup(bot):
     n = Rainbow(bot)
