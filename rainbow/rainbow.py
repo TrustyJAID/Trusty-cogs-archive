@@ -2,6 +2,8 @@ import discord
 import time
 from discord.ext import commands
 from random import choice, randint
+from redbot.core import Config
+from redbot.core import checks
 import asyncio
 import os
 import time
@@ -11,52 +13,76 @@ class Rainbow:
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings_file = "data/rainbow/settings.json"
-        self.settings = dataIO.load_json(self.settings_file)
+        self.config = Config.get_conf(self, 356478965)
+        default_guild = {"role":[], "enabled":False}
+        default_global = {"delay":300.0}
+        self.config.register_guild(**default_guild)
+        self.config.register_global(**default_global)
+        self.loop = bot.loop.create_task(self.change_colours())
 
-    @commands.group(pass_context=True, name='rainbow')
+    def __unload(self):
+        self.loop.cancel()
+
+    @commands.group(name="rainbow")
     @checks.admin_or_permissions(manage_roles=True)
     async def _rainbow(self, ctx):
         """Command for setting required access information for the API"""
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
-    @_rainbow.command(pass_context = True, name="interval")
+    @_rainbow.command( name="interval")
     async def _interval(self, ctx, interval:float):
+        """Changes the interval between colour changes (GLOBAL ONLY)"""
         if interval < 120.0 and interval > 500.0:
-            await self.bot.say("Please choose an interval between 120 and 500 seconds.")
+            await ctx.send("Please choose an interval between 120 and 500 seconds.")
             return
-        self.settings["delay"] = interval
-        dataIO.save_json(self.settings_file, self.settings)
-        await self.bot.say("Rainbow interval set to {}".format(interval))
-
+        await self.config.delay.set(interval)
+        await ctx.send("Rainbow interval set to {}".format(interval))
 
     @_rainbow.command(pass_context = True, name="add")
-    async def _addrainbow(self, ctx, *, role: discord.Role):
-        server_id = ctx.message.server.id
-        if server_id in self.settings["servers"]:
-            if role.id in self.settings["servers"][server_id]:
-                await self.bot.say("That role is already rainbow!")
-                return
-            self.settings["servers"][server_id].append(role.id)
-        else:
-            self.settings["servers"][server_id] = [role.id]
-        dataIO.save_json(self.settings_file, self.settings)
-        await self.bot.say("{} role set to rainbow!".format(role.mention))
+    async def add_rainbow(self, ctx, *, role: discord.Role):
+        """Adds a role to change colour at the set interval"""
+        guild = ctx.message.guild
+        if role.id in await self.config.guild(guild).role():
+            await ctx.send("{} is already set to rainbow!".format(role.name))
+            return
+        role_list = await self.config.guild(guild).role()
+        role_list.append(role.id)
+        await self.config.guild(guild).role.set(role_list)
+        await self.config.guild(guild).enabled.set(True)
+        await ctx.send("{} has been set to rainbow!".format(role.name))
+
+    @_rainbow.command(name="remove", aliases=["del", "rem"])
+    async def remove_rainbow(self, ctx, *, role: discord.Role):
+        """Removes a role from being changed at the set interval"""
+        guild = ctx.message.guild
+        if role.id not in await self.config.guild(guild).role():
+            await ctx.send("{} is not set to rainbow!".format(role.name))
+            return
+        role_list = await self.config.guild(guild).role()
+        role_list.remove(role.id)
+        await self.config.guild(guild).role.set(role_list)
+        await ctx.send("{} has been set to rainbow!".format(role.name))
 
     @_rainbow.command(pass_context = True, name="stop")
-    async def _stoprainbow(self, ctx):
-        server_id = ctx.message.server.id
-        if server_id in self.settings["servers"]:
-            del self.settings["servers"][server_id]
-        dataIO.save_json(self.settings_file, self.settings)
-        await self.bot.say("Rainbow roles removed")
+    async def stop_rainbow(self, ctx):
+        """Stops the rainbow from working on this server"""
+        guild = ctx.message.guild
+        await self.config.guild(guild).enabled.set(False)
+        await ctx.send("Rainbow disabled")
+
+    @_rainbow.command(pass_context = True, name="start")
+    async def start_rainbow(self, ctx):
+        """Starts the rainbow for chosen roles on this server"""
+        guild = ctx.message.guild
+        await self.config.guild(guild).enabled.set(True)
+        await ctx.send("Rainbow enabled")
     
-    async def get_role_obj(self, id_list, server):
+    async def get_role_obj(self, id_list, guild):
         role = []
         for role_id in id_list:
             try:
-                for roles in server.roles:
+                for roles in guild.roles:
                     if roles.id == role_id:
                         role.append(roles)
             except AttributeError:
@@ -66,12 +92,12 @@ class Rainbow:
     async def change_colours(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("Rainbow"):
-            for server_id in self.settings["servers"]:
-                server = self.bot.get_server(id=server_id)
-                roles = await self.get_role_obj(self.settings["servers"][server_id], server)
+            guild_list = [guild for guild in await self.config.all_guilds() if await self.config.guild(self.bot.get_guild(guild)).enabled()]
+            for guild_id in guild_list:
+                guild = self.bot.get_guild(id=guild_id)
+                roles = await self.get_role_obj(await self.config.guild(guild).role(), guild)
                 for role in roles:
-                    colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
-                    colour = int(colour, 16)
-                    await self.bot.edit_role(server, role, colour=discord.Colour(value=colour))
-            # print("Roles updated!")
-            await asyncio.sleep(self.settings["delay"])
+                    colour = int(''.join([choice('0123456789ABCDEF') for x in range(6)]), 16)
+                    await role.edit(colour=discord.Colour(value=colour))
+            print("Roles updated!")
+            await asyncio.sleep(await self.config.delay())
