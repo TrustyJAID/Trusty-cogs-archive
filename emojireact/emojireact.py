@@ -1,106 +1,84 @@
 import discord
 from discord.ext import commands
-from .utils.dataIO import dataIO
-import os
-try:
-    from emoji import UNICODE_EMOJI
-except:
-    raise RuntimeError("Can't load emoji. Do 'pip3 install emoji'.")
+from redbot.core import Config
+from emoji import UNICODE_EMOJI
 
-class ServerEmojiReact():
+class EmojiReactions:
+    
     def __init__(self, bot):
         self.bot = bot
-        self.settings_file = "data/emojireact/settings.json"
-        self.settings = dataIO.load_json(self.settings_file)
+        defult_guild = {"unicode": True, "guild":True}
+        self.config = Config.get_conf(self, 35677998656)
+        self.config.register_guild(**defult_guild)
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def emojireact(self, ctx):
         if ctx.invoked_subcommand is None:
-             await self.bot.send_cmd_help(ctx)
+             await ctx.send_help()
 
-    @emojireact.group(pass_context=True, name="unicode")
+    @emojireact.group(name="unicode")
     async def _unicode(self, ctx):
         """Add or remove unicode emoji reactions"""
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
-    @emojireact.group(pass_context=True, name="server")
-    async def _server(self, ctx):
-        """Add or remove server emoji reactions"""
+    @emojireact.group(name="guild")
+    async def _guild(self, ctx):
+        """Add or remove guild emoji reactions"""
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
-    @emojireact.group(pass_context=True, name="all")
+    @emojireact.group(name="all")
     async def _all(self, ctx):
         """Add or remove all emoji reactions"""
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
-    @_all.command(pass_context=True, name="add", aliases=["on"])        
+    @_all.command(name="add", aliases=["on"])        
     async def add_all(self,ctx):
-        """Adds all emoji reactions to the server"""
-        self.settings[ctx.message.server.id] = {"unicode":True, "server": True}
-        dataIO.save_json(self.settings_file, self.settings)
+        """Adds all emoji reactions to the guild"""
+        await self.config.guild(ctx.guild).unicode.set(True)
+        await self.config.guild(ctx.guild).guild.set(True)
         await self.bot.send_message(ctx.message.channel, "Okay, I will react to messages containing emojis!")
 
-    @_all.command(pass_context=True, name="remove", aliases=["off"])        
+    @_all.command(name="remove", aliases=["off"])        
     async def rem_all(self,ctx):
-        """Removes all emoji reactions to the server"""
-        self.settings[ctx.message.server.id] = {"unicode":False, "server": False}
-        dataIO.save_json(self.settings_file, self.settings)
+        """Removes all emoji reactions to the guild"""
+        await self.config.guild(ctx.guild).unicode.set(False)
+        await self.config.guild(ctx.guild).guild.set(False)
         await self.bot.send_message(ctx.message.channel, "Okay, I will not react to messages containing emojis!")
 
-    @_unicode.command(pass_context=True, name="add", aliases=["on"])        
+    @_unicode.command(name="add", aliases=["on"])        
     async def add_unicode(self,ctx):
-        """Adds unicode emoji reactions to the server"""
-        if ctx.message.server.id not in self.settings:
-            self.settings[ctx.message.server.id] = {"unicode":True, "server": False}
-        else:
-            self.settings[ctx.message.server.id]["unicode"] = True
-        dataIO.save_json(self.settings_file, self.settings)
+        """Adds unicode emoji reactions to the guild"""
+        await self.config.guild(ctx.guild).unicode.set(True)
         await self.bot.send_message(ctx.message.channel, "Okay, I will react to messages containing unicode emojis!")
 
-    @_unicode.command(pass_context=True, name="remove", aliases=["off"])        
+    @_unicode.command(name="remove", aliases=["off"])        
     async def rem_unicode(self,ctx):
-        """Removes unicode emoji reactions to the server"""
-        if ctx.message.server.id not in self.settings:
-            self.settings[ctx.message.server.id] = {"unicode":False, "server": False}
-        else:
-            self.settings[ctx.message.server.id]["unicode"] = False
-        dataIO.save_json(self.settings_file, self.settings)
+        """Removes unicode emoji reactions to the guild"""
+        await self.config.guild(ctx.guild).unicode.set(False)
         await self.bot.send_message(ctx.message.channel, "Okay, I will not react to messages containing unicode emojis!")
 
-    @_server.command(pass_context=True, name="add", aliases=["on"])        
-    async def add_server(self,ctx):
-        """Adds server emoji reactions to the server"""
-        if ctx.message.server.id not in self.settings:
-            self.settings[ctx.message.server.id] = {"unicode":True, "server": True}
-        else:
-            self.settings[ctx.message.server.id]["server"] = True
-        dataIO.save_json(self.settings_file, self.settings)
-        await self.bot.send_message(ctx.message.channel, "Okay, I will react to messages containing server emojis!")
+    @_guild.command(name="add", aliases=["on"])        
+    async def add_guild(self,ctx):
+        """Adds guild emoji reactions to the guild"""
+        await self.config.guild(ctx.guild).guild.set(True)
+        await self.bot.send_message(ctx.message.channel, "Okay, I will react to messages containing guild emojis!")
 
-    @_server.command(pass_context=True, name="remove", aliases=["off"])        
-    async def rem_server(self,ctx):
-        """Removes server emoji reactions to the server"""
-        if ctx.message.server.id not in self.settings:
-            self.settings[ctx.message.server.id] = {"unicode":False, "server": False}
-        else:
-            self.settings[ctx.message.server.id]["server"] = False
-        dataIO.save_json(self.settings_file, self.settings)
-        await self.bot.send_message(ctx.message.channel, "Okay, I will not react to messages containing server emojis!")
+    @_guild.command(name="remove", aliases=["off"])        
+    async def rem_guild(self,ctx):
+        """Removes guild emoji reactions to the guild"""
+        await self.config.guild(ctx.guild).guild.set(False)
+        await self.bot.send_message(ctx.message.channel, "Okay, I will not react to messages containing guild emojis!")
 
     async def on_message(self, message):
         channel = message.channel
-        if message.server.id not in self.settings:
-            return
-        if not self.settings[message.server.id]:
-            return
         emoji_list = []
         for word in message.content.split(" "):
-            if word.startswith("<:") and word.endswith(">"):
+            if word.startswith("<:") and word.endswith(">") and await self.config.guild(message.guild).guild():
                 emoji_list.append(word.rpartition(">")[0].partition("<")[2])
-            if word in UNICODE_EMOJI:
+            if word in UNICODE_EMOJI and await self.config.guild(message.guild).unicode():
                 emoji_list.append(word)
         if emoji_list == []:
             return
@@ -109,19 +87,3 @@ class ServerEmojiReact():
                 await self.bot.add_reaction(message, emoji)
             except:
                 pass
-
-def check_folders():
-    if not os.path.exists("data/emojireact"):
-        print("Creating data/emojireact folder...")
-        os.makedirs("data/emojireact")
-
-def check_files():
-    f = "data/emojireact/settings.json"
-    data = {}
-    if not dataIO.is_valid_json(f):
-        dataIO.save_json(f, data)
-
-def setup(bot):
-    check_folders()
-    check_files()
-    bot.add_cog(ServerEmojiReact(bot))

@@ -62,10 +62,10 @@ class Chatter():
         conversation = []
         if "http" in message.content or message.content == "" or author.bot:
             return
-        last_author = await self.config.channel(channel).message()
-        last_message = await self.config.channel(channel).author()
+        last_author = await self.config.channel(channel).author()
+        last_message = await self.config.channel(channel).message()
         if author.id == last_author and last_message != message.content:
-            await self.config.channel(channl).message.set(message.content)
+            await self.config.channel(channel).message.set(message.content)
         if author.id != last_author and author.id != self.bot.user.id and last_author is not None:
             conversation.append(message.content)
             conversation.append(last_message)
