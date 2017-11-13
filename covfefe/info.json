@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "General commands",
+    "DESCRIPTION" : "Covfefeify any words!",
+    "DISABLED" : false,
+    "NAME" : "Covfefe",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Use [p]covefy <word> to covefy a word"
+}
