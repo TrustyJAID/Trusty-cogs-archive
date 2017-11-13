@@ -117,7 +117,6 @@ class Tweets():
         print(message)
         if not message:
             message = await ctx.send(embed=em)
-            print(message)
             await message.add_reaction("⬅")
             await message.add_reaction("❌")
             await message.add_reaction("➡")
@@ -152,7 +151,7 @@ class Tweets():
                 return await self.tweet_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             else:
-                return await ctx.delete(message)
+                return await message.delete()
 
     @commands.group( no_pm=True, name='tweets')
     async def _tweets(self, ctx):
