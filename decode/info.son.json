@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "General commands",
+    "DESCRIPTION" : "DNA and binary encoding/decoding of messages",
+    "DISABLED" : false,
+    "NAME" : "decode",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Thanks for installing!"
+}
