@@ -36,4 +36,4 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 
 >Blockchain - a cog to download and the bitcoin blockchain for hidden files and data. Requires bitcoin RPC connection and complicated setup **don't use** unless you know what you're doing.
 
-Any questions you can find me and TrustyBot over on https://discord.gg/whereisassange
+Any questions you can find me and TrustyBot over on https://discord.gg/wVVrqej
