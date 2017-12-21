@@ -1,0 +1,244 @@
+{
+    "Anaheim Ducks" : {
+        "away" : "#F95602",
+        "emoji" : "AnaheimDucks:381568942453424129",
+        "home" : "#B6985A",
+        "id" : 24,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281720124/256x256/cut.png",
+        "team_url" : "http://www.anaheimducks.com"
+    },
+    "Arizona Coyotes" : {
+        "away" : "#E2D6B5",
+        "emoji" : "ArizonaCoyotes:381568940083511297",
+        "home" : "#8C2633",
+        "id" : 53,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281720888/256x256/cut.png",
+        "team_url" : "http://www.arizonacoyotes.com"
+    },
+    "Boston Bruins" : {
+        "away" : "#000000",
+        "emoji" : "BostonBruins:381568939857149954",
+        "home" : "#FCB514",
+        "id" : 6,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281719378/256x256/cut.png",
+        "team_url" : "http://www.bostonbruins.com"
+    },
+    "Buffalo Sabres" : {
+        "away" : "#FDB930",
+        "emoji" : "BuffaloSabres:381568940658130944",
+        "home" : "#002D62",
+        "id" : 7,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723274/256x256/cut.png",
+        "team_url" : "http://www.sabres.com"
+    },
+    "Calgary Flames" : {
+        "away" : "#FDBF12",
+        "emoji" : "CalgaryFlames:381568940314460171",
+        "home" : "#C8102E",
+        "id" : 20,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281720898/256x256/cut.png",
+        "team_url" : "http://www.calgaryflames.com"
+    },
+    "Carolina Hurricanes" : {
+        "away" : "#8D9093",
+        "emoji" : "CarolinaHurricanes:381568942436646914",
+        "home" : "#C8102E",
+        "id" : 12,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726500/256x256/cut.png",
+        "team_url" : "http://www.carolinahurricanes.com"
+    },
+    "Chicago Blackhawks" : {
+        "away" : "#000000",
+        "emoji" : "ChicagoBlackhawks:381568943279702036",
+        "home" : "#C60C30",
+        "id" : 16,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726514/256x256/cut.png",
+        "team_url" : "http://www.chicagoblackhawks.com"
+    },
+    "Colorado Avalanche" : {
+        "away" : "#165788",
+        "emoji" : "ColoradoAvalanche:381568943170519040",
+        "home" : "#822433",
+        "id" : 21,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281721016/256x256/cut.png",
+        "team_url" : "http://www.coloradoavalanche.com"
+    },
+    "Columbus Blue Jackets" : {
+        "away" : "#C8102E",
+        "emoji" : "ColumbusBlueJackets:381568942839300107",
+        "home" : "#041E42",
+        "id" : 29,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726518/256x256/cut.png",
+        "team_url" : "http://www.bluejackets.com"
+    },
+    "Dallas Stars" : {
+        "away" : "#A7A8AC",
+        "emoji" : "DallasStars:381568942520664065",
+        "home" : "#016F4A",
+        "id" : 25,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726660/256x256/cut.png",
+        "team_url" : "http://www.dallasstars.com"
+    },
+    "Detroit Red Wings" : {
+        "away" : "#FFFFFF",
+        "emoji" : "DetroitRedWings:381568943162130442",
+        "home" : "#E51837",
+        "id" : 17,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723286/256x256/cut.png",
+        "team_url" : "http://www.detroitredwings.com"
+    },
+    "Edmonton Oilers" : {
+        "away" : "#013E7F",
+        "emoji" : "EdmontonOilers:381568942721728513",
+        "home" : "#EB6E1E",
+        "id" : 22,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png",
+        "team_url" : "http://www.edmontonoilers.com"
+    },
+    "Florida Panthers" : {
+        "away" : "#F1B310",
+        "emoji" : "FloridaPanthers:381568943137095680",
+        "home" : "#C51230",
+        "id" : 13,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723310/256x256/cut.png",
+        "team_url" : "http://www.floridapanthers.com"
+    },
+    "Los Angeles Kings" : {
+        "away" : "#B2B7BB",
+        "home" : "#000000",
+        "id" : 26,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281721042/256x256/cut.png",
+        "team_url" : "http://www.lakings.com"
+    },
+    "Minnesota Wild" : {
+        "away" : "#EEE3C7",
+        "emoji" : "MinnesotaWild:381568942596030475",
+        "home" : "#004F30",
+        "id" : 30,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281721058/256x256/cut.png",
+        "team_url" : "http://www.wild.com"
+    },
+    "Montr\u00e9al Canadiens" : {
+        "away" : "#083A81",
+        "emoji" : "MontrealCanadiens:381568942486847491",
+        "home" : "#C51230",
+        "id" : 8,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723300/256x256/cut.png",
+        "team_url" : "http://www.canadiens.com"
+    },
+    "Nashville Predators" : {
+        "away" : "#002D62",
+        "emoji" : "NashvillePredators:381568942944157706",
+        "home" : "#FDBB30",
+        "id" : 18,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281721070/256x256/cut.png",
+        "team_url" : "http://www.nashvillepredators.com"
+    },
+    "New Jersey Devils" : {
+        "away" : "#000000",
+        "home" : "#E03A3E",
+        "id" : 1,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726626/256x256/cut.png",
+        "team_url" : "http://www.truesince82.com"
+    },
+    "New York Islanders" : {
+        "away" : "#F57D31",
+        "home" : "#00529B",
+        "id" : 2,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726632/256x256/cut.png",
+        "team_url" : "http://www.newyorkislanders.com"
+    },
+    "New York Rangers" : {
+        "away" : "#C8102E",
+        "home" : "#0033A0",
+        "id" : 3,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281718864/256x256/cut.png",
+        "team_url" : "http://www.newyorkrangers.com"
+    },
+    "Ottawa Senators" : {
+        "away" : "#D4A00F",
+        "emoji" : "OttawaSenators:381568942776254475",
+        "home" : "#E51837",
+        "id" : 9,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723314/256x256/cut.png",
+        "team_url" : "http://www.ottawasenators.com"
+    },
+    "Philadelphia Flyers" : {
+        "away" : "#000000",
+        "emoji" : "PhiladelphiaFlyers:381568942004764673",
+        "home" : "#F74902",
+        "id" : 4,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726640/256x256/cut.png",
+        "team_url" : "http://www.philadelphiaflyers.com"
+    },
+    "Pittsburgh Penguins" : {
+        "away" : "#CFC493",
+        "emoji" : "PittsburghPenguins:381568942587510796",
+        "home" : "#FFB81C",
+        "id" : 5,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726648/256x256/cut.png",
+        "team_url" : "http://www.pittsburghpenguins.com"
+    },
+    "San Jose Sharks" : {
+        "away" : "#F4901E",
+        "home" : "#007889",
+        "id" : 28,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281721090/256x256/cut.png",
+        "team_url" : "http://www.sjsharks.com"
+    },
+    "St. Louis Blues" : {
+        "away" : "#FDB930",
+        "home" : "#00529C",
+        "id" : 19,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281752302/256x256/cut.png",
+        "team_url" : "http://www.stlouisblues.com"
+    },
+    "Tampa Bay Lightning" : {
+        "away" : "#FFFFFF",
+        "emoji" : "TampaBayLightning:381568942054834196",
+        "home" : "#003D7C",
+        "id" : 14,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723320/256x256/cut.png",
+        "team_url" : "http://www.tampabaylightning.com"
+    },
+    "Toronto Maple Leafs" : {
+        "away" : "#FFFFFF",
+        "emoji" : "TorontoMapleLeafs:381568943011135488",
+        "home" : "#013E7F",
+        "id" : 10,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723324/256x256/cut.png",
+        "team_url" : "http://www.mapleleafs.com"
+    },
+    "Vancouver Canucks" : {
+        "away" : "#008852",
+        "emoji" : "VancouverCanucks:381568942914928641",
+        "home" : "#003E7E",
+        "id" : 23,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281721212/256x256/cut.png",
+        "team_url" : "http://www.canucks.com"
+    },
+    "Vegas Golden Knights" : {
+        "away" : "#333F48",
+        "emoji" : "VegasGoldenKnights:381568942465875970",
+        "home" : "#89734C",
+        "id" : 54,
+        "logo" : "https://nhl.bamcontent.com/images/photos/284409696/256x256/cut.png",
+        "team_url" : "http://www.vegasgoldenknights.com"
+    },
+    "Washington Capitals" : {
+        "away" : "#C60C30",
+        "emoji" : "WashingtonCapitals:381568942541373440",
+        "home" : "#002147",
+        "id" : 15,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281726654/256x256/cut.png",
+        "team_url" : "http://www.washingtoncapitals.com"
+    },
+    "Winnipeg Jets" : {
+        "away" : "#006EC8",
+        "emoji" : "WinnipegJets:381568942700888065",
+        "home" : "#002D62",
+        "id" : 52,
+        "logo" : "https://nhl.bamcontent.com/images/photos/281723512/256x256/cut.png",
+        "team_url" : "http://winnipegjets.com"
+    }
+}
