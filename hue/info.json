@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Control Phillips Hue",
+    "DESCRIPTION" : "Control your hue lights with redbot",
+    "DISABLED" : false,
+    "NAME" : "Hue",
+    "TAGS" : ["general"],
+    "requirements": ["phue"],
+    "INSTALL_MSG" : "Now as the bot owner you can control your phillips hue lights"
+}

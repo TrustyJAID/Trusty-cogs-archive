@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Accept rules on server join",
+    "DESCRIPTION" : "Have the bot post a message and a reaction to allow members into a server.",
+    "DISABLED" : false,
+    "NAME" : "AcceptRules",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Type [p]rules to setup"
+}
