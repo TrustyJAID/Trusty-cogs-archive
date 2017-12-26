@@ -26,7 +26,7 @@ class Backup:
 
 
     @commands.command(pass_context=True)
-    @checks.admin_or_permissions(manage_channels=True)
+    @checks.admin_or_permissions(manage_messages=True)
     async def logs(self, ctx, *, server_name=None):
         if server_name is None:
             server = ctx.message.server
