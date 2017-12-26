@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Backup all channels in a server",
+    "DESCRIPTION" : "Backup and save all channels on a server.",
+    "DISABLED" : false,
+    "NAME" : "backup",
+    "TAGS" : ["general"],
+    "REQUIREMENTS" :[],
+    "INSTALL_MSG" : "Type [p]logs to backup every channel on a server and save them to json in the backup folder."
+}
