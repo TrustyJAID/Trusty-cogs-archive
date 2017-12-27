@@ -72,10 +72,12 @@ class Backup:
                             "pinned":message.pinned}
                     message_list.append(data)
                 total_msgs += len(message_list)
+                if len(message_list) == 0:
+                    continue
                 dataIO.save_json("data/backup/{}/{}-{}.json".format(server.name, chn.name, today), message_list)
                 await self.bot.send_message(channel, "{} messages saved from {}".format(len(message_list), chn.name))
             except discord.errors.Forbidden:
-                await self.bot.send_message(channel, "0 messages saved from {}".format(len(message_list), chn.name))
+                await self.bot.send_message(channel, "0 messages saved from {}".format(chn.name))
                 pass
         await self.bot.send_message(channel, "{} messages saved from {}".format(total_msgs, server.name))
 
