@@ -37,20 +37,17 @@ class TweetListener(tw.StreamListener):
 
     def on_error(self, status_code):
         msg = "A tweet stream error has occured! " + str(status_code)
-        print(msg)
         self.bot.dispatch("tweet_error", msg)
         if status_code in [420, 504, 503, 502, 500, 400, 401, 403, 404]:
             return False
 
     def on_disconnect(self, notice):
         msg = "Twitter has sent a disconnect code"
-        print(msg)
         self.bot.dispatch("tweet_error", msg)
         return False
 
     def on_warning(self, notice):
         msg = "Twitter has sent a disconnection warning"
-        print(msg)
         self.bot.dispatch("tweet_error", msg)
         return True
 
@@ -69,16 +66,33 @@ class Tweets():
             self.access_token = self.settings["api"]['access_token']
         if 'access_secret' in list(self.settings["api"].keys()):
             self.access_secret = self.settings["api"]['access_secret']
-        auth = tw.OAuthHandler(self.consumer_key, self.consumer_secret)
-        auth.set_access_token(self.access_token, self.access_secret)
-        api = tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5, retry_errors=5)
-        tweet_list = list(self.settings["accounts"])
-        stream_start = TweetListener(api, self.bot)
-        self.mystream = tw.Stream(api.auth, stream_start)
-        self.mystream.filter(follow=tweet_list, async=True)
+        self.mystream = None
+        self.loop = bot.loop.create_task(self.start_stream())
+
+        
         
     def __unload(self):
         self.mystream.disconnect()
+
+    async def start_stream(self):
+        await self.bot.wait_until_ready()
+        while self is self.bot.get_cog("Tweets"):
+            auth = tw.OAuthHandler(self.consumer_key, self.consumer_secret)
+            auth.set_access_token(self.access_token, self.access_secret)
+            api = tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5, retry_errors=5)
+            tweet_list = list(self.settings["accounts"])
+            stream_start = TweetListener(api, self.bot)
+            if self.mystream is None:
+                self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
+                self.start_stream_loop(tweet_list)
+            if not self.mystream.running:
+                self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
+                self.start_stream_loop(tweet_list)
+            await asyncio.sleep(300)
+
+
+    def start_stream_loop(self, tweet_list):
+            self.mystream.filter(follow=tweet_list, async=True)
         
 
     async def authenticate(self):
@@ -98,8 +112,7 @@ class Tweets():
         post_url =\
             "https://twitter.com/{}/status/{}".format(s.user.screen_name, s.id)
         desc = "Created at: {}".format(created_at)
-        em = discord.Embed(description=s.text,
-                           colour=discord.Colour(value=self.random_colour()),
+        em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
                            url=post_url,
                            timestamp=s.created_at)
         try:                                
@@ -109,7 +122,8 @@ class Tweets():
         # em.add_field(name="Text", value=s.text)
         em.set_footer(text="Retweet count: " + str(s.retweet_count))
         if hasattr(s, "extended_entities"):
-            em.set_image(url=s.extended_entities["media"][0]["media_url"] + ":thumb")
+            em.set_image(url=s.extended_entities["media"][0]["media_url"])
+        em.description = s.full_text.replace("&amp;", "\n\n")
         if not message:
             message =\
                 await self.bot.send_message(ctx.message.channel, embed=em)
@@ -162,7 +176,6 @@ class Tweets():
         api.update_status(message)
         await self.bot.send_message(ctx.message.channel, "Tweet sent!")
 
-
     def random_colour(self):
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
 
@@ -212,7 +225,7 @@ class Tweets():
             api = await self.authenticate()
             try:
                 for status in\
-                        tw.Cursor(api.user_timeline, id=username).items(cnt):
+                        tw.Cursor(api.user_timeline, id=username, tweet_mode="extended").items(cnt):
                     if status.in_reply_to_screen_name is not None and not replies_on:
                         continue
                     msg_list.append(status)
@@ -231,7 +244,7 @@ class Tweets():
     async def on_tweet_error(self, error):
         """Posts error messages to a specified channel by the owner"""
         if self.settings["error_channel"] is not None:
-            channel = await self.bot.get_channel(self.settings["error_channel"])
+            channel = self.bot.get_channel(self.settings["error_channel"])
             await self.bot.send_message(channel, error)
         return
 
@@ -247,8 +260,7 @@ class Tweets():
             if status.in_reply_to_screen_name is not None and not self.settings["accounts"][user_id]["replies"]:
                 return
             post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-            em = discord.Embed(description=status.text,
-                            colour=discord.Colour(value=self.random_colour()),
+            em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
                             url=post_url,
                             timestamp=status.created_at)
             try:                                
@@ -257,8 +269,16 @@ class Tweets():
                 print(status.user.name + " could not get profile image!")
             if hasattr(status, "extended_entities"):
                 em.set_image(url=status.extended_entities["media"][0]["media_url"])
+            if hasattr(status, "extended_tweet"):
+                text = status.extended_tweet["full_text"]
+                # print(status.extended_tweet)
+                if  "media" in status.extended_tweet["entities"]:
+                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url"])
+            else:
+                text = status.text
+            em.description = text.replace("&amp;", "\n\n")
 
-            if status.text.startswith("RELEASE:") and username == "wikileaks":
+            if text.startswith("RELEASE:") and username == "wikileaks":
                 await self.bot.send_message(self.bot.get_channel("365376327278395393"), embed=em)
             for channel in list(self.settings["accounts"][user_id]["channel"]):
                 await self.bot.send_message(self.bot.get_channel(channel), embed=em)
@@ -267,9 +287,6 @@ class Tweets():
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
-            if self.settings["error_channel"] is not None:
-                error_channel = await self.bot.get_channel(self.settings["error_channel"])
-                await self.bot.send_message(error_channel, "{} :username {}".format(e, username))
             return
     
     @commands.group(pass_context=True, name='autotweet')
@@ -461,7 +478,7 @@ def check_folder():
 
 def check_file():
     data = {"api":{'consumer_key': '', 'consumer_secret': '',
-            'access_token': '', 'access_secret': ''}, 'accounts': {}, 'error_channel': None}
+            'access_token': '', 'access_secret': ''}, 'accounts': {}}
     f = "data/tweets/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")
