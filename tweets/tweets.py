@@ -243,9 +243,13 @@ class Tweets():
 
     async def on_tweet_error(self, error):
         """Posts error messages to a specified channel by the owner"""
-        if self.settings["error_channel"] is not None:
-            channel = self.bot.get_channel(self.settings["error_channel"])
-            await self.bot.send_message(channel, error)
+        try:
+            if self.settings["error_channel"] is not None:
+                channel = self.bot.get_channel(self.settings["error_channel"])
+                await self.bot.send_message(channel, error)
+        except KeyError:
+            self.settings["error_channel"] = None
+            dataIO.save_json("data/tweets/settings.json", self.settings)
         return
 
     
@@ -478,7 +482,7 @@ def check_folder():
 
 def check_file():
     data = {"api":{'consumer_key': '', 'consumer_secret': '',
-            'access_token': '', 'access_secret': ''}, 'accounts': {}}
+            'access_token': '', 'access_secret': ''}, 'accounts': {}, "error_channel":None}
     f = "data/tweets/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")
