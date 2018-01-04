@@ -176,6 +176,58 @@ class Tweets():
         api.update_status(message)
         await self.bot.send_message(ctx.message.channel, "Tweet sent!")
 
+    @_tweets.command(pass_context=True, name="getfollowers")
+    @checks.is_owner()
+    async def getfollowers(self, ctx, *, username: str):
+        api = await self.authenticate()
+        followers = api.followers_ids(username)
+        print(followers)
+        user_list = []
+        for follower in tw.Cursor(api.followers, id=username).items(5000):
+            user_list.append(follower)
+            """
+            data = {
+                  "id": follower.id,
+                  "id_str": follower.id_str,
+                  "name": follower.name,
+                  "screen_name": follower.screen_name,
+                  "location": follower.location,
+                  "url": follower.url,
+                  "description": follower.description,
+                  "protected": follower.protected,
+                  "followers_count": follower.followers_count,
+                  "friends_count": follower.friends_count,
+                  "listed_count": follower.listed_count,
+                  # "created_at": follower.created_at,
+                  "favourites_count": follower.favourites_count,
+                  "utc_offset": follower.utc_offset,
+                  "time_zone": follower.time_zone,
+                  "geo_enabled": follower.geo_enabled,
+                  "verified": follower.verified,
+                  "statuses_count": follower.statuses_count,
+                  "lang": follower.lang,
+                  "contributors_enabled": follower.contributors_enabled,
+                  "is_translator": follower.is_translator,
+                  "is_translation_enabled": follower.is_translation_enabled,
+                  "profile_background_color": follower.profile_background_color,
+                  "profile_background_image_url": follower.profile_background_image_url,
+                  "profile_background_image_url_https": follower.profile_background_image_url_https,
+                  "profile_background_tile": follower.profile_background_tile,
+                  "profile_image_url": follower.profile_image_url,
+                  "profile_image_url_https": follower.profile_image_url_https,
+                  "profile_link_color": follower.profile_link_color,
+                  "profile_sidebar_border_color": follower.profile_sidebar_border_color,
+                  "profile_sidebar_fill_color": follower.profile_sidebar_fill_color,
+                  "profile_text_color": follower.profile_text_color,
+                  "profile_use_background_image": follower.profile_use_background_image,
+                  "default_profile": follower.default_profile,
+                  "default_profile_image": follower.default_profile_image,
+                  "following": follower.following
+                  }"""
+            # user_list.append(data)
+        dataIO.save_json("data/tweets/{}.json".format(username), user_list)
+        await self.bot.send_message(ctx.message.channel, "Download done!")
+
     def random_colour(self):
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
 
@@ -263,12 +315,11 @@ class Tweets():
         try:
             if status.in_reply_to_screen_name is not None and not self.settings["accounts"][user_id]["replies"]:
                 return
-            post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
+            post_url = "https://twitter.com/{}/status/{}".format(username, status.id)
             em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
-                            url=post_url,
                             timestamp=status.created_at)
             try:                                
-                em.set_author(name=status.user.name, icon_url=status.user.profile_image_url)
+                em.set_author(name=status.user.name, url=post_url, icon_url=status.user.profile_image_url)
             except:
                 print(status.user.name + " could not get profile image!")
             if hasattr(status, "extended_entities"):
@@ -281,9 +332,7 @@ class Tweets():
             else:
                 text = status.text
             em.description = text.replace("&amp;", "\n\n")
-
-            if text.startswith("RELEASE:") and username == "wikileaks":
-                await self.bot.send_message(self.bot.get_channel("365376327278395393"), embed=em)
+            em.set_footer(text="@" + username)
             for channel in list(self.settings["accounts"][user_id]["channel"]):
                 await self.bot.send_message(self.bot.get_channel(channel), embed=em)
             self.settings["accounts"][user_id]["lasttweet"] = status.id
