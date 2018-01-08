@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "INSTALL_MSG" : "[p]qposts ",
+    "NAME" : "qposts",
+    "DISABLED" : false,
+    "SHORT" : "Cog for getting q trip code posts rfom 8ch",
+    "REQUIREMENTS" : ["bs4"], 
+    "DESCRIPTION" : "gets Q posts from 8ch",
+    "TAGS": ["utility"]
+}
