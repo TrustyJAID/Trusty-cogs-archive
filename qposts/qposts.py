@@ -22,7 +22,7 @@ class QPosts:
         self.settings = dataIO.load_json("data/qposts/settings.json")
         self.qposts = dataIO.load_json("data/qposts/qposts.json")
         self.url = "https://8ch.net"
-        self.boards = ["thestorm"]
+        self.boards = ["thestorm", "greatawakening"]
         self.loop = bot.loop.create_task(self.get_q_posts())
 
     def __unload(self):
