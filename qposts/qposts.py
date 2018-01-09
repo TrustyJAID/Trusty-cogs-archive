@@ -22,7 +22,7 @@ class QPosts:
         self.settings = dataIO.load_json("data/qposts/settings.json")
         self.qposts = dataIO.load_json("data/qposts/qposts.json")
         self.url = "https://8ch.net"
-        self.boards = ["thestorm", "greatawakening"]
+        self.boards = ["greatawakening", "qresearch"]
         self.loop = bot.loop.create_task(self.get_q_posts())
 
     def __unload(self):
@@ -66,12 +66,25 @@ class QPosts:
                                     Q_posts.append(post)
                 old_posts = [post_no["no"] for post_no in self.qposts[board]]
 
-                if len(old_posts) != len(Q_posts):
-                    for post in Q_posts:
-                        if post["no"] not in old_posts:
+                for post in Q_posts:
+                    if post["no"] not in old_posts:
+                        self.qposts[board].append(post)
+                        dataIO.save_json("data/qposts/qposts.json", self.qposts)
+                        await self.postq(post, "/{}/".format(board))
+                    for old_post in self.qposts[board]:
+                        if old_post["no"] == post["no"] and old_post["com"] != post["com"]:
+                            print("getting here")
+                            if "edit" not in self.qposts:
+                                self.qposts["edit"] = {}
+                            print("here")
+                            if board not in self.qposts["edit"]:
+                                self.qposts["edit"][board] = []
+                            print("not here?")
+                            self.qposts["edit"][board].append(old_post)
+                            self.qposts[board].remove(old_post)
                             self.qposts[board].append(post)
                             dataIO.save_json("data/qposts/qposts.json", self.qposts)
-                            await self.postq(post, board)
+                            await self.postq(post, "/{}/ {}".format(board, "EDIT"))
             asyncio.sleep(60)
 
 
@@ -79,7 +92,7 @@ class QPosts:
     async def postq(self, qpost, board):
         # qpost = [post for post in self.qposts["thestorm"] if post["no"] == 11689][0]
         # print(qpost)
-        print("trying to post")
+        # print("trying to post")
         em = discord.Embed(colour=discord.Colour.red())
         name = qpost["name"] if "name" in qpost else "Anonymous"
         em.set_author(name=name + qpost["trip"], url="{}{}/res/{}.html#{}".format(self.url, "/thestorm/", qpost["resto"], qpost["no"]))
@@ -93,7 +106,7 @@ class QPosts:
             else:
                 text += p.string + "\n"
         em.description = text[:1800]
-        em.set_footer(text="/{}/".format(board))
+        em.set_footer(text=board)
         if "tim" in qpost:
             file_id = qpost["tim"]
             file_ext = qpost["ext"]
@@ -179,7 +192,7 @@ class QPosts:
         if board not in self.qposts:
             await self.bot.send_message(ctx.message.channel, "{} is not an available board!")
             return
-        qposts = self.qposts[board]
+        qposts = list(reversed(self.qposts[board]))
         await self.q_menu(ctx, qposts, board)
 
     async def save_q_files(self, post):
