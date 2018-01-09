@@ -175,7 +175,7 @@ class QPosts:
                 self.bot.delete_message(message)
 
     @commands.command(pass_context=True)
-    async def qpost(self, ctx, board="thestorm"):
+    async def qpost(self, ctx, board="greatawakening"):
         if board not in self.qposts:
             await self.bot.send_message(ctx.message.channel, "{} is not an available board!")
             return
