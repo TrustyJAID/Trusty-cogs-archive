@@ -236,8 +236,8 @@ class Star:
                     return
             if count < threshold and threshold != 0:
                 store = {"original_message":msg.id, "new_message":None,"count":count+1}
+                has_message = None
                 for message in self.settings[server.id]["messages"]:
-                    has_message = None
                     if msg.id == message["original_message"]:
                         has_message = message
                 if has_message is not None:
