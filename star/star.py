@@ -56,6 +56,7 @@ class Star:
         self.settings[server.id] = {"emoji": emoji, 
                                     "channel": channel.id, 
                                     "role": [role.id],
+                                    "threshold": 0,
                                     "messages": [],
                                     "ignore": []}
         dataIO.save_json("data/star/settings.json", self.settings)
@@ -119,6 +120,19 @@ class Star:
         self.settings[server.id]["channel"] = channel.id
         dataIO.save_json("data/star/settings.json", self.settings)
         await self.bot.send_message(ctx.message.channel, "Starboard channel set to {}.".format(channel.mention))
+    
+    @starboard.command(pass_context=True, name="threshold")
+    async def set_threshold(self, ctx, threshold: int=0):
+        """Set the threshold before posting to the starboard"""
+        server = ctx.message.server
+        if server.id not in self.settings:
+            await self.bot.send_message(ctx.message.channel, 
+                                        "I am not setup for the starboard on this server!\
+                                         \nuse starboard set to set it up.")
+            return
+        self.settings[server.id]["threshold"] = threshold
+        dataIO.save_json("data/star/settings.json", self.settings)
+        await self.bot.send_message(ctx.message.channel, "Starboard threshold set to {}.".format(threshold))        
 
     @_roles.command(pass_context=True, name="add")
     async def add_role(self, ctx, role:discord.Role=None):
@@ -174,6 +188,20 @@ class Star:
                 is_posted = True
         return is_posted
 
+    async def check_is_added(self, server, message):
+        is_posted = False
+        for past_message in self.settings[server.id]["messages"]:
+            if message.id == past_message["new_message"]:
+                is_posted = True
+        return is_posted
+
+    async def get_count(self, server, message):
+        count = 0
+        for past_message in list(self.settings[server.id]["messages"]):
+            if message.id == past_message["original_message"]:
+                count = past_message["count"]
+        return count
+
     async def get_posted_message(self, server, message):
         msg_list = self.settings[server.id]["messages"]
         for past_message in msg_list:
@@ -197,12 +225,32 @@ class Star:
             return
         react =self.settings[server.id]["emoji"]
         if react in str(reaction.emoji):
+            threshold = self.settings[server.id]["threshold"]
+            count = await self.get_count(server, msg)
             if await self.check_is_posted(server, msg):
                 channel = self.bot.get_channel(self.settings[server.id]["channel"])
                 msg_id, count = await self.get_posted_message(server, msg)
-                msg_edit = await self.bot.get_message(channel, msg_id)
-                await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count))
+                if msg_id is not None:
+                    msg_edit = await self.bot.get_message(channel, msg_id)
+                    await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count-1))
+                    return
+            if count < threshold and threshold != 0:
+                store = {"original_message":msg.id, "new_message":None,"count":count+1}
+                for message in self.settings[server.id]["messages"]:
+                    has_message = None
+                    if msg.id == message["original_message"]:
+                        has_message = message
+                if has_message is not None:
+                    self.settings[server.id]["messages"].remove(has_message)
+                    self.settings[server.id]["messages"].append(store)
+                    dataIO.save_json("data/star/settings.json", self.settings)
+                else:
+                    self.settings[server.id]["messages"].append(store)
+                    dataIO.save_json("data/star/settings.json", self.settings)
                 return
+            if threshold == 0:
+                count = 2
+            # else:
             author = reaction.message.author
             channel = reaction.message.channel
             channel2 = self.bot.get_channel(id=self.settings[server.id]["channel"])
@@ -257,9 +305,9 @@ class Star:
                 if reaction.message.attachments != []:
                     em.set_image(url=reaction.message.attachments[0]["url"])
             em.set_footer(text='{} | {}'.format(channel.server.name, channel.name))
-            post_msg = await self.bot.send_message(channel2, embed=em)
+            post_msg = await self.bot.send_message(channel2, "{} **#{}**".format(reaction.emoji, count-1), embed=em)
             past_message_list = self.settings[server.id]["messages"]
-            past_message_list.append({"original_message":msg.id, "new_message":post_msg.id,"count":1})
+            past_message_list.append({"original_message":msg.id, "new_message":post_msg.id,"count":count})
             dataIO.save_json("data/star/settings.json", self.settings)
 
         else:
