@@ -22,22 +22,23 @@ except ImportError:
 
 
 class Badges:
-    """Create badges based off user profile"""
 
     def __init__(self, bot):
         self.bot = bot
         self.files = "data/badges/"
-        self.blank_template = {"cia":"data/badges/cia-template.png", 
-                               "cicada":"data/badges/cicada-template.png", 
-                               "ioi":"data/badges/IOI-template.png",
-                               "fbi":"data/badges/fbi-template.png",
-                               "nsa":"data/badges/nsa-template.png",
-                               "gab":"data/badges/gab-template.png",
-                               "dop":"data/badges/dop-template.png",
-                               "shit":"data/badges/shit-template.png",
-                               "bunker":"data/badges/bunker-template.png",
-                               "nk":"data/badges/nk-template.png",
-                               "kek": "data/badges/kek-template.png"}
+        self.blank_template = {"cia":{"code":"CIA", "loc":"data/badges/cia-template.png"}, 
+                               "cicada":{"code":"CICADA", "loc":"data/badges/cicada-template.png"},
+                               "ioi":{"code":"IOI", "loc":"data/badges/IOI-template.png"},
+                               "fbi":{"code":"FBI", "loc":"data/badges/fbi-template.png"},
+                               "nsa":{"code":"NSA", "loc":"data/badges/nsa-template.png"},
+                               "gab":{"code":"GAB", "loc":"data/badges/gab-template.png"},
+                               "dop":{"code":"DOP", "loc":"data/badges/dop-template.png"},
+                               "shit":{"code":"SHIT", "loc":"data/badges/shit-template.png"},
+                               "bunker":{"code":"BUNKER", "loc":"data/badges/bunker-template.png"},
+                               "nk":{"code":"NK", "loc":"data/badges/nk-template.png"},
+                               "kek":{"code":"KEK", "loc": "data/badges/kek-template.png"},
+                               "unsc":{"code":"UNSC", "loc": "data/badges/unsc-template.png"}}
+
         
 
     async def dl_image(self, url, ext="png"):
@@ -46,6 +47,22 @@ class Badges:
                 test = await resp.read()
                 with open(self.files + "temp/temp." + ext, "wb") as f:
                     f.write(test)
+
+    async def remove_white_barcode(self):
+        """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
+        img = Image.open(self.files + "temp/bar_code_temp.png")
+        img = img.convert("RGBA")
+        datas = img.getdata()
+
+        newData = []
+        for item in datas:
+            if item[0] == 255 and item[1] == 255 and item[2] == 255:
+                newData.append((255, 255, 255, 0))
+            else:
+                newData.append(item)
+
+        img.putdata(newData)
+        img.save(self.files + "temp/bar_code_temp.png", "PNG")
 
     async def create_badge(self, user, badge):
         avatar = user.avatar_url if user.avatar_url != "" else user.default_avatar_url
@@ -68,7 +85,8 @@ class Badges:
         temp_barcode = generate("code39", userid, 
                                 writer=ImageWriter(), 
                                 output="data/badges/temp/bar_code_temp")
-        template = Image.open(self.blank_template[badge])
+        await self.remove_white_barcode()
+        template = Image.open(self.blank_template[badge]["loc"])
         template = template.convert("RGBA")
         avatar = Image.open(self.files + "temp/temp." + ext)
         barcode = Image.open(self.files + "temp/bar_code_temp.png")
@@ -76,14 +94,14 @@ class Badges:
         barcode = barcode.resize((555,125), Image.ANTIALIAS)
         template.paste(barcode, (400,520), barcode)
         # font for user information
-        font1 = ImageFont.truetype("data/badges/arial.ttf", 30)
+        font1 = ImageFont.truetype("data/badges/ARIALUNI.TTF", 30)
         # font for extra information
-        font2 = ImageFont.truetype("data/badges/arial.ttf", 24)
+        font2 = ImageFont.truetype("data/badges/ARIALUNI.TTF", 24)
         draw = ImageDraw.Draw(template)
         # adds username
         draw.text((225, 330), str(username), fill=(0, 0, 0), font=font1)
         # adds ID Class
-        draw.text((225, 400), badge.upper() + "-" + str(user).split("#")[1], fill=(0, 0, 0), font=font1)
+        draw.text((225, 400), self.blank_template[badge]["code"] + "-" + str(user).split("#")[1], fill=(0, 0, 0), font=font1)
         # adds user id
         draw.text((250, 115), str(userid), fill=(0, 0, 0), font=font2)
         # adds user status
@@ -120,20 +138,38 @@ class Badges:
             template.paste(watermark, (845,45, 945,145), watermark)
             template.paste(id_image, (60,95, 225, 260))
             template.save("data/badges/temp/tempbadge.png")
+
+    @commands.command(pass_context=True)
+    async def listbadges(self, ctx):
+        await self.list_badges(ctx)
+
+    async def list_badges(self, ctx):
+        msg = ""
+        for template in self.blank_template:
+            msg += template + ", "
+        await self.bot.send_message(ctx.message.channel, msg[:-2])
     
-    @commands.command(hidden=True, pass_context=True)
-    async def badges(self, ctx, badge, user:discord.Member=None):
-        """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
-        if badge.lower() not in self.blank_template:
-            await self.bot.say("That badge doesn't exist yet!")
+    @commands.command(pass_context=True)
+    async def badges(self, ctx, *, badge):
+        """Creates a variety of badges use [p]listbadges to see what is available"""
+        if badge.lower() == "list":
+            await self.list_badges(ctx)
             return
-        if user is None:
-            user = ctx.message.author
+        is_badge = False
+        for template in self.blank_template:
+            if badge.lower() in template.lower():
+                badge = template
+                is_badge = True
+        if not is_badge:
+            await self.bot.send_message(ctx.message.channel, "{} is not an available badge!".format(badge))
+            return
+        user = ctx.message.author
         avatar = user.avatar_url if user.avatar_url != "" else user.default_avatar_url
         ext = "png"
         if "gif" in avatar:
             ext = "gif"
-        await self.create_badge(user, badge.lower())
+        await self.bot.send_typing(ctx.message.channel)
+        await self.create_badge(user, badge)
         await self.bot.send_file(ctx.message.channel, "data/badges/temp/tempbadge." + ext)
 
 def check_folder():
@@ -146,7 +182,7 @@ def check_folder():
         os.makedirs("data/badges/temp/tempgif")
 
 def setup(bot):
-    check_folder()
+    check_folder
     if not importavailable:
         raise NameError("You need to run `pip3 install pillow` and `pip3 install numpy` and `pip3 install pybarcode`")
     n = Badges(bot)
