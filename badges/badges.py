@@ -34,7 +34,6 @@ class Badges:
                                "gab":{"code":"GAB", "loc":"data/badges/gab-template.png"},
                                "dop":{"code":"DOP", "loc":"data/badges/dop-template.png"},
                                "shit":{"code":"SHIT", "loc":"data/badges/shit-template.png"},
-                               "bunker":{"code":"BUNKER", "loc":"data/badges/bunker-template.png"},
                                "nk":{"code":"NK", "loc":"data/badges/nk-template.png"},
                                "kek":{"code":"KEK", "loc": "data/badges/kek-template.png"},
                                "unsc":{"code":"UNSC", "loc": "data/badges/unsc-template.png"}}
