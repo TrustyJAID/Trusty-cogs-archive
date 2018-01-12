@@ -22,6 +22,7 @@ except ImportError:
 
 
 class Badges:
+    """Create badges based off user profile"""
 
     def __init__(self, bot):
         self.bot = bot
