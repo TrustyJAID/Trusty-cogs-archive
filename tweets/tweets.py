@@ -334,7 +334,7 @@ class Tweets():
             em.description = text.replace("&amp;", "\n\n")
             em.set_footer(text="@" + username)
             for channel in list(self.settings["accounts"][user_id]["channel"]):
-                await self.bot.send_message(self.bot.get_channel(channel), embed=em)
+                await self.bot.send_message(self.bot.get_channel(channel), "<{}>".format(post_url), embed=em)
             self.settings["accounts"][user_id]["lasttweet"] = status.id
             dataIO.save_json(self.settings_file, self.settings)
         except tw.TweepError as e:
