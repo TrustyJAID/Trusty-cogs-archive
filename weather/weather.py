@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from .utils.chat_formatting import *
+from .utils.dataIO import dataIO
 from random import randint
 from random import choice
 from enum import Enum
@@ -11,34 +12,72 @@ import datetime
 import time
 import aiohttp
 import asyncio
+import os
+
 
 
 class weather:
 
     def __init__(self, bot):
         self.bot = bot
+        self.settings = dataIO.load_json("data/weather/settings.json")
+        self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.unit = {
             "imperial": {"code": ["i", "f"], "speed": "mph", "temp": "°F"},
-            "metric": {"code": ["m", "c"], "speed": "km/s", "temp": "°C"},
-            "kelvin": {"code": ["k", "s"], "speed": "km/s", "temp": "°K"}}
+            "metric": {"code": ["m", "c"], "speed": "km/h", "temp": "°C"},
+            "kelvin": {"code": ["k", "s"], "speed": "km/h", "temp": "°K"}}
 
     @commands.command(pass_context=True, name="weather", aliases=["we"])
-    async def weather(self, ctx, city, country="", units="imperial"):
+    async def weather(self, ctx, *, location):
         await self.bot.send_typing(ctx.message.channel)
-        await self.getweather(ctx, city, country, units)
+        await self.getweather(ctx, location)
 
-    async def getweather(self, ctx, city, country="", units="imperial"):
-        if country != "":
-            for key, value in self.unit.items():
-                if country.lower() in value["code"] or country.lower() == key:
-                    units = key
+    @commands.group(pass_context=True, name="weatherset")
+    async def weather_set(self, ctx):
+        """Set user or server default units"""
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
+
+    @weather_set.command(pass_context=True, name="server")
+    async def set_server(self, ctx, units):
+        """Sets the server default weather units use imperial, metric, or kelvin"""
+        server = ctx.message.server
+        if units in self.unit:
+            self.settings["server"][server.id] = units
+            dataIO.save_json("data/weather/settings.json", self.settings)
+            await self.bot.send_message(ctx.message.channel, "Default units set to {} in {}.".format(units, server.name))
+
+    @weather_set.command(pass_context=True, name="user")
+    async def set_user(self, ctx, units):
+        """Sets the user default weather units use imperial, metric, or kelvin"""
+        author = ctx.message.author
+        if units in self.unit:
+            self.settings["user"][author.id] = units
+            dataIO.save_json("data/weather/settings.json", self.settings)
+            await self.bot.send_message(ctx.message.channel, "Default units set to {} in {}.".format(units, author.name))
+
+    async def getweather(self, ctx, location):
+        server = ctx.message.server
+        author = ctx.message.author
+        if server.id in self.settings["server"]:
+            print("yes")
+            units = self.settings["server"][server.id]
+        if author.id in self.settings["user"]:
+            units = self.settings["user"][author.id]
+        elif server.id not in self.settings["server"] and author.id not in self.settings["user"]:
+            units = "imperial"
         if units == "kelvin":
-            url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units=metric".format(city+country)
+            url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units=metric".format(location)
         else:
-            url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units={1}".format(city+country, units)
-        with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                data = await resp.json()
+            url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units={1}".format(location, units)
+        async with self.session.get(url) as resp:
+            data = await resp.json()
+        try:
+            if data["message"] == "city not found":
+                await self.bot.send_message(ctx.message.channel, "City not found.")
+                return
+        except:
+            pass
         currenttemp = data["main"]["temp"]
         mintemp = data["main"]["temp_min"]
         maxtemp = data["main"]["temp_max"]
@@ -68,7 +107,21 @@ class weather:
         embed.set_footer(text="Powered by http://openweathermap.org")
         await self.bot.send_message(ctx.message.channel, embed=embed)
 
+def check_folder():
+    if not os.path.exists("data/weather"):
+        print("Creating data/weather folder")
+        os.makedirs("data/weather")
+
+def check_file():
+    data = {"server":{}, "user":{}}
+    f = "data/weather/settings.json"
+    if not dataIO.is_valid_json(f):
+        print("Creating default settings.json...")
+        dataIO.save_json(f, data)
+
 
 def setup(bot):
+    check_folder()
+    check_file()
     n = weather(bot)
     bot.add_cog(n)
