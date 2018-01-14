@@ -95,7 +95,7 @@ class QPosts:
         # print("trying to post")
         em = discord.Embed(colour=discord.Colour.red())
         name = qpost["name"] if "name" in qpost else "Anonymous"
-        em.set_author(name=name + qpost["trip"], url="{}/{}//res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
+        em.set_author(name=name + qpost["trip"], url="{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
         em.timestamp = datetime.fromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
@@ -118,6 +118,32 @@ class QPosts:
             channel = self.bot.get_channel(id=channel_id)
             await self.bot.send_message(channel, embed=em)
 
+    @commands.command(pass_context=True)
+    @checks.is_owner()
+    async def fixq(self, ctx):
+        async for message in self.bot.logs_from(ctx.message.channel, limit=1000):
+            if message.embeds != []:
+                embed = message.embeds[0]
+                author = embed["author"]["name"]
+                board = embed["footer"]["text"]
+                url = embed["author"]["url"].replace("/thestorm/", board)
+                embed["author"]["url"] = url
+                text = embed["description"]
+                # timestamp = embed["timestamp"] "2018-01-13T22:39:31+00:00"
+                # print(board)
+                post_id = int(url.split("#")[-1])
+                timestamp = [post["time"] for post in self.qposts[board.replace("/", "")] if post["no"] == post_id][0]
+                # print(timestamp)
+                timestamp = datetime.fromtimestamp(timestamp)
+                # print(timestamp)
+                em = discord.Embed(colour=discord.Colour.red(),
+                                   description=text,
+                                   timestamp=timestamp)
+                em.set_author(name=author, url=url)
+                em.set_footer(text="{}".format(board))
+                await self.bot.edit_message(message, embed=em)
+        # print(embed["author"])
+
     async def q_menu(self, ctx, post_list: list, board,
                          message: discord.Message=None,
                          page=0, timeout: int=30):
@@ -127,7 +153,7 @@ class QPosts:
         qpost = post_list[page]
         em = discord.Embed(colour=discord.Colour.red())
         name = qpost["name"] if "name" in qpost else "Anonymous"
-        em.set_author(name=name + qpost["trip"], url="{}/{}//res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
+        em.set_author(name=name + qpost["trip"], url="{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
         em.timestamp = datetime.fromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
