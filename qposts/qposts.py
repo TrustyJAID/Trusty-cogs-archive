@@ -95,7 +95,7 @@ class QPosts:
         # print("trying to post")
         em = discord.Embed(colour=discord.Colour.red())
         name = qpost["name"] if "name" in qpost else "Anonymous"
-        em.set_author(name=name + qpost["trip"], url="{}{}/res/{}.html#{}".format(self.url, "/thestorm/", qpost["resto"], qpost["no"]))
+        em.set_author(name=name + qpost["trip"], url="{}/{}//res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
         em.timestamp = datetime.fromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
@@ -127,7 +127,7 @@ class QPosts:
         qpost = post_list[page]
         em = discord.Embed(colour=discord.Colour.red())
         name = qpost["name"] if "name" in qpost else "Anonymous"
-        em.set_author(name=name + qpost["trip"], url="{}{}/res/{}.html#{}".format(self.url, "/thestorm/", qpost["resto"], qpost["no"]))
+        em.set_author(name=name + qpost["trip"], url="{}/{}//res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
         em.timestamp = datetime.fromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
