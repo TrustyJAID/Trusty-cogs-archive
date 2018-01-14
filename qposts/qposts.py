@@ -88,7 +88,20 @@ class QPosts:
             print("checking Q...")
             asyncio.sleep(60)
 
-
+    async def get_quoted_post(self, qpost):
+        html = qpost["com"]
+        soup = BeautifulSoup(html, "html.parser")
+        reference_post = []
+        for a in soup.find_all("a", href=True):
+            print(a)
+            url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
+            async with self.session.get(self.url + url) as resp:
+                data = await resp.json()
+            for post in data["posts"]:
+                if post["no"] == post_id:
+                    reference_post.append(post)
+        return reference_post
+            
     # @commands.command(pass_context=True)
     async def postq(self, qpost, board):
         # qpost = [post for post in self.qposts["thestorm"] if post["no"] == 11689][0]
@@ -108,6 +121,19 @@ class QPosts:
             else:
                 text += p.string + "\n"
         em.description = text[:1800]
+        reference = await self.get_quoted_post(qpost)
+        if reference != []:
+            for post in reference:
+                print(post)
+                ref_html = post["com"]
+                soup_ref = BeautifulSoup(ref_html, "html.parser")
+                ref_text = ""
+                for p in soup_ref.find_all("p"):
+                    if p.string is None:
+                        ref_text += "."
+                    else:
+                        ref_text += p.string + "\n"
+                em.add_field(name=str(post["no"]), value=ref_text)
         em.set_footer(text=board)
         if "tim" in qpost:
             file_id = qpost["tim"]
@@ -167,7 +193,19 @@ class QPosts:
             else:
                 text += p.string + "\n"
         em.description = text[:1800]
-        em.description = text
+        reference = await self.get_quoted_post(qpost)
+        if reference != []:
+            for post in reference:
+                print(post)
+                ref_html = post["com"]
+                soup_ref = BeautifulSoup(ref_html, "html.parser")
+                ref_text = ""
+                for p in soup_ref.find_all("p"):
+                    if p.string is None:
+                        ref_text += "."
+                    else:
+                        ref_text += p.string + "\n"
+                em.add_field(name=str(post["no"]), value=ref_text)
         em.set_footer(text="/{}/".format(board))
         if "tim" in qpost:
             file_id = qpost["tim"]
@@ -224,7 +262,7 @@ class QPosts:
             return await\
                 self.bot.delete_message(message)
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=["postq"])
     async def qpost(self, ctx, board="greatawakening"):
         if board not in self.qposts:
             await self.bot.send_message(ctx.message.channel, "{} is not an available board!")
