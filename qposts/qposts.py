@@ -85,6 +85,7 @@ class QPosts:
                             self.qposts[board].append(post)
                             dataIO.save_json("data/qposts/qposts.json", self.qposts)
                             await self.postq(post, "/{}/ {}".format(board, "EDIT"))
+            print("checking Q...")
             asyncio.sleep(60)
 
 
@@ -95,7 +96,8 @@ class QPosts:
         # print("trying to post")
         em = discord.Embed(colour=discord.Colour.red())
         name = qpost["name"] if "name" in qpost else "Anonymous"
-        em.set_author(name=name + qpost["trip"], url="{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
+        url = "{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"])
+        em.set_author(name=name + qpost["trip"], url=url)
         em.timestamp = datetime.fromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
@@ -110,13 +112,13 @@ class QPosts:
         if "tim" in qpost:
             file_id = qpost["tim"]
             file_ext = qpost["ext"]
-            url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
+            img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
             if file_ext in [".png", ".jpg"]:
-                em.set_image(url=url)
+                em.set_image(url=img_url)
             await self.save_q_files(qpost)
         for channel_id in self.settings:
             channel = self.bot.get_channel(id=channel_id)
-            await self.bot.send_message(channel, embed=em)
+            await self.bot.send_message(channel, "<{}>".format(url), embed=em)
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -153,7 +155,8 @@ class QPosts:
         qpost = post_list[page]
         em = discord.Embed(colour=discord.Colour.red())
         name = qpost["name"] if "name" in qpost else "Anonymous"
-        em.set_author(name=name + qpost["trip"], url="{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"]))
+        url = "{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"])
+        em.set_author(name=name + qpost["trip"], url=url)
         em.timestamp = datetime.fromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
@@ -169,17 +172,17 @@ class QPosts:
         if "tim" in qpost:
             file_id = qpost["tim"]
             file_ext = qpost["ext"]
-            url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
+            img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
             if file_ext in [".png", ".jpg"]:
-                em.set_image(url=url)
+                em.set_image(url=img_url)
         if not message:
             message =\
-                await self.bot.send_message(ctx.message.channel, embed=em)
+                await self.bot.send_message(ctx.message.channel, "<{}>".format(url), embed=em)
             await self.bot.add_reaction(message, "⬅")
             await self.bot.add_reaction(message, "❌")
             await self.bot.add_reaction(message, "➡")
         else:
-            message = await self.bot.edit_message(message, embed=em)
+            message = await self.bot.edit_message(message, "<{}>".format(url), embed=em)
         react = await self.bot.wait_for_reaction(
             message=message, user=ctx.message.author, timeout=timeout,
             emoji=["➡", "⬅", "❌"]
@@ -197,6 +200,10 @@ class QPosts:
                 next_page = 0  # Loop around to the first item
             else:
                 next_page = page + 1
+            try:
+                await self.bot.remove_reaction(message, "➡", ctx.message.author)
+            except:
+                pass
             return await self.q_menu(ctx, post_list, board=board,
                                         message=message,
                                         page=next_page, timeout=timeout)
@@ -206,6 +213,10 @@ class QPosts:
                 next_page = len(post_list) - 1  # Loop around to the last item
             else:
                 next_page = page - 1
+            try:
+                await self.bot.remove_reaction(message, "⬅", ctx.message.author)
+            except:
+                pass
             return await self.q_menu(ctx, post_list, board=board,
                                         message=message,
                                         page=next_page, timeout=timeout)
