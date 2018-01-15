@@ -133,7 +133,7 @@ def check_folder():
         os.makedirs("data/google")
 
 def check_file():
-    data = {"key": None}
+    data = {"key": None, "servers": []}
     f = "data/google/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")
