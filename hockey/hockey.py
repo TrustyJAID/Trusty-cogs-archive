@@ -26,9 +26,10 @@ class Hockey:
         self.url = "https://statsapi.web.nhl.com"
         self.teams = dataIO.load_json("data/hockey/teams.json")
         self.headshots = "https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg"
-        self.loop = bot.loop.create_task(self.check_team_goals())
+        self.loop = bot.loop.create_task(self.get_team_goals())
 
     def __unload(self):
+        self.session.close()
         self.loop.cancel()
 
     @commands.command(hidden=True, pass_context=True)
@@ -36,23 +37,6 @@ class Hockey:
     async def testgoallights(self, ctx):
         hue = Oilers(self.bot)
         await hue.oilersgoal2()
-
-    @commands.command(hidden=True, pass_context=True)
-    @checks.is_owner()
-    async def getemojiid(self, ctx):
-        server = ctx.message.server
-        emojilist = []
-        for team in self.settings:
-            self.settings[team]["created_channel"] = []
-        # for emoji in server.emojis:
-            # for team in self.teams:
-                # if emoji.name[:5].replace(".", "") in team:
-                    # emoji_id = emoji.name + ":" + emoji.id
-                    # self.teams[team]["emoji"] = emoji_id
-        dataIO.save_json("data/hockey/settings.json", self.settings)
-            # emojilist.append(emoji.name + ":" + emoji.id)
-        # print(emojilist)
-
 
     async def team_playing(self, games):
         """Check if team is playing and returns game link and team name"""
@@ -67,7 +51,7 @@ class Hockey:
                 links[game["teams"]["home"]["team"]["name"]] = game["link"]
         return is_playing, links
 
-    async def check_team_goals(self):
+    async def get_team_goals(self):
         """Loop to check what teams are playing and see if a goal was scored"""
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("Hockey"):
@@ -83,37 +67,22 @@ class Hockey:
                         data = await resp.json()
                     # print(data)
                     event = data["liveData"]["plays"]["allPlays"]
-                    home_team = data["liveData"]["linescore"]["teams"]["home"]["team"]["name"]
+                    home_team = data["gameData"]["teams"]["home"]["name"]
                     home_shots = data["liveData"]["linescore"]["teams"]["home"]["shotsOnGoal"]
                     home_score = data["liveData"]["linescore"]["teams"]["home"]["goals"]
-                    home_tricode = data["liveData"]["linescore"]["teams"]["home"]["team"]["triCode"]
-                    away_team = data["liveData"]["linescore"]["teams"]["away"]["team"]["name"]
+                    home_abr = data["gameData"]["teams"]["home"]["abbreviation"]
+                    away_team = data["gameData"]["teams"]["away"]["name"]
                     away_shots = data["liveData"]["linescore"]["teams"]["away"]["shotsOnGoal"]
                     away_score = data["liveData"]["linescore"]["teams"]["away"]["goals"]
+                    away_abr = data["gameData"]["teams"]["away"]["abbreviation"]
+                    goals = [goal for goal in event if goal["result"]["eventTypeId"] == "GOAL" or (goal["result"]["eventTypeId"] == "MISSED_SHOT" and goal["about"]["ordinalNum"] == "SO")]
+                    home_msg, away_msg = await self.get_shootout_display(goals, home_team, away_team)
                     score_msg = {"Home":home_team, "Home Score":home_score, "Home Shots":home_shots,
-                                 "Away": away_team, "Away Score":away_score, "Away Shots":away_shots}
-                    goals = [goal for goal in event if goal["result"]["eventTypeId"] == "GOAL"]
+                                 "Away": away_team, "Away Score":away_score, "Away Shots":away_shots,
+                                 "shootout":{"home_msg": home_msg, "away_msg":away_msg}}
                     if len(goals) == 0:
                         continue
-                    for goal in goals:
-                        goal_id = goal["about"]["eventId"]
-                        # print(goal_id)
-                        if goal_id in self.settings[team]["goal_id"]:
-                            # Checks if the goal data has changed and edits all previous posts with new data
-                            # print("It's failing here for some reason")
-                            if goal != self.settings[team]["goal_id"][goal_id]["goal"]:
-                                print("attempting to edit")
-                                self.settings[team]["goal_id"][goal_id]["goal"] = goal
-                                dataIO.save_json("data/hockey/settings.json", self.settings)
-                                await self.edit_team_goal(goal, team, score_msg, self.settings[team]["goal_id"][goal_id]["messages"])
-                        if goal_id not in self.settings[team]["goal_id"]:
-                            # Posts goal information and saves data for verification later
-                            msg_list = await self.post_team_goal(goal, team, score_msg)
-                            # print("this works")
-                            self.settings[team]["goal_id"][goal_id] = {"goal":goal,"messages":msg_list}
-                            # print("this too")
-                            dataIO.save_json("data/hockey/settings.json", self.settings)
-
+                    await self.check_team_goals(goals, team, score_msg)
                 if data["gameData"]["status"]["abstractGameState"] == "Final":
                     # print("Final")
                     # Clears the game data from the settings file
@@ -125,9 +94,174 @@ class Hockey:
                     break
                 await asyncio.sleep(60)
             print(is_playing)
+            for team in self.settings:
+                self.settings[team]["goal_id"] = {}
+            dataIO.save_json("data/hockey/settings.json", self.settings)
             await asyncio.sleep(300)
 
-    @commands.command(pass_context=True)
+    async def get_shootout_display(self, goals, home_team, away_team):
+        home_msg = ""
+        away_msg = ""
+        score = "☑"
+        miss = "❌"
+        for goal in goals:
+            if goal["result"]["eventTypeId"] == "MISSED_SHOT" and goal["about"]["ordinalNum"] == "SO":
+                if goal["team"]["name"] == home_team:
+                    home_msg += miss
+                if goal["team"]["name"] == away_team:
+                    away_msg += miss
+            if goal["result"]["eventTypeId"] == "GOAL" and goal["about"]["ordinalNum"] == "SO":
+                if goal["team"]["name"] == home_team:
+                    home_msg += score
+                if goal["team"]["name"] == away_team:
+                    away_msg += score
+        return home_msg, away_msg
+
+
+    async def check_team_goals(self, goals, team, score_msg):
+        goal_ids = [str(goal_id["about"]["eventId"]) for goal_id in goals]
+        goal_list = list(self.settings[team]["goal_id"])
+        for goal in goals:
+            goal_id = str(goal["about"]["eventId"])
+            if goal_id not in goal_list:
+                # Posts goal information and saves data for verification later
+                msg_list = await self.post_team_goal(goal, team, score_msg)
+                self.settings[team]["goal_id"][goal_id] = {"goal":goal,"messages":msg_list}
+                dataIO.save_json("data/hockey/settings.json", self.settings)
+            if goal_id in goal_list:
+                # Checks if the goal data has changed and edits all previous posts with new data
+                old_goal = self.settings[team]["goal_id"][goal_id]["goal"]
+                if goal != old_goal:
+                    print("attempting to edit")
+                    old_msgs = self.settings[team]["goal_id"][goal_id]["messages"]
+                    self.settings[team]["goal_id"][goal_id]["goal"] = goal
+                    dataIO.save_json("data/hockey/settings.json", self.settings)
+                    await self.post_team_goal(goal, team, score_msg, old_msgs)
+
+        for old_goal in goal_list:
+            if old_goal not in goal_ids:
+                old_msgs = self.settings[team]["goal_id"][old_goal]["messages"].items()
+                for channel_id, message_id in old_msgs:
+                    channel = self.bot.get_channel(id=channel_id)
+                    message = await self.bot.get_message(channel, message_id)
+                    try:
+                        await self.bot.delete_message(message)
+                    except:
+                        print("I can't delete messages in {}".format(channel.server.name))
+                        pass
+                del self.settings[team]["goal_id"][old_goal]
+                dataIO.save_json("data/hockey/settings.json", self.settings)
+
+    async def post_team_goal(self, goal, team, score_msg, og_msg=None):
+        """Creates embed and sends message if a team has scored a goal"""
+        
+        scorer = self.headshots.format(goal["players"][0]["player"]["id"])
+        scoring_team = self.teams[goal["team"]["name"]]
+        period = goal["about"]["ordinalNum"]
+        home = goal["about"]["goals"]["home"]
+        away = goal["about"]["goals"]["away"]
+        period_time_left = goal["about"]["periodTimeRemaining"]
+        event = goal["result"]["event"]
+        shootout = False
+        if period == "SO":
+            shootout = True
+        try:
+            strength = goal["result"]["strength"]["name"]
+        except KeyError:
+            strength = ""
+        if strength == "Even":
+            strength = "Even Strength"
+        try:
+            if goal["result"]["emptyNet"]:
+                strength = "Empty Net"
+        except KeyError:
+            pass
+        if not shootout:
+            em = discord.Embed(description=strength + " " + event + " by " + goal["result"]["description"],
+                               colour=int(self.teams[goal["team"]["name"]]["home"].replace("#", ""), 16))
+            em.set_author(name="🚨 " + goal["team"]["name"] + " " + strength + " " + event + " 🚨", 
+                          url=self.teams[goal["team"]["name"]]["team_url"],
+                          icon_url=self.teams[goal["team"]["name"]]["logo"])
+            em.add_field(name=score_msg["Home"], value=str(home))
+            em.add_field(name=score_msg["Away"], value=str(away))
+            em.add_field(name="Shots " + score_msg["Home"], value=score_msg["Home Shots"])
+            em.add_field(name="Shots " + score_msg["Away"], value=score_msg["Away Shots"])
+            em.set_thumbnail(url=scorer)
+            em.set_footer(text="{} left in the {} period"
+                          .format(period_time_left, period), icon_url=self.teams[goal["team"]["name"]]["logo"])
+            em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
+        else:
+            if "missed" in event.lower():
+                em = discord.Embed(description=strength + " " + event + " by " + goal["result"]["description"],
+                               colour=int(self.teams[goal["team"]["name"]]["home"].replace("#", ""), 16))
+                em.set_author(name=goal["team"]["name"] + " " + event, 
+                              url=self.teams[goal["team"]["name"]]["team_url"],
+                              icon_url=self.teams[goal["team"]["name"]]["logo"])
+            else:
+                em = discord.Embed(description="Shootout " + event + " by " + goal["result"]["description"],
+                               colour=int(self.teams[goal["team"]["name"]]["home"].replace("#", ""), 16))
+                em.set_author(name="🚨 " + goal["team"]["name"] + " Shootout " + event + " 🚨", 
+                          url=self.teams[goal["team"]["name"]]["team_url"],
+                          icon_url=self.teams[goal["team"]["name"]]["logo"])
+            home_msg = score_msg["shootout"]["home_msg"]
+            away_msg = score_msg["shootout"]["away_msg"]
+            em.add_field(name=score_msg["Home"], value=home_msg)
+            em.add_field(name=score_msg["Away"], value=away_msg)
+            em.set_thumbnail(url=scorer)
+            em.set_footer(text="{} left in the {} period"
+                          .format(period_time_left, period), icon_url=self.teams[goal["team"]["name"]]["logo"])
+            em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
+        msg_list = {}
+        if og_msg is None:
+            if "oilers" in goal["team"]["name"].lower() and "missed" not in event.lower():
+                try:
+                    hue = Oilers(self.bot)
+                    await hue.oilersgoal2()
+                except:
+                    pass
+            for channels in self.settings[team]["channel"]:
+                role = None
+                channel = self.bot.get_channel(id=channels)
+                server = channel.server
+                for roles in server.roles:
+                    if roles.name == goal["team"]["name"] + " GOAL":
+                        role = roles
+                try:
+                    if role is None or "missed" in event.lower():
+                        msg = await self.bot.send_message(channel, embed=em)
+                        msg_list[channel.id] = msg.id
+                    else:  
+                        msg = await self.bot.send_message(channel, role.mention, embed=em)
+                        msg_list[channel.id] = msg.id
+                except:
+                    print("Could not post goal in {}".format(channels))
+                    pass
+            # print(msg_list)
+            return msg_list
+        else:
+            for channel_id, message_id in og_msg.items():
+                role = None
+                channel = self.bot.get_channel(id=channel_id)
+                # print("channel {} ID {}".format(channel, message_id))
+                message = await self.bot.get_message(channel, message_id)
+                # print("I can get the message")
+                server = message.server
+                for roles in server.roles:
+                    if roles.name == goal["team"]["name"] + " GOAL":
+                        role = roles
+                if role is None or "missed" in event.lower():
+                    await self.bot.edit_message(message, embed=em)
+                else:  
+                    await self.bot.edit_message(message, role.mention, embed=em)
+            return
+
+    @commands.group(pass_context=True, name="hockey", aliases=["nhl"])
+    async def hockey_commands(self, ctx):
+        """Various Hockey related commands"""
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
+
+    @hockey_commands.command(pass_context=True)
     @checks.is_owner()
     async def hockeytwitter(self, ctx):
         server = self.bot.get_server(id="381567805495181344")
@@ -138,100 +272,12 @@ class Hockey:
                 team = "montreal-canadiens"
             await self.bot.create_channel(server, name=team.lower() + "-twitter")
 
-
-    async def edit_team_goal(self, goal, team, score_msg, og_msg):
-        """Creates embed and sends message if a team has scored a goal"""
-        print("Attempting to edit a goal")
-        em = discord.Embed(description=goal["result"]["description"],
-                           colour=int(self.teams[goal["team"]["name"]]["home"].replace("#", ""), 16))
-        scorer = self.headshots.format(goal["players"][0]["player"]["id"])
-        scoring_team = self.teams[goal["team"]["name"]]
-        period = goal["about"]["ordinalNum"]
-        period_time_left = goal["about"]["periodTimeRemaining"]
-        em.set_author(name="🚨 " + goal["team"]["name"] + " GOAL 🚨", 
-                      url=self.teams[goal["team"]["name"]]["team_url"],
-                      icon_url=self.teams[goal["team"]["name"]]["logo"])
-        em.add_field(name=score_msg["Home"], value=score_msg["Home Score"])
-        em.add_field(name=score_msg["Away"], value=score_msg["Away Score"])
-        em.add_field(name="Shots " + score_msg["Home"], value=score_msg["Home Shots"])
-        em.add_field(name="Shots " + score_msg["Away"], value=score_msg["Away Shots"])
-        em.set_thumbnail(url=scorer)
-        em.set_footer(text="{} left in the {} period".format(period_time_left, period))
-        em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
-        # print(og_msg)
-        for channel_id, message_id in og_msg.items():
-            role = None
-            channel = self.bot.get_channel(id=channel_id)
-            # print("channel {} ID {}".format(channel, message_id))
-            message = await self.bot.get_message(channel, message_id)
-            # print("I can get the message")
-            server = message.server
-            for roles in server.roles:
-                if roles.name == goal["team"]["name"] + " GOAL":
-                    role = roles
-            if role is None:
-                await self.bot.edit_message(message, embed=em)
-            else:  
-                await self.bot.edit_message(message, role.mention, embed=em)
-        return
-
-    async def post_team_goal(self, goal, team, score_msg):
-        """Creates embed and sends message if a team has scored a goal"""
-        em = discord.Embed(description=goal["result"]["description"],
-                           colour=int(self.teams[goal["team"]["name"]]["home"].replace("#", ""), 16))
-        scorer = self.headshots.format(goal["players"][0]["player"]["id"])
-        scoring_team = self.teams[goal["team"]["name"]]
-        period = goal["about"]["ordinalNum"]
-        period_time_left = goal["about"]["periodTimeRemaining"]
-        em.set_author(name="🚨 " + goal["team"]["name"] + " GOAL 🚨", 
-                      url=self.teams[goal["team"]["name"]]["team_url"],
-                      icon_url=self.teams[goal["team"]["name"]]["logo"])
-        em.add_field(name=score_msg["Home"], value=score_msg["Home Score"])
-        em.add_field(name=score_msg["Away"], value=score_msg["Away Score"])
-        em.add_field(name="Shots " + score_msg["Home"], value=score_msg["Home Shots"])
-        em.add_field(name="Shots " + score_msg["Away"], value=score_msg["Away Shots"])
-        em.set_thumbnail(url=scorer)
-        em.set_footer(text="{} left in the {} period".format(period_time_left, period))
-        em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
-        msg_list = {}
-        if "oilers" in goal["team"]["name"].lower():
-            try:
-                hue = Oilers(self.bot)
-                await hue.oilersgoal2()
-            except:
-                pass
-        for channels in self.settings[team]["channel"]:
-            role = None
-            channel = self.bot.get_channel(id=channels)
-            server = channel.server
-            for roles in server.roles:
-                if roles.name == goal["team"]["name"] + " GOAL":
-                    role = roles
-            try:
-                if role is None:
-                    msg = await self.bot.send_message(channel, embed=em)
-                    msg_list[channel.id] = msg.id
-                else:  
-                    msg = await self.bot.send_message(channel, role.mention, embed=em)
-                    msg_list[channel.id] = msg.id
-            except:
-                print("Could not post goal in {}".format(channels))
-                pass
-        print(msg_list)
-        return msg_list
-
-    @commands.group(pass_context=True, name="hockey", aliases=["nhl"])
-    async def hockey_commands(self, ctx):
-        """Various Hockey related commands"""
-        if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
-
     @hockey_commands.command(pass_context=True, hidden=True, name="reset")
     async def reset_hockey(self, ctx):
         for team in self.settings:
             self.settings[team]["goal_id"] = {}
         dataIO.save_json("data/hockey/settings.json", self.settings)
-        print("done")
+        await self.bot.say("Cleared saved hockey data.")
 
 
     @hockey_commands.command(pass_context=True, name="add", aliases=["add_goals"])
@@ -246,7 +292,7 @@ class Hockey:
         if channel is None:
             channel = ctx.message.channel
         if team not in self.settings:
-            self.settings[team] = {"channel":[channel.id], "goals":[], "goals_id": []}
+            self.settings[team] = {"channel":[channel.id], "goal_id": {}}
         if channel.id in self.settings[team]["channel"]:
             await self.bot.send_message(ctx.message.channel, "I am already posting {} goals in {}!".format(team, channel.mention))
             return
@@ -281,13 +327,11 @@ class Hockey:
             await self.bot.send_message(ctx.message.channel, "Sorry that only works on TrustyJAID's Oilers Server!")
             return
         try:
-            team = [team_name for team_name in self.teams if team.lower() in team_name.lower()][0]
-        except IndexError:
-            await self.bot.say("{} is not an available team!".format(team))
-            return
-        role = [role for role in server.roles if role.name == team][0]
-        await self.bot.add_roles(ctx.message.author, role)
-        await self.bot.send_message(ctx.message.channel, "Role applied.")
+            role = [role for role in server.roles if (team.lower() in role.name.lower() and "GOAL" not in role.name)][0]
+            await self.bot.add_roles(ctx.message.author, role)
+            await self.bot.send_message(ctx.message.channel, "Role applied.")
+        except:
+            await self.bot.send_message(ctx.message.channel, "{} is not an available role!".format(team))
 
     @hockey_commands.command(pass_context=True, name="goals")
     async def team_goals(self, ctx, *, team=None):
@@ -306,13 +350,11 @@ class Hockey:
                 await self.bot.send_message(ctx.message.channel, "Role applied.")
         else:
             try:
-                team = [team_name for team_name in self.teams if team.lower() in team_name.lower()][0]
-            except IndexError:
-                await self.bot.say("{} is not an available team!".format(team))
-                return
-            role = [role for role in server.roles if role.name == team][0]
-            await self.bot.add_roles(ctx.message.author, role)
-            await self.bot.send_message(ctx.message.channel, "Role applied.")
+                role = [role for role in server.roles if (team.lower() in role.name.lower() and role.name.endswith("GOAL"))][0]
+                await self.bot.add_roles(ctx.message.author, role)
+                await self.bot.send_message(ctx.message.channel, "Role applied.")
+            except:
+                await self.bot.send_message(ctx.message.channel, "{} is not an available role!".format(team))
 
     async def game_menu(self, ctx, post_list: list,
                          team_set=None,
@@ -363,7 +405,7 @@ class Hockey:
                 if goals != []:
                     em.add_field(name="{} Goal".format(goals[-1]["team"]["name"]), value=goals[-1]["result"]["description"])
                 em.add_field(name="Period", value=msg)
-        em.set_footer(text="Game start ")
+        em.set_footer(text="Game start ", icon_url=logo)
         if not message:
             message =\
                 await self.bot.send_message(ctx.message.channel, embed=em)
@@ -389,6 +431,10 @@ class Hockey:
                 next_page = 0  # Loop around to the first item
             else:
                 next_page = page + 1
+            try:
+                await self.bot.remove_reaction(message, "➡", ctx.message.author)
+            except:
+                pass
             return await self.game_menu(ctx, post_list, team_set=team_set,
                                         message=message,
                                         page=next_page, timeout=timeout)
@@ -398,6 +444,10 @@ class Hockey:
                 next_page = len(post_list) - 1  # Loop around to the last item
             else:
                 next_page = page - 1
+            try:
+                await self.bot.remove_reaction(message, "⬅", ctx.message.author)
+            except:
+                pass
             return await self.game_menu(ctx, post_list, team_set=team_set,
                                         message=message,
                                         page=next_page, timeout=timeout)
@@ -469,6 +519,10 @@ class Hockey:
                 next_page = 0  # Loop around to the first item
             else:
                 next_page = page + 1
+            try:
+                await self.bot.remove_reaction(message, "➡", ctx.message.author)
+            except:
+                pass
             return await self.roster_menu(ctx, post_list,
                                         message=message,
                                         page=next_page, timeout=timeout)
@@ -478,51 +532,111 @@ class Hockey:
                 next_page = len(post_list) - 1  # Loop around to the last item
             else:
                 next_page = page - 1
+            try:
+                await self.bot.remove_reaction(message, "⬅", ctx.message.author)
+            except:
+                pass
             return await self.roster_menu(ctx, post_list,
                                         message=message,
                                         page=next_page, timeout=timeout)
         else:
             return await\
                 self.bot.delete_message(message)
-        """
+
+    @hockey_commands.command(pass_context=True)
+    async def emojis(self, ctx):
+        emoji = ""
+        for team in self.teams:
+            await self.bot.say("<:" + self.teams[team]["emoji"] + "> ")
+        # await self.bot.say(emoji)
+
     async def standings_menu(self, ctx, post_list: list,
+                         display_type,
                          message: discord.Message=None,
                          page=0, timeout: int=30):
         # Change between standing pages
-        player_list = post_list[page]
-        async with self.session.get(self.url + player_list["person"]["link"] + "?expand=person.stats&stats=yearByYear") as resp:
-            player_data = await resp.json()
-        player = player_data["people"][0]
-        year_stats = [league for league in player["stats"][0]["splits"] if league["league"]["name"] == "National Hockey League"][-1]
-        name = player["fullName"]
-        number = player["primaryNumber"]
-        position = player["primaryPosition"]["name"]
-        headshot = self.headshots.format(player["id"])
-        team = player["currentTeam"]["name"]
-        em = discord.Embed(colour=int(self.teams[team]["home"].replace("#", ""), 16))
-        em.set_author(name="{} #{}".format(name, number), url=self.teams[team]["team_url"], icon_url=self.teams[team]["logo"])
-        em.add_field(name="Position", value=position)
-        em.set_thumbnail(url=headshot)
-        if position != "Goalie":
-            post_data = {"Shots" : year_stats["stat"]["shots"],
-                        "Goals" : year_stats["stat"]["goals"],
-                        "Assists" : year_stats["stat"]["assists"],
-                        "Hits" : year_stats["stat"]["hits"],
-                        "Face Off Percent" : year_stats["stat"]["faceOffPct"],
-                        "+/-" : year_stats["stat"]["plusMinus"],
-                        "Blocked Shots" : year_stats["stat"]["blocked"],
-                        "PIM" : year_stats["stat"]["pim"]}
-            for key, value in post_data.items():
-                if value != 0.0:
-                    em.add_field(name=key, value=value)
-        else:
-            saves = year_stats["stat"]["saves"]
-            save_percentage = year_stats["stat"]["savePercentage"]
-            goals_against_average = year_stats["stat"]["goalAgainstAverage"]
-            em.add_field(name="Saves", value=saves)
-            em.add_field(name="Save Percentage", value=save_percentage)
-            em.add_field(name="Goals Against Average", value=goals_against_average)
+        em = discord.Embed()
+        standing_list = post_list[page]
         
+        if display_type == "division":
+            conference = standing_list["conference"]["name"]
+            division = standing_list["division"]["name"]
+            for team in standing_list["teamRecords"]:
+                team_name = team["team"]["name"]
+                emoji = "<:" + self.teams[team_name]["emoji"] + ">"
+                wins = team["leagueRecord"]["wins"]
+                losses = team["leagueRecord"]["losses"]
+                ot = team["leagueRecord"]["ot"]
+                gp = team["gamesPlayed"]
+                pts = team["points"]
+                pl = team["divisionRank"]
+                msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
+                timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+                em.add_field(name=pl + ". " + emoji + " " + team_name, value=msg, inline=True)
+                em.timestamp = timestamp
+                em.set_footer(text="Stats last Updated")
+            if conference == "Eastern":
+                em.colour = int("c41230", 16)
+                em.set_author(name=division + " Division", url="https://www.nhl.com/standings")#, icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/1/16/NHL_Eastern_Conference.svg/1280px-NHL_Eastern_Conference.svg.png")
+            if conference == "Western":
+                em.colour = int("003e7e", 16)
+                em.set_author(name=division + " Division", url="https://www.nhl.com/standings")#, icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/6/65/NHL_Western_Conference.svg/1280px-NHL_Western_Conference.svg.png")
+        if display_type == "conference":
+            conference = "Eastern" if page == 0 else "Western"
+            new_list = sorted(standing_list, key=lambda k: int(k["conferenceRank"]))
+            for team in new_list:
+                team_name = team["team"]["name"]
+                emoji = "<:" + self.teams[team_name]["emoji"] + ">"
+                wins = team["leagueRecord"]["wins"]
+                losses = team["leagueRecord"]["losses"]
+                ot = team["leagueRecord"]["ot"]
+                gp = team["gamesPlayed"]
+                pts = team["points"]
+                pl = team["conferenceRank"]
+                msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
+                timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+                em.add_field(name=pl + ". " + emoji + " " + team_name, value=msg, inline=True)
+                em.timestamp = timestamp
+                em.set_footer(text="Stats last Updated")
+            if conference == "Eastern":
+                em.colour = int("c41230", 16)
+                em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/1/16/NHL_Eastern_Conference.svg/1280px-NHL_Eastern_Conference.svg.png")
+            if conference == "Western":
+                em.colour = int("003e7e", 16)
+                em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/6/65/NHL_Western_Conference.svg/1280px-NHL_Western_Conference.svg.png")
+        if display_type == "teams":
+            team = standing_list
+            team_name = team["team"]["name"]
+            league_rank = team["leagueRank"]
+            division_rank = team["divisionRank"]
+            conference_rank = team["conferenceRank"]
+            emoji = "<:" + self.teams[team_name]["emoji"] + ">"
+            wins = team["leagueRecord"]["wins"]
+            losses = team["leagueRecord"]["losses"]
+            ot = team["leagueRecord"]["ot"]
+            gp = team["gamesPlayed"]
+            pts = team["points"]
+            streak = "{} {}".format(team["streak"]["streakNumber"], team["streak"]["streakType"])
+            goals = team["goalsScored"]
+            goals_against = team["goalsAgainst"]
+            timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+            em.set_author(name="# {} {}".format(league_rank, team_name), url="https://www.nhl.com/standings", icon_url=self.teams[team_name]["logo"])
+            em.colour = int(self.teams[team_name]["home"].replace("#", ""), 16)
+            em.set_thumbnail(url=self.teams[team_name]["logo"])
+            em.add_field(name="Division", value="# " + division_rank)
+            em.add_field(name="Conference", value="# " + conference_rank)
+            em.add_field(name="Wins", value=wins)
+            em.add_field(name="Losses", value=losses)
+            em.add_field(name="OT", value=ot)
+            em.add_field(name="Points", value=pts)
+            em.add_field(name="Games Played", value=gp)
+            em.add_field(name="Goals Scored", value=goals)
+            em.add_field(name="Goals Against", value=goals_against)
+            em.add_field(name="Current Streak", value=streak)
+            em.timestamp = timestamp
+            em.set_footer(text="Stats last Updated", icon_url=self.teams[team_name]["logo"])
+
+
         if not message:
             message =\
                 await self.bot.send_message(ctx.message.channel, embed=em)
@@ -548,7 +662,12 @@ class Hockey:
                 next_page = 0  # Loop around to the first item
             else:
                 next_page = page + 1
+            try:
+                await self.bot.remove_reaction(message, "➡", ctx.message.author)
+            except:
+                pass
             return await self.standings_menu(ctx, post_list,
+                                        display_type=display_type,
                                         message=message,
                                         page=next_page, timeout=timeout)
         elif react == "back":
@@ -557,30 +676,64 @@ class Hockey:
                 next_page = len(post_list) - 1  # Loop around to the last item
             else:
                 next_page = page - 1
+            try:
+                await self.bot.remove_reaction(message, "⬅", ctx.message.author)
+            except:
+                pass
             return await self.standings_menu(ctx, post_list,
+                                        display_type=display_type,
                                         message=message,
                                         page=next_page, timeout=timeout)
         else:
             return await\
-                self.bot.delete_message(message)"""
+                self.bot.delete_message(message)
 
-    @hockey_commands.command(hidden=True, pass_context=True)
-    async def standings(self, ctx, *, division=None):
+    @hockey_commands.command(pass_context=True)
+    async def standings(self, ctx, *, search=None):
         """Displays current standings for each division"""
         async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
-            data = resp.json()
-        conference = ["eastern", "western"]
-        division = ["metropolitan", "atlantic", "pacific", "central"]
-        teams = [team for team in self.teams]
-        print(teams)
+            data = await resp.json()
+        conference = ["eastern", "western", "conference"]
+        division = ["metropolitan", "atlantic", "pacific", "central", "division"]
+        try:
+            team = [team_name for team_name in self.teams if search.lower() in team_name.lower()][0]
+        except:
+            team = None
+        division_data = []
+        conference_data = []
         team_data = []
-        if division is None:
-            for record in data["records"]:
-                for team in record["teamRecords"]:
-                    team_data.append(team)
-        
-
-
+        eastern = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Eastern"]
+        western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
+        all_teams = [team for record in data["records"] for team in record["teamRecords"]]
+        conference_data.append(eastern)
+        conference_data.append(western)
+        all_teams = sorted(all_teams, key=lambda k: int(k["leagueRank"]))
+        division_data = [record for record in data["records"]]
+        if search is None or search.lower() in division:
+            if search is not None:
+                division_search = None
+                for record in division_data:
+                    if search.lower() == record["division"]["name"].lower():
+                        division_search = record
+                index = division_data.index(division_search)
+                await self.standings_menu(ctx, division_data, "division", None, index)
+            else:
+                await self.standings_menu(ctx, division_data, "division")
+        elif search.lower() in conference:
+            if search.lower() == "eastern":
+                await self.standings_menu(ctx, conference_data, "conference", None, 0)
+            else:
+                await self.standings_menu(ctx, conference_data, "conference", None, 1)
+        elif team is not None or "team" in search.lower():
+            if team is None:
+                await self.standings_menu(ctx, all_teams, "teams")
+            else:
+                team_data = None
+                for teams in all_teams:
+                    if teams["team"]["name"] == team:
+                        team_data = teams
+                index = all_teams.index(team_data)
+                await self.standings_menu(ctx, all_teams, "teams", None, index)
 
     @hockey_commands.command(pass_context=True)
     async def games(self, ctx, *, team=None):
@@ -588,8 +741,10 @@ class Hockey:
         games_list = []
         page_num = 0
         today = datetime.today()
+        year = 2017
+        year2 = 2018
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
-              .format(base=self.url, year=today.year, year2=today.year+1)
+              .format(base=self.url, year=year, year2=year2)
         
         if team is not None:
             try:
@@ -644,7 +799,7 @@ class Hockey:
 
 def check_folder():
     if not os.path.exists("data/hockey"):
-        print("Creating data/hockey folder")
+        print("Creating data/tweets folder")
         os.makedirs("data/hockey")
 
 def check_file():
