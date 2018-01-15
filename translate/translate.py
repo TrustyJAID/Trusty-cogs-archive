@@ -24,8 +24,8 @@ class Translate:
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.url = "https://translation.googleapis.com"
-        self.settings = dataIO.load_json("data/google/settings.json")
-        self.languages = dataIO.load_json("data/google/flags.json")
+        self.settings = dataIO.load_json("data/translate/settings.json")
+        self.languages = dataIO.load_json("data/translate/flags.json")
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -128,13 +128,13 @@ class Translate:
         await self.bot.say("API key set.")
 
 def check_folder():
-    if not os.path.exists("data/google"):
-        print("Creating data/google folder")
-        os.makedirs("data/google")
+    if not os.path.exists("data/translate"):
+        print("Creating data/translate folder")
+        os.makedirs("data/translate")
 
 def check_file():
     data = {"key": None, "servers": []}
-    f = "data/google/settings.json"
+    f = "data/translate/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")
         dataIO.save_json(f, data)
