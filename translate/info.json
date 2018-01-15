@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "Aziz/TrustyJAID",
+    "INSTALL_MSG" : "You must get an API key from google to set this up https://console.cloud.google.com/apis/library/translate.googleapis.com/?q=translate&id=c22f20ba-6a29-40ae-9084-8bc264a97fc2&project=dameznet-158219",
+    "NAME" : "translate",
+    "DISABLED" : false,
+    "SHORT" : "Translate messages using google translate!",
+    "REQUIREMENTS" : [], 
+    "DESCRIPTION" : "Set a server to post translated messages when a flag emoji has been reacted to the message or translate any text!",
+    "TAGS": ["utility"]
+}
