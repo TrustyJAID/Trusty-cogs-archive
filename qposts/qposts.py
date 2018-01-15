@@ -26,6 +26,7 @@ class QPosts:
         self.loop = bot.loop.create_task(self.get_q_posts())
 
     def __unload(self):
+        self.session.close()
         self.loop.cancel()
 
     @commands.command()
@@ -50,16 +51,24 @@ class QPosts:
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("QPosts"):
             for board in self.boards:
-                async with self.session.get("{}/{}/catalog.json".format(self.url, board)) as resp:
-                    data = await resp.json()
+                try:
+                    async with self.session.get("{}/{}/catalog.json".format(self.url, board)) as resp:
+                        data = await resp.json()
+                except:
+                    print("error grabbing board catalog {}".format(board))
+                    continue
                 Q_posts = []
                 if board not in self.qposts:
                     self.qposts[board] = []
                 for page in data:
                     for thread in page["threads"]:
                         # print(thread["no"])
-                        async with self.session.get("{}/{}/res/{}.json".format(self.url, board,thread["no"])) as resp:
-                            posts = await resp.json()
+                        try:
+                            async with self.session.get("{}/{}/res/{}.json".format(self.url, board,thread["no"])) as resp:
+                                posts = await resp.json()
+                        except:
+                            print("error grabbing thread {} in board {}".format(thread["no"], board))
+                            continue
                         for post in posts["posts"]:
                             if "trip" in post:
                                 if post["trip"] in ["!UW.yye1fxo"]:
@@ -73,13 +82,10 @@ class QPosts:
                         await self.postq(post, "/{}/".format(board))
                     for old_post in self.qposts[board]:
                         if old_post["no"] == post["no"] and old_post["com"] != post["com"]:
-                            print("getting here")
                             if "edit" not in self.qposts:
                                 self.qposts["edit"] = {}
-                            print("here")
                             if board not in self.qposts["edit"]:
                                 self.qposts["edit"][board] = []
-                            print("not here?")
                             self.qposts["edit"][board].append(old_post)
                             self.qposts[board].remove(old_post)
                             self.qposts[board].append(post)
