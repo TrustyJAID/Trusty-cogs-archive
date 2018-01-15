@@ -1,6 +1,6 @@
 {
     "AUTHOR" : "Aziz/TrustyJAID",
-    "INSTALL_MSG" : "You must get an API key from google to set this up https://console.cloud.google.com/apis/library/translate.googleapis.com/?q=translate&id=c22f20ba-6a29-40ae-9084-8bc264a97fc2&project=dameznet-158219",
+    "INSTALL_MSG" : "You must get an API key from google to set this up https://cloud.google.com/translate/?utm_source=google&utm_medium=cpc&utm_campaign=na-US-all-en-dr-bkws-all-all-trial-e-dr-1003905&utm_content=text-ad-none-any-DEV_c-CRE_164195398490-ADGP_Hybrid%20%7C%20AW%20SEM%20%7C%20BKWS%20%7C%20Multi%20~%20Translate%20API-KWID_43700006524936780-kwd-14329410560&utm_term=KW_google%20translate%20api-ST_google%20translate%20api&gclid=EAIaIQobChMIqYX17-DY2AIVDMZkCh0VuAJPEAAYASAAEgLD9vD_BwE&dclid=CJLr_PDg2NgCFc_YwAodD3QAMA",
     "NAME" : "translate",
     "DISABLED" : false,
     "SHORT" : "Translate messages using google translate!",
