@@ -14,6 +14,8 @@ class Backup:
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
+    def __unload(self):
+        self.session.close()
 
     async def check_folder(self, folder_name):
         if not os.path.exists("data/backup/{}".format(folder_name)) or not os.path.exists("data/backup/{}/files".format(folder_name)):
@@ -33,7 +35,7 @@ class Backup:
             server = ctx.message.server
         else:
             for servers in self.bot.servers:
-                if server_name.lower() in server.name:
+                if server_name.lower() in servers.name.lower():
                     server = servers
         channel = ctx.message.channel
         is_folder = await self.check_folder(server.name)
@@ -50,7 +52,7 @@ class Backup:
                         for file in message.attachments:
                             async with self.session.get(file["url"]) as resp:
                                 data = await resp.read()
-                            file_loc = "data/backup/{}/files/{}".format(server.name, file["filename"])
+                            file_loc = "data/backup/{}/files/{}".format(server.name, "{}-{}".format(total_msgs,file["filename"]))
                             with open(file_loc, "wb") as file:
                                 file.write(data)
                         files_saved += 1
@@ -70,12 +72,13 @@ class Backup:
             server = ctx.message.server
         else:
             for servers in self.bot.servers:
-                if server_name.lower() in server.name:
+                if server_name.lower() in servers.name.lower():
                     server = servers
         today = datetime.date.today().strftime("%Y-%m-%d")
         channel = ctx.message.channel
         is_folder = await self.check_folder(server.name)
         total_msgs = 0
+        files_saved = 0
         if not is_folder:
             print("{} folder doesn't exist!".format(server.name))
             return
@@ -112,9 +115,10 @@ class Backup:
                         for file in message.attachments:
                             async with self.session.get(file["url"]) as resp:
                                 img_data = await resp.read()
-                            file_loc = "data/backup/{}/files/{}".format(server.name, file["filename"])
+                            file_loc = "data/backup/{}/files/{}".format(server.name, "{}-{}".format(files_saved, file["filename"]))
                             with open(file_loc, "wb") as file:
                                 file.write(img_data)
+                            files_saved += 1
                     message_list.append(data)
                 total_msgs += len(message_list)
                 if len(message_list) == 0:
