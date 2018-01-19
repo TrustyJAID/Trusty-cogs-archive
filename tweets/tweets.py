@@ -149,6 +149,10 @@ class Tweets():
                 next_page = 0  # Loop around to the first item
             else:
                 next_page = page + 1
+            try:
+                await self.bot.remove_reaction(message, "➡", ctx.message.author)
+            except:
+                pass
             return await self.tweet_menu(ctx, post_list, message=message,
                                          page=next_page, timeout=timeout)
         elif react == "back":
@@ -157,13 +161,17 @@ class Tweets():
                 next_page = len(post_list) - 1  # Loop around to the last item
             else:
                 next_page = page - 1
+            try:
+                await self.bot.remove_reaction(message, "⬅", ctx.message.author)
+            except:
+                pass
             return await self.tweet_menu(ctx, post_list, message=message,
                                          page=next_page, timeout=timeout)
         else:
             return await\
                 self.bot.delete_message(message)
 
-    @commands.group(pass_context=True, no_pm=True, name='tweets')
+    @commands.group(pass_context=True, no_pm=True, name='tweets', aliases=["twitter"])
     async def _tweets(self, ctx):
         """Gets various information from Twitter's API"""
         if ctx.invoked_subcommand is None:
@@ -172,11 +180,24 @@ class Tweets():
     @_tweets.command(pass_context=True, name="send")
     @checks.is_owner()
     async def send_tweet(self, ctx, *, message: str):
+        """Sends tweets as the bot owners account"""
         api = await self.authenticate()
         api.update_status(message)
         await self.bot.send_message(ctx.message.channel, "Tweet sent!")
 
-    @_tweets.command(pass_context=True, name="getfollowers")
+    @_tweets.command(pass_context=True, name="change")
+    @checks.is_owner()
+    async def change_namet(self, ctx, *, message: str):
+        """Changes bot owners twitter name"""
+        api = await self.authenticate()
+        try:
+            api.update_profile(name=message)
+        except tw.error.TweepError as e:
+            await self.bot.send_message(ctx.message.channel, str(e))
+            return
+        await self.bot.send_message(ctx.message.channel, "Twitter name changed to {}!".format(message))
+
+    @_tweets.command(hidden = True, pass_context=True, name="getfollowers")
     @checks.is_owner()
     async def getfollowers(self, ctx, *, username: str):
         api = await self.authenticate()
@@ -230,6 +251,38 @@ class Tweets():
 
     def random_colour(self):
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
+
+    @_tweets.command(pass_context=True, name="trends")
+    @checks.is_owner()
+    async def trends(self, ctx, *, location: str="United States"):
+        """Gets twitter trends for a given location"""
+        api = await self.authenticate()
+        location_list = api.trends_available()
+        country_id = None
+        location_names = []
+        for locations in location_list:
+            location_names.append(locations["name"])
+            if location.lower() in locations["name"].lower():
+                country_id = locations
+                # print(locations)
+        if country_id is None:
+            await self.bot.say("{} Is not a correct location!".format(location))
+            return
+        trends = api.trends_place(country_id["woeid"])
+        # print(trends)
+        em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
+                           title=country_id["name"])
+        msg = ""
+        for i in range(0, 25):
+            trend = trends[0]["trends"][i]
+            if trend["tweet_volume"] is not None:
+                msg += "{}. [{}]({}) Volume: {}\n".format(i+1, trend["name"], trend["url"], trend["tweet_volume"])
+            else:
+                msg += "{}. [{}]({})\n".format(i+1, trend["name"], trend["url"])
+        em.description = msg[:2000]
+        em.timestamp = dt.utcnow()
+        await self.bot.send_message(ctx.message.channel, embed=em)
+
 
     @_tweets.command(pass_context=True, no_pm=True, name='getuser')
     async def get_user(self, ctx, username: str):
@@ -333,6 +386,8 @@ class Tweets():
                 text = status.text
             em.description = text.replace("&amp;", "\n\n")
             em.set_footer(text="@" + username)
+            if text.startswith("RELEASE:") and username == "wikileaks":
+                await self.bot.send_message(self.bot.get_channel("365376327278395393"), "<{}>".format(post_url), embed=em)
             for channel in list(self.settings["accounts"][user_id]["channel"]):
                 await self.bot.send_message(self.bot.get_channel(channel), "<{}>".format(post_url), embed=em)
             self.settings["accounts"][user_id]["lasttweet"] = status.id
