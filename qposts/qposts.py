@@ -47,6 +47,19 @@ class QPosts:
             self.qposts[board] = Q_posts
         dataIO.save_json("data/qposts/qposts.json", self.qposts)
 
+    @commands.command(pass_context=True, name="qrole")
+    async def qrole(self, ctx):
+        """Set your role to a team role"""
+        server = ctx.message.server
+        if server.id not in ["400317912616927234", "390196447657852929", "321105104931389440"]:
+            return
+        try:
+            role = [role for role in server.roles if role.name == "QPOSTS"][0]
+            await self.bot.add_roles(ctx.message.author, role)
+            await self.bot.send_message(ctx.message.channel, "Role applied.")
+        except:
+            return
+
     async def get_q_posts(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("QPosts"):
@@ -120,13 +133,14 @@ class QPosts:
         em.timestamp = datetime.utcfromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
+        
         text = ""
         for p in soup.find_all("p"):
             if p.string is None:
                 text += "."
             else:
                 text += p.string + "\n"
-        em.description = text[:1800]
+        em.description = "```{}```".format(text[:1800])
         reference = await self.get_quoted_post(qpost)
         if reference != []:
             for post in reference:
@@ -139,7 +153,7 @@ class QPosts:
                         ref_text += "."
                     else:
                         ref_text += p.string + "\n"
-                em.add_field(name=str(post["no"]), value=ref_text)
+                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
         em.set_footer(text=board)
         if "tim" in qpost:
             file_id = qpost["tim"]
@@ -150,7 +164,12 @@ class QPosts:
             await self.save_q_files(qpost)
         for channel_id in self.settings:
             channel = self.bot.get_channel(id=channel_id)
-            await self.bot.send_message(channel, "<{}>".format(url), embed=em)
+            server = channel.server
+            try:
+                role = [role for role in server.roles if role.name == "QPOSTS"][0]
+                await self.bot.send_message(channel, "{} <{}>".format(role.mention, url), embed=em)
+            except:
+                await self.bot.send_message(channel, "<{}>".format(url), embed=em)
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -172,7 +191,7 @@ class QPosts:
                 timestamp = datetime.utcfromtimestamp(timestamp)
                 # print(timestamp)
                 em = discord.Embed(colour=discord.Colour.red(),
-                                   description=text,
+                                   description="{}".format(text),
                                    timestamp=timestamp)
                 em.set_author(name=author, url=url)
                 em.set_footer(text="{}".format(board))
@@ -205,7 +224,7 @@ class QPosts:
                 text += "."
             else:
                 text += p.string + "\n"
-        em.description = text[:1800]
+        em.description = "```{}```".format(text[:1800])
         reference = await self.get_quoted_post(qpost)
         if reference != []:
             for post in reference:
