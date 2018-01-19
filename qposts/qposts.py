@@ -117,7 +117,7 @@ class QPosts:
         name = qpost["name"] if "name" in qpost else "Anonymous"
         url = "{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"])
         em.set_author(name=name + qpost["trip"], url=url)
-        em.timestamp = datetime.fromtimestamp(qpost["time"])
+        em.timestamp = datetime.utcfromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
         text = ""
@@ -167,14 +167,21 @@ class QPosts:
                 # print(board)
                 post_id = int(url.split("#")[-1])
                 timestamp = [post["time"] for post in self.qposts[board.replace("/", "")] if post["no"] == post_id][0]
+                qpost = [post for post in self.qposts[board.replace("/", "")] if post["no"] == post_id][0]
                 # print(timestamp)
-                timestamp = datetime.fromtimestamp(timestamp)
+                timestamp = datetime.utcfromtimestamp(timestamp)
                 # print(timestamp)
                 em = discord.Embed(colour=discord.Colour.red(),
                                    description=text,
                                    timestamp=timestamp)
                 em.set_author(name=author, url=url)
                 em.set_footer(text="{}".format(board))
+                if "tim" in qpost:
+                    file_id = qpost["tim"]
+                    file_ext = qpost["ext"]
+                    img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
+                    if file_ext in [".png", ".jpg"]:
+                        em.set_image(url=img_url)
                 await self.bot.edit_message(message, embed=em)
         # print(embed["author"])
 
@@ -189,7 +196,7 @@ class QPosts:
         name = qpost["name"] if "name" in qpost else "Anonymous"
         url = "{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"])
         em.set_author(name=name + qpost["trip"], url=url)
-        em.timestamp = datetime.fromtimestamp(qpost["time"])
+        em.timestamp = datetime.utcfromtimestamp(qpost["time"])
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
         text = ""
