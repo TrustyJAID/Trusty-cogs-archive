@@ -112,7 +112,7 @@ class QPosts:
         soup = BeautifulSoup(html, "html.parser")
         reference_post = []
         for a in soup.find_all("a", href=True):
-            print(a)
+            # print(a)
             url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
             async with self.session.get(self.url + url) as resp:
                 data = await resp.json()
@@ -154,12 +154,19 @@ class QPosts:
                     else:
                         ref_text += p.string + "\n"
                 em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
+            if "tim" in reference[0] and "tim" not in qpost:
+                file_id = reference[0]["tim"]
+                file_ext = reference[0]["ext"]
+                img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
+                if file_ext in [".png", ".jpg", ".jpeg"]:
+                    em.set_image(url=img_url)
+                await self.save_q_files(reference)
         em.set_footer(text=board)
         if "tim" in qpost:
             file_id = qpost["tim"]
             file_ext = qpost["ext"]
             img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-            if file_ext in [".png", ".jpg"]:
+            if file_ext in [".png", ".jpg", ".jpeg"]:
                 em.set_image(url=img_url)
             await self.save_q_files(qpost)
         for channel_id in self.settings:
@@ -228,7 +235,7 @@ class QPosts:
         reference = await self.get_quoted_post(qpost)
         if reference != []:
             for post in reference:
-                print(post)
+                # print(post)
                 ref_html = post["com"]
                 soup_ref = BeautifulSoup(ref_html, "html.parser")
                 ref_text = ""
@@ -237,13 +244,19 @@ class QPosts:
                         ref_text += "."
                     else:
                         ref_text += p.string + "\n"
-                em.add_field(name=str(post["no"]), value=ref_text)
+                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
+            if "tim" in post and "tim" not in qpost:
+                file_id = post["tim"]
+                file_ext = post["ext"]
+                img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
+                if file_ext in [".png", ".jpg", ".jpeg"]:
+                    em.set_image(url=img_url)
         em.set_footer(text="/{}/".format(board))
         if "tim" in qpost:
             file_id = qpost["tim"]
             file_ext = qpost["ext"]
             img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-            if file_ext in [".png", ".jpg"]:
+            if file_ext in [".png", ".jpg", ".jpeg"]:
                 em.set_image(url=img_url)
         if not message:
             message =\
