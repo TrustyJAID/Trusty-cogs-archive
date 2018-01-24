@@ -8,6 +8,7 @@ from discord.ext import commands
 from .utils.dataIO import dataIO
 from .utils import checks
 from bs4 import BeautifulSoup
+import tweepy as tw
 
 numbs = {
     "next": "➡",
@@ -24,10 +25,34 @@ class QPosts:
         self.url = "https://8ch.net"
         self.boards = ["greatawakening", "qresearch"]
         self.loop = bot.loop.create_task(self.get_q_posts())
+        self.tweets = dataIO.load_json("data/qposts/twitter.json")
+        if 'consumer_key' in list(self.tweets["api"].keys()):
+            self.consumer_key = self.tweets["api"]['consumer_key']
+        if 'consumer_secret' in list(self.tweets["api"].keys()):
+            self.consumer_secret = self.tweets["api"]['consumer_secret']
+        if 'access_token' in list(self.tweets["api"].keys()):
+            self.access_token = self.tweets["api"]['access_token']
+        if 'access_secret' in list(self.tweets["api"].keys()):
+            self.access_secret = self.tweets["api"]['access_secret']
 
     def __unload(self):
         self.session.close()
         self.loop.cancel()
+
+    async def authenticate(self):
+        """Authenticate with Twitter's API"""
+        auth = tw.OAuthHandler(self.consumer_key, self.consumer_secret)
+        auth.set_access_token(self.access_token, self.access_secret)
+        return tw.API(auth)
+
+    async def send_tweet(self, message: str, file=None):
+        """Sends tweets as the bot owners account"""
+        api = await self.authenticate()
+        if file is None:
+            api.update_status(message)
+        else:
+            api.update_with_media(file, status=message)
+
 
     @commands.command()
     async def dlq(self):
@@ -71,6 +96,7 @@ class QPosts:
                     print("error grabbing board catalog {}".format(board))
                     continue
                 Q_posts = []
+                old_posts = [post_no["no"] for post_no in self.qposts[board]]
                 if board not in self.qposts:
                     self.qposts[board] = []
                 for page in data:
@@ -80,13 +106,15 @@ class QPosts:
                             async with self.session.get("{}/{}/res/{}.json".format(self.url, board,thread["no"])) as resp:
                                 posts = await resp.json()
                         except:
-                            print("error grabbing thread {} in board {}".format(thread["no"], board))
+                            # print("error grabbing thread {} in board {}".format(thread["no"], board))
                             continue
                         for post in posts["posts"]:
                             if "trip" in post:
-                                if post["trip"] in ["!UW.yye1fxo"]:
+                                if post["trip"] in ["!UW.yye1fxo"] and post["no"] not in old_posts:
                                     Q_posts.append(post)
-                old_posts = [post_no["no"] for post_no in self.qposts[board]]
+                                if board == "greatawakening" and post["trip"] not in ["!UW.yye1fxo"] and post["no"] not in old_posts:
+                                    Q_posts.append(post)
+                
 
                 for post in Q_posts:
                     if post["no"] not in old_posts:
@@ -113,12 +141,15 @@ class QPosts:
         reference_post = []
         for a in soup.find_all("a", href=True):
             # print(a)
-            url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
-            async with self.session.get(self.url + url) as resp:
-                data = await resp.json()
-            for post in data["posts"]:
-                if post["no"] == post_id:
-                    reference_post.append(post)
+            try:
+                url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
+                async with self.session.get(self.url + url) as resp:
+                    data = await resp.json()
+                for post in data["posts"]:
+                    if post["no"] == post_id:
+                        reference_post.append(post)
+            except:
+                pass
         return reference_post
             
     # @commands.command(pass_context=True)
@@ -126,49 +157,77 @@ class QPosts:
         # qpost = [post for post in self.qposts["thestorm"] if post["no"] == 11689][0]
         # print(qpost)
         # print("trying to post")
-        em = discord.Embed(colour=discord.Colour.red())
+        
         name = qpost["name"] if "name" in qpost else "Anonymous"
         url = "{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"])
-        em.set_author(name=name + qpost["trip"], url=url)
-        em.timestamp = datetime.utcfromtimestamp(qpost["time"])
+        
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
-        
+        ref_text = ""
         text = ""
-        for p in soup.find_all("p"):
-            if p.string is None:
-                text += "."
-            else:
-                text += p.string + "\n"
-        em.description = "```{}```".format(text[:1800])
+        img_url = ""
         reference = await self.get_quoted_post(qpost)
+        if qpost["com"] != "<p class=\"body-line empty \"></p>":
+            for p in soup.find_all("p"):
+                if p.string is None:
+                    text += "."
+                else:
+                    text += p.string + "\n"
         if reference != []:
             for post in reference:
-                print(post)
+                # print(post)
                 ref_html = post["com"]
                 soup_ref = BeautifulSoup(ref_html, "html.parser")
-                ref_text = ""
                 for p in soup_ref.find_all("p"):
                     if p.string is None:
                         ref_text += "."
                     else:
                         ref_text += p.string + "\n"
-                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
             if "tim" in reference[0] and "tim" not in qpost:
                 file_id = reference[0]["tim"]
                 file_ext = reference[0]["ext"]
                 img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-                if file_ext in [".png", ".jpg", ".jpeg"]:
-                    em.set_image(url=img_url)
-                await self.save_q_files(reference)
-        em.set_footer(text=board)
+                await self.save_q_files(reference[0])
         if "tim" in qpost:
             file_id = qpost["tim"]
             file_ext = qpost["ext"]
             img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-            if file_ext in [".png", ".jpg", ".jpeg"]:
-                em.set_image(url=img_url)
             await self.save_q_files(qpost)
+
+        # print("here")
+        em = discord.Embed(colour=discord.Colour.red())
+        em.set_author(name=name + qpost["trip"], url=url)
+        em.timestamp = datetime.utcfromtimestamp(qpost["time"])
+        if text != "":
+            if "_" in text or "~" in text or "*" in text:
+                em.description = "```\n{}```".format(text[:1993])
+            else:
+                em.description = text[:2000]
+        if ref_text != "":
+            if "_" in ref_text or "~" in ref_text or "*" in ref_text:
+                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
+            else:
+                em.add_field(name=str(post["no"]), value=ref_text)
+        if img_url != "":
+            em.set_image(url=img_url)
+            try:
+                print("sending tweet")
+                tw_msg = "{}\n{}".format(url, text)
+                await self.send_tweet(tw_msg[:280], "data/qposts/files/{}{}".format(file_id, file_ext))
+            except Exception as e:
+                print(e)
+                pass
+        else:
+            try:
+                print("sending tweet")
+                tw_msg = "{}\n{}".format(url, text)
+                await self.send_tweet(tw_msg[:280])
+            except Exception as e:
+                print(e)
+                pass
+        em.set_footer(text=board)
+        
+        
         for channel_id in self.settings:
             channel = self.bot.get_channel(id=channel_id)
             server = channel.server
@@ -177,6 +236,27 @@ class QPosts:
                 await self.bot.send_message(channel, "{} <{}>".format(role.mention, url), embed=em)
             except:
                 await self.bot.send_message(channel, "<{}>".format(url), embed=em)
+
+        if len(text) > 1993:
+            em = discord.Embed(colour=discord.Colour.red())
+            em.set_author(name=name + qpost["trip"], url=url)
+            em.timestamp = datetime.utcfromtimestamp(qpost["time"])
+            em.description = "```\n{}```".format(text[1993:])
+            reference = await self.get_quoted_post(qpost)
+            if ref_text != "":
+                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
+            if img_url != "":
+                em.set_image(url=img_url)   
+            em.set_footer(text=board)
+            
+            for channel_id in self.settings:
+                channel = self.bot.get_channel(id=channel_id)
+                server = channel.server
+                try:
+                    role = [role for role in server.roles if role.name == "QPOSTS"][0]
+                    await self.bot.send_message(channel, "{} <{}>".format(role.mention, url), embed=em)
+                except:
+                    await self.bot.send_message(channel, "<{}>".format(url), embed=em)
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -218,46 +298,62 @@ class QPosts:
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
 
         qpost = post_list[page]
-        em = discord.Embed(colour=discord.Colour.red())
+        
         name = qpost["name"] if "name" in qpost else "Anonymous"
         url = "{}/{}/res/{}.html#{}".format(self.url, board, qpost["resto"], qpost["no"])
-        em.set_author(name=name + qpost["trip"], url=url)
-        em.timestamp = datetime.utcfromtimestamp(qpost["time"])
+        
         html = qpost["com"]
         soup = BeautifulSoup(html, "html.parser")
+        ref_text = ""
         text = ""
-        for p in soup.find_all("p"):
-            if p.string is None:
-                text += "."
-            else:
-                text += p.string + "\n"
-        em.description = "```{}```".format(text[:1800])
+        img_url = ""
         reference = await self.get_quoted_post(qpost)
+        if qpost["com"] != "<p class=\"body-line empty \"></p>":
+            for p in soup.find_all("p"):
+                if p.string is None:
+                    text += "."
+                else:
+                    text += p.string + "\n"
         if reference != []:
             for post in reference:
                 # print(post)
                 ref_html = post["com"]
                 soup_ref = BeautifulSoup(ref_html, "html.parser")
-                ref_text = ""
                 for p in soup_ref.find_all("p"):
                     if p.string is None:
                         ref_text += "."
                     else:
                         ref_text += p.string + "\n"
-                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
-            if "tim" in post and "tim" not in qpost:
-                file_id = post["tim"]
-                file_ext = post["ext"]
+            if "tim" in reference[0] and "tim" not in qpost:
+                file_id = reference[0]["tim"]
+                file_ext = reference[0]["ext"]
                 img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-                if file_ext in [".png", ".jpg", ".jpeg"]:
-                    em.set_image(url=img_url)
-        em.set_footer(text="/{}/".format(board))
+                await self.save_q_files(reference[0])
         if "tim" in qpost:
             file_id = qpost["tim"]
             file_ext = qpost["ext"]
             img_url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-            if file_ext in [".png", ".jpg", ".jpeg"]:
-                em.set_image(url=img_url)
+            await self.save_q_files(qpost)
+
+        # print("here")
+        em = discord.Embed(colour=discord.Colour.red())
+        em.set_author(name=name + qpost["trip"], url=url)
+        em.timestamp = datetime.utcfromtimestamp(qpost["time"])
+        if text != "":
+            if "_" in text or "~" in text or "*" in text:
+                em.description = "```\n{}```".format(text[:1993])
+            else:
+                em.description = text[:2000]
+        if ref_text != "":
+            if "_" in ref_text or "~" in ref_text or "*" in ref_text:
+                em.add_field(name=str(post["no"]), value="```\n{}```".format(ref_text))
+            else:
+                em.add_field(name=str(post["no"]), value=ref_text)
+        if img_url != "":
+            em.set_image(url=img_url)
+        em.set_footer(text=board)
+
+
         if not message:
             message =\
                 await self.bot.send_message(ctx.message.channel, "<{}>".format(url), embed=em)
