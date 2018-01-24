@@ -253,7 +253,6 @@ class Tweets():
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
 
     @_tweets.command(pass_context=True, name="trends")
-    @checks.is_owner()
     async def trends(self, ctx, *, location: str="United States"):
         """Gets twitter trends for a given location"""
         api = await self.authenticate()
@@ -268,17 +267,18 @@ class Tweets():
         if country_id is None:
             await self.bot.say("{} Is not a correct location!".format(location))
             return
-        trends = api.trends_place(country_id["woeid"])
+        trends = api.trends_place(country_id["woeid"])[0]["trends"]
+        # print(trends)
         # print(trends)
         em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
                            title=country_id["name"])
         msg = ""
-        for i in range(0, 25):
-            trend = trends[0]["trends"][i]
+        for trend in trends[:25]:
+            # trend = trends[0]["trends"][i]
             if trend["tweet_volume"] is not None:
-                msg += "{}. [{}]({}) Volume: {}\n".format(i+1, trend["name"], trend["url"], trend["tweet_volume"])
+                msg += "{}. [{}]({}) Volume: {}\n".format(trends.index(trend)+1, trend["name"], trend["url"], trend["tweet_volume"])
             else:
-                msg += "{}. [{}]({})\n".format(i+1, trend["name"], trend["url"])
+                msg += "{}. [{}]({})\n".format(trends.index(trend)+1, trend["name"], trend["url"])
         em.description = msg[:2000]
         em.timestamp = dt.utcnow()
         await self.bot.send_message(ctx.message.channel, embed=em)
@@ -311,7 +311,7 @@ class Tweets():
             await self.bot.say(message)
 
     @_tweets.command(pass_context=True, no_pm=True, name='gettweets')
-    async def get_tweets(self, ctx, username: str, count: int):
+    async def get_tweets(self, ctx, username: str, count: int=1):
         """Gets the specified number of tweets for the specified username"""
         cnt = count
         if count > 25:
