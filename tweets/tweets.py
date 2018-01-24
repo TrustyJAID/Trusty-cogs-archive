@@ -430,9 +430,7 @@ class Tweets():
     async def _tweetset(self, ctx):
         """Command for setting required access information for the API.
         To get this info, visit https://apps.twitter.com and create a new application.
-        Once the application is created, click Keys and Access Tokens then find the
-        button that sends Create my access token and click that. Once that is done,
-        use the subcommands of this command to set the access details"""
+        """
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
