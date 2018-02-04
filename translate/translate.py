@@ -93,7 +93,7 @@ class Translate:
         elif server.id in self.settings["servers"]:
             self.settings["servers"].remove(server.id)
             await self.bot.say("{} has been removed from translated responses!".format(server.name))
-        dataIO.save_json("data/google/settings.json", self.settings)
+        dataIO.save_json("data/translate/settings.json", self.settings)
 
 
     async def on_reaction_add(self, reaction, user):
@@ -110,12 +110,13 @@ class Translate:
             to_translate = reaction.message.clean_content    
         target = self.languages[reaction.emoji]["code"]
         from_lang = await self.detect_language(to_translate)
-        translated_text = await self.translate_text(from_lang[0][0]["language"], target, to_translate)
-        author = reaction.message.author
-        em = discord.Embed(colour=author.top_role.colour, description=translated_text)
-        em.set_author(name=author.display_name, icon_url=author.avatar_url)
-        em.set_footer(text="{} to {}".format(from_lang[0][0]["language"].upper(), target.upper()))
-        await self.bot.send_message(reaction.message.channel, embed=em)
+        if target != from_lang[0][0]["language"]:
+            translated_text = await self.translate_text(from_lang[0][0]["language"], target, to_translate)
+            author = reaction.message.author
+            em = discord.Embed(colour=author.top_role.colour, description=translated_text)
+            em.set_author(name=author.display_name, icon_url=author.avatar_url)
+            em.set_footer(text="{} to {}".format(from_lang[0][0]["language"].upper(), target.upper()))
+            await self.bot.send_message(reaction.message.channel, embed=em)
 
     @commands.command(pass_context=True)
     @checks.is_owner()
