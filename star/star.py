@@ -223,8 +223,11 @@ class Star:
             return
         if not await self.check_roles(user, msg.author, server):
             return
+        if reaction.message.channel.id == self.settings[server.id]["channel"]:
+            return
         react =self.settings[server.id]["emoji"]
         if react in str(reaction.emoji):
+
             threshold = self.settings[server.id]["threshold"]
             count = await self.get_count(server, msg)
             if await self.check_is_posted(server, msg):
