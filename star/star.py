@@ -10,7 +10,7 @@ class Star:
     def __init__(self, bot):
         self.bot = bot
         default_guild = {"enabled": False, "channel": None, "emoji": None, 
-                         "role":[], "messages":[], "ignore":[]}
+                         "role":[], "messages":[], "ignore":[], "threshold": 0}
         self.config = Config.get_conf(self, 356488795)
         self.config.register_guild(**default_guild)
 
@@ -124,6 +124,18 @@ class Star:
         await self.config.guild(guild).channel.set(channel.id)
         await ctx.send("Starboard channel set to {}.".format(channel.mention))
 
+    @starboard.command(pass_context=True, name="threshold")
+    async def set_threshold(self, ctx, threshold:int=0):
+        """Set the threshold before posting to the starboard"""
+        guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
+            await self.bot.send_message(ctx.message.channel, 
+                                        "I am not setup for the starboard on this guild!\
+                                         \nuse `[p]starboard set` to set it up.")
+            return
+        await self.config.guild(guild).threshold.set(threshold)
+        await ctx.send("Starboard threshold set to {}.".format(threshold))
+
     @_roles.command(pass_context=True, name="add")
     async def add_role(self, ctx, role:discord.Role=None):
         """Add a role allowed to add messages to the starboard defaults to @everyone"""
@@ -202,18 +214,30 @@ class Star:
         msg = reaction.message
         if msg.channel.id in await self.config.guild(guild).ignore():
             return
+        if msg.channel.id == await self.config.guild(guild).channel():
+            return
         if not await self.config.guild(guild).enabled():
             return
         if not await self.check_roles(user, msg.author, guild):
             return
         react = await self.config.guild(guild).emoji()
         if react in str(reaction.emoji):
+            threshold = await self.config.guild(guild).threshold()
+            count = reaction.count
+
             if await self.check_is_posted(guild, msg):
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
-                msg_id, count = await self.get_posted_message(guild, msg)
-                msg_edit = await channel.get_message(msg_id)
-                await msg_edit.edit(content="{} **#{}**".format(reaction.emoji, count))
-                return
+                msg_id, count2 = await self.get_posted_message(guild, msg)
+                if msg_id is not None:
+                    msg_edit = await channel.get_message(msg_id)
+                    await msg_edit.edit(content="{} **#{}**".format(reaction.emoji, count))
+                    return
+
+            if count < threshold:
+                    past_message_list = await self.config.guild(guild).messages()
+                    past_message_list.append(StarboardMessage(msg.id, None, count).to_json())
+                    await self.config.guild(guild).messages.set(past_message_list)
+                    return
             author = reaction.message.author
             channel = reaction.message.channel
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
@@ -268,9 +292,9 @@ class Star:
                 if reaction.message.attachments != []:
                     em.set_image(url=reaction.message.attachments[0]["url"])
             em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
-            post_msg = await channel2.send(embed=em)
+            post_msg = await channel2.send("{} **#{}**".format(reaction.emoji, count), embed=em)
             past_message_list = await self.config.guild(guild).messages()
-            past_message_list.append(StarboardMessage(msg.id, post_msg.id, 1).to_json())
+            past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
             await self.config.guild(guild).messages.set(past_message_list)
 
         else:
