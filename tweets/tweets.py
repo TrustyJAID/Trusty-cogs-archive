@@ -140,7 +140,11 @@ class Tweets():
                     next_page = 0  # Loop around to the first item
                 else:
                     next_page = page + 1
-                return await self.tweet_menu(ctx, post_list, message=message,
+                try:
+                    await message.remove_reaction("➡", ctx.message.author)
+                except:
+                    pass
+                return await self.game_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             elif react == "back":
                 next_page = 0
@@ -148,7 +152,11 @@ class Tweets():
                     next_page = len(post_list) - 1  # Loop around to the last item
                 else:
                     next_page = page - 1
-                return await self.tweet_menu(ctx, post_list, message=message,
+                try:
+                    await message.remove_reaction("⬅", ctx.message.author)
+                except:
+                    pass
+                return await self.game_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             else:
                 return await message.delete()
