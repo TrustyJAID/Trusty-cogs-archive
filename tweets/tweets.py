@@ -64,20 +64,29 @@ class Tweets():
         default_global = {"api":{'consumer_key': '', 'consumer_secret': '',
             'access_token': '', 'access_secret': ''}, "accounts":[], "error_channel": None}
         self.config.register_global(**default_global)
+        self.mystream = None
         self.loop = bot.loop.create_task(self.start_stream())
         
     def __unload(self):
-        if self.mystream.running:
-            self.mystream.disconnect()
+        self.mystream.disconnect()
         self.loop.cancel()
 
     async def start_stream(self):
         await self.bot.wait_until_ready()
-        api = await self.authenticate()
-        tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
-        stream_start = TweetListener(api, self.bot)
-        self.mystream = tw.Stream(api.auth, stream_start)
-        self.start_stream_loop(tweet_list)
+        if self.mystream is None:
+            api = await self.authenticate()
+            tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
+            stream_start = TweetListener(api, self.bot)
+            self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
+            self.start_stream_loop(tweet_list)
+        if not self.mystream.running:
+            api = await self.authenticate()
+            tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
+            stream_start = TweetListener(api, self.bot)
+            self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
+            self.start_stream_loop(tweet_list)
+        await asyncio.sleep(300)
+
 
     def start_stream_loop(self, tweet_list):
         self.mystream.filter(follow=tweet_list, async=True)
@@ -161,7 +170,7 @@ class Tweets():
             else:
                 return await message.delete()
 
-    @commands.group( no_pm=True, name='tweets')
+    @commands.group( no_pm=True, name='tweets', aliases=["twitter"])
     async def _tweets(self, ctx):
         """Gets various information from Twitter's API"""
         if ctx.invoked_subcommand is None:
@@ -179,6 +188,37 @@ class Tweets():
     def random_colour(self):
         """Returns a random hex colour for discord.Colour() objects"""
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
+
+    @_tweets.command(pass_context=True, name="trends")
+    async def trends(self, ctx, *, location: str="United States"):
+        """Gets twitter trends for a given location"""
+        api = await self.authenticate()
+        location_list = api.trends_available()
+        country_id = None
+        location_names = []
+        for locations in location_list:
+            location_names.append(locations["name"])
+            if location.lower() in locations["name"].lower():
+                country_id = locations
+                # print(locations)
+        if country_id is None:
+            await self.bot.say("{} Is not a correct location!".format(location))
+            return
+        trends = api.trends_place(country_id["woeid"])[0]["trends"]
+        # print(trends)
+        # print(trends)
+        em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
+                           title=country_id["name"])
+        msg = ""
+        for trend in trends[:25]:
+            # trend = trends[0]["trends"][i]
+            if trend["tweet_volume"] is not None:
+                msg += "{}. [{}]({}) Volume: {}\n".format(trends.index(trend)+1, trend["name"], trend["url"], trend["tweet_volume"])
+            else:
+                msg += "{}. [{}]({})\n".format(trends.index(trend)+1, trend["name"], trend["url"])
+        em.description = msg[:2000]
+        em.timestamp = dt.utcnow()
+        await ctx.send(embed=em)
 
     @_tweets.command( no_pm=True, name='getuser')
     async def get_user(self, ctx, username: str):
@@ -260,20 +300,32 @@ class Tweets():
             if status.in_reply_to_screen_name is not None and not account[0].replies:
                 return
             post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-            em = discord.Embed(description=status.text,
-                            colour=discord.Colour(value=self.random_colour()),
-                            url=post_url,
-                            timestamp=status.created_at)
+            em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
+                               url=post_url,
+                               timestamp=status.created_at)
             try:                                
                 em.set_author(name=status.user.name, icon_url=status.user.profile_image_url)
             except:
                 print(status.user.name + " could not get profile image!")
             if hasattr(status, "extended_entities"):
                 em.set_image(url=status.extended_entities["media"][0]["media_url"])
+            if hasattr(status, "extended_tweet"):
+                text = status.extended_tweet["full_text"]
+                # print(status.extended_tweet)
+                if  "media" in status.extended_tweet["entities"]:
+                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url"])
+            else:
+                text = status.text
+            em.description = text.replace("&amp;", "\n\n")
+            em.set_footer(text="@" + username)
             channel_list = account.channel
             for channel in channel_list:
-                channel_send = self.bot.get_channel(int(channel))
-                await channel_send.send(embed=em)
+                try:
+                    channel_send = self.bot.get_channel(int(channel))
+                    await channel_send.send(embed=em)
+                except Exception as e:
+                    error_channel = await self.bot.get_channel(await self.error_channel())
+                    error_channel.send("{} error in {}: {}".format(username, channel, e))
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
