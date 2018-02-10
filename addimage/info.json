@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "INSTALL_MSG" : "[p]addimage to add an image to the guild. Owner can add global bot images.",
+    "NAME" : "AddImage",
+    "DISABLED" : false,
+    "SHORT" : "Add images for direct upload per guild and globally.",
+    "REQUIREMENTS" : [], 
+    "DESCRIPTION" : "Add image for the bot to directly upload similar to alias.",
+    "TAGS": ["utility"]
+}
