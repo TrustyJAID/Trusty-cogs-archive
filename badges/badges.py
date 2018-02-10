@@ -41,7 +41,7 @@ class Badges:
         """Downloads the users avatar to a temp folder"""
         async with self.session.get(url) as resp:
             test = await resp.read()
-            with open(str(cog_data_path(self)) + "\\temp\\temp." + ext, "wb") as f:
+            with open(str(cog_data_path(self)) + "/temp/temp." + ext, "wb") as f:
                 f.write(test)
 
     async def create_badge(self, user, badge):
@@ -64,18 +64,27 @@ class Badges:
         await self.dl_image(avatar, ext)
         temp_barcode = generate("code39", str(userid), 
                                 writer=ImageWriter(), 
-                                output=str(cog_data_path(self)) + "\\temp\\bar_code_temp")
-        template = Image.open(str(bundled_data_path(self))+ "\\" + self.blank_template[badge])
+                                output=str(cog_data_path(self)) + "/temp/bar_code_temp")
+        template = Image.open(str(bundled_data_path(self))+ "/" + self.blank_template[badge])
         template = template.convert("RGBA")
-        avatar = Image.open(str(cog_data_path(self)) + "\\temp\\temp." + ext)
-        barcode = Image.open(str(cog_data_path(self)) + "\\temp\\bar_code_temp.png")
+        avatar = Image.open(str(cog_data_path(self)) + "/temp/temp." + ext)
+        barcode = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
         barcode = barcode.convert("RGBA")
         barcode = barcode.resize((555,125), Image.ANTIALIAS)
         template.paste(barcode, (400,520), barcode)
         # font for user information
-        font1 = ImageFont.truetype(str(bundled_data_path(self)) + "\\ARIALUNI.ttf", 30)
+        font_loc = str(bundled_data_path(self)/"arial.ttf") 
+        print(font_loc)
+        print(str(cog_data_path(self)))
+        try:
+            font1 = ImageFont.truetype(font_loc, 30)
+            font2 = ImageFont.truetype(font_loc, 24)
+        except Exception as e:
+            print(e)
+            font1 = None
+            font2 = None
         # font for extra information
-        font2 = ImageFont.truetype(str(bundled_data_path(self)) + "\\ARIALUNI.ttf", 24)
+        
         draw = ImageDraw.Draw(template)
         # adds username
         draw.text((225, 330), str(username), fill=(0, 0, 0), font=font1)
@@ -92,7 +101,7 @@ class Badges:
         # adds user level
         draw.text((60, 585), str(user.joined_at), fill=(0, 0, 0), font=font2)
         if ext == "gif":
-            for image in glob.glob(str(cog_data_path(self)) + "\\temp\\tempgif\\*"):
+            for image in glob.glob(str(cog_data_path(self)) + "/temp/tempgif/*"):
                 os.remove(image)
             gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
             img_list = []
@@ -105,10 +114,10 @@ class Badges:
                 id_image = frame.resize((165, 165))
                 template.paste(watermark, (845,45, 945,145), watermark)
                 template.paste(id_image, (60,95, 225, 260))
-                template.save(str(cog_data_path(self)) + "\\temp\\tempgif\\{}.png".format(str(num)))
+                template.save(str(cog_data_path(self)) + "/temp/tempgif/{}.png".format(str(num)))
                 num += 1
-            img_list = [Image.open(file) for file in glob.glob(str(cog_data_path(self)) + "\\temp\\tempgif\\*")]
-            template.save(str(cog_data_path(self)) + "\\temp\\tempbadge.gif", save_all=True, append_images=img_list, duration=1, loop=10)
+            img_list = [Image.open(file) for file in glob.glob(str(cog_data_path(self)) + "/temp/tempgif/*")]
+            template.save(str(cog_data_path(self)) + "/temp/tempbadge.gif", save_all=True, append_images=img_list, duration=1, loop=10)
         else:
             watermark = avatar.convert("RGBA")
             watermark.putalpha(128)
@@ -116,7 +125,7 @@ class Badges:
             id_image = avatar.resize((165, 165))
             template.paste(watermark, (845,45, 945,145), watermark)
             template.paste(id_image, (60,95, 225, 260))
-            template.save(str(cog_data_path(self)) + "\\temp\\tempbadge.png")
+            template.save(str(cog_data_path(self)) + "/temp/tempbadge.png")
     
     @commands.command()
     async def badges(self, ctx, badge, user:discord.Member=None):
@@ -131,5 +140,5 @@ class Badges:
         if "gif" in avatar:
             ext = "gif"
         await self.create_badge(user, badge.lower())
-        image = discord.File(str(cog_data_path(self)) + "\\temp\\tempbadge." + ext)
+        image = discord.File(str(cog_data_path(self)) + "/temp/tempbadge." + ext)
         await ctx.send(file=image)
