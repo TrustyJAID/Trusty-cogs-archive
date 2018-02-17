@@ -8,8 +8,11 @@ from discord.ext import commands
 from .utils.dataIO import dataIO
 from .utils import checks
 from bs4 import BeautifulSoup
-import tweepy as tw
-
+try:
+    import tweepy as tw
+    twInstalled = True
+except:
+    twInstalled = False
 numbs = {
     "next": "➡",
     "back": "⬅",
@@ -25,15 +28,18 @@ class QPosts:
         self.url = "https://8ch.net"
         self.boards = ["greatawakening", "qresearch"]
         self.loop = bot.loop.create_task(self.get_q_posts())
-        self.tweets = dataIO.load_json("data/qposts/twitter.json")
-        if 'consumer_key' in list(self.tweets["api"].keys()):
-            self.consumer_key = self.tweets["api"]['consumer_key']
-        if 'consumer_secret' in list(self.tweets["api"].keys()):
-            self.consumer_secret = self.tweets["api"]['consumer_secret']
-        if 'access_token' in list(self.tweets["api"].keys()):
-            self.access_token = self.tweets["api"]['access_token']
-        if 'access_secret' in list(self.tweets["api"].keys()):
-            self.access_secret = self.tweets["api"]['access_secret']
+        try:
+            self.tweets = dataIO.load_json("data/qposts/twitter.json")
+            if 'consumer_key' in list(self.tweets["api"].keys()):
+                self.consumer_key = self.tweets["api"]['consumer_key']
+            if 'consumer_secret' in list(self.tweets["api"].keys()):
+                self.consumer_secret = self.tweets["api"]['consumer_secret']
+            if 'access_token' in list(self.tweets["api"].keys()):
+                self.access_token = self.tweets["api"]['access_token']
+            if 'access_secret' in list(self.tweets["api"].keys()):
+                self.access_secret = self.tweets["api"]['access_secret']
+        except:
+            pass
 
     def __unload(self):
         self.session.close()
@@ -52,6 +58,14 @@ class QPosts:
             api.update_status(message)
         else:
             api.update_with_media(file, status=message)
+
+    @commands.command(hidden=True, pass_context=True)
+    async def qpdf(self, ctx):
+        if ctx.message.author not in ["218773382617890828", "392750869952856066"]:
+            return
+        channels = ["366758942212358145"]
+
+
 
 
     @commands.command()
@@ -76,8 +90,6 @@ class QPosts:
     async def qrole(self, ctx):
         """Set your role to a team role"""
         server = ctx.message.server
-        if server.id not in ["400317912616927234", "390196447657852929", "321105104931389440"]:
-            return
         try:
             role = [role for role in server.roles if role.name == "QPOSTS"][0]
             await self.bot.add_roles(ctx.message.author, role)
@@ -212,7 +224,7 @@ class QPosts:
             em.set_image(url=img_url)
             try:
                 print("sending tweet")
-                tw_msg = "{}\n{}".format(url, text)
+                tw_msg = "{}\n#QAnon\n{}".format(url, text)
                 await self.send_tweet(tw_msg[:280], "data/qposts/files/{}{}".format(file_id, file_ext))
             except Exception as e:
                 print(e)
@@ -220,7 +232,7 @@ class QPosts:
         else:
             try:
                 print("sending tweet")
-                tw_msg = "{}\n{}".format(url, text)
+                tw_msg = "{}\n#QAnon\n{}".format(url, text)
                 await self.send_tweet(tw_msg[:280])
             except Exception as e:
                 print(e)
@@ -251,6 +263,8 @@ class QPosts:
             
             for channel_id in self.settings:
                 channel = self.bot.get_channel(id=channel_id)
+                if channel is None:
+                    continue
                 server = channel.server
                 try:
                     role = [role for role in server.roles if role.name == "QPOSTS"][0]
@@ -348,7 +362,7 @@ class QPosts:
             if "_" in ref_text or "~" in ref_text or "*" in ref_text:
                 em.add_field(name=str(post["no"]), value="```\n{}```".format(ref_text))
             else:
-                em.add_field(name=str(post["no"]), value=ref_text)
+                em.add_field(name=str(post["no"]), value=ref_text[:1000])
         if img_url != "":
             em.set_image(url=img_url)
         em.set_footer(text=board)
@@ -403,7 +417,7 @@ class QPosts:
             return await\
                 self.bot.delete_message(message)
 
-    @commands.command(pass_context=True, aliases=["postq"])
+    @commands.command(hidden=True, pass_context=True, aliases=["postq"])
     async def qpost(self, ctx, board="greatawakening"):
         if board not in self.qposts:
             await self.bot.send_message(ctx.message.channel, "{} is not an available board!")
@@ -430,12 +444,16 @@ class QPosts:
                     out.write(image)
 
     @commands.command(pass_context=True)
+    @checks.admin_or_permissions(manage_channels=True)
     async def qchannel(self, ctx, channel:discord.Channel=None):
         if channel is None:
             channel = ctx.message.channel
         server = ctx.message.server
         if self.settings == {}:
             self.settings = []
+        if channel.id in self.settings:
+            await self.bot.say("I'm already posting Qposts in {}".format(channel.mention))
+            return
         self.settings.append(channel.id)
         dataIO.save_json("data/qposts/settings.json", self.settings)
         await self.bot.say("{} set for qposts!".format(channel.mention))
