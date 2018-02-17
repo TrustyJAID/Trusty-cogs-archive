@@ -1,36 +1,76 @@
 import discord
 from discord.ext import commands
+from redbot.core import Config
+from random import randint
+from random import choice
+from enum import Enum
+import json
 import datetime
 import aiohttp
 import asyncio
-
 
 class Weather:
 
     def __init__(self, bot):
         self.bot = bot
+        self.config = Config.get_conf(self, 138475464)
+        default = {"units":"imperial"}
+        self.config.register_guild(**default)
+        self.config.register_user(**default)
+        self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.unit = {
             "imperial": {"code": ["i", "f"], "speed": "mph", "temp": "°F"},
-            "metric": {"code": ["m", "c"], "speed": "km/s", "temp": "°C"},
-            "kelvin": {"code": ["k", "s"], "speed": "km/s", "temp": "°K"}}
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
-        self.url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units={1}"
+            "metric": {"code": ["m", "c"], "speed": "km/h", "temp": "°C"},
+            "kelvin": {"code": ["k", "s"], "speed": "km/h", "temp": "°K"}}
 
     @commands.command(pass_context=True, name="weather", aliases=["we"])
-    async def weather(self, ctx, location, units="imperial"):
+    async def weather(self, ctx, *, location):
         await ctx.trigger_typing()
-        await self.getweather(ctx, location, units)
+        await self.getweather(ctx, location)
 
-    async def getweather(self, ctx, location, units="imperial"):
-        for key, value in self.unit.items():
-            if units.lower() in value["code"] or units.lower() == key:
-                units = key
-        if units == "kelvin":
-            url = self.url.format(location, "metric")
+    @commands.group(pass_context=True, name="weatherset")
+    async def weather_set(self, ctx):
+        """Set user or guild default units"""
+        if ctx.invoked_subcommand is None:
+            await ctxsend_help()
+
+    @weather_set.command(pass_context=True, name="guild")
+    async def set_guild(self, ctx, units):
+        """Sets the guild default weather units use imperial, metric, or kelvin"""
+        guild = ctx.message.guild
+        if units in self.unit:
+            await self.config.guild(guild).units.set(units)
+            await ctx.send("Default units set to {} in {}.".format(units, guild.name))
+
+    @weather_set.command(pass_context=True, name="user")
+    async def set_user(self, ctx, units):
+        """Sets the user default weather units use imperial, metric, or kelvin"""
+        author = ctx.message.author
+        if units in self.unit:
+            await self.config.user(author).units.set(units)
+            await ctx.send("Default units set to {} in {}.".format(units, author.name))
+
+    async def getweather(self, ctx, location):
+        guild = ctx.message.guild
+        author = ctx.message.author
+        guild_units = await self.config.guild(guild).units()
+        user_units = await self.config.user(author).units()
+        if user_units != guild_units:
+            units = user_units
         else:
-            url = self.url.format(location, units)
+            units = guild_units
+        if units == "kelvin":
+            url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units=metric".format(location)
+        else:
+            url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units={1}".format(location, units)
         async with self.session.get(url) as resp:
             data = await resp.json()
+        try:
+            if data["message"] == "city not found":
+                await ctx.send("City not found.")
+                return
+        except:
+            pass
         currenttemp = data["main"]["temp"]
         mintemp = data["main"]["temp_min"]
         maxtemp = data["main"]["temp_max"]
@@ -58,8 +98,4 @@ class Weather:
         embed.add_field(name="🌄 **Sunrise (utc)**", value=sunrise)
         embed.add_field(name="🌇 **Sunset (utc)**", value=sunset)
         embed.set_footer(text="Powered by http://openweathermap.org")
-        embed.timestamp = ctx.message.created_at
         await ctx.send(embed=embed)
-
-
-
