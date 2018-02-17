@@ -303,19 +303,36 @@ class Tweets():
             em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
                                url=post_url,
                                timestamp=status.created_at)
-            try:                                
-                em.set_author(name=status.user.name, icon_url=status.user.profile_image_url)
-            except:
-                print(status.user.name + " could not get profile image!")
-            if hasattr(status, "extended_entities"):
-                em.set_image(url=status.extended_entities["media"][0]["media_url"])
-            if hasattr(status, "extended_tweet"):
-                text = status.extended_tweet["full_text"]
-                # print(status.extended_tweet)
-                if  "media" in status.extended_tweet["entities"]:
-                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url"])
+            if hasattr(status, "retweeted_status"):
+                
+                try:                                
+                    em.set_author(name=status.user.name + " Retweeted", url=post_url, icon_url=status.user.profile_image_url)
+                except:
+                    print(status.user.name + " could not get profile image!")
+                status = status.retweeted_status
+                if hasattr(status, "extended_entities"):
+                    em.set_image(url=status.extended_entities["media"][0]["media_url"])
+                if hasattr(status, "extended_tweet"):
+                    text = status.extended_tweet["full_text"]
+                    # print(status.extended_tweet)
+                    if  "media" in status.extended_tweet["entities"]:
+                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url"])
+                else:
+                    text = status.text
             else:
-                text = status.text
+                try:                                
+                    em.set_author(name=status.user.name, url=post_url, icon_url=status.user.profile_image_url)
+                except:
+                    print(status.user.name + " could not get profile image!")
+                if hasattr(status, "extended_entities"):
+                    em.set_image(url=status.extended_entities["media"][0]["media_url"])
+                if hasattr(status, "extended_tweet"):
+                    text = status.extended_tweet["full_text"]
+                    # print(status.extended_tweet)
+                    if  "media" in status.extended_tweet["entities"]:
+                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url"])
+                else:
+                    text = status.text
             em.description = text.replace("&amp;", "\n\n")
             em.set_footer(text="@" + username)
             channel_list = account.channel
@@ -497,7 +514,7 @@ class Tweets():
     @_tweetset.command(name='creds')
     @checks.is_owner()
     async def set_creds(self, ctx, consumer_key: str, consumer_secret: str, access_token: str, access_secret: str):
-        """Sets the access credentials. See [p]help tweetset for instructions on getting these"""
+        """[p]tweetset """
         api = {'consumer_key': consumer_key, 'consumer_secret': consumer_secret,
             'access_token': access_token, 'access_secret': access_secret}
         await self.config.api.set(api)
