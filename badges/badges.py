@@ -13,6 +13,7 @@ from redbot.core.data_manager import bundled_data_path
 from redbot.core.data_manager import cog_data_path
 from pathlib import Path
 import glob
+from .templates import blank_template
 
 class Badges:
 
@@ -23,19 +24,41 @@ class Badges:
         temp_folder.mkdir(exist_ok=True, parents=True)
         temp_gif = temp_folder/"tempgif"
         temp_gif.mkdir(exist_ok=True, parents=True)
-        self.blank_template = {"cia":"cia-template.png", 
-                               "cicada":"cicada-template.png", 
-                               "ioi":"IOI-template.png",
-                               "fbi":"fbi-template.png",
-                               "nsa":"nsa-template.png",
-                               "gab":"gab-template.png",
-                               "dop":"dop-template.png",
-                               "shit":"shit-template.png",
-                               "bunker":"bunker-template.png",
-                               "nk":"nk-template.png",
-                               "kek": "kek-template.png",
-                               "unsc": "unsc-template.png"}
-        
+
+
+    async def remove_white_barcode(self, img):
+        """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
+        # img = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
+        img = img.convert("RGBA")
+        datas = img.getdata()
+
+        newData = []
+        for item in datas:
+            if item[0] == 255 and item[1] == 255 and item[2] == 255:
+                newData.append((255, 255, 255, 0))
+            else:
+                newData.append(item)
+
+        img.putdata(newData)
+        return img
+        # img.save(str(cog_data_path(self)) + "/temp/bar_code_temp.png", "PNG")
+
+    async def invert_barcode(self, img):
+        """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
+        # img = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
+        img = img.convert("RGBA")
+        datas = img.getdata()
+
+        newData = []
+        for item in datas:
+            if item[0] == 0 and item[1] == 0 and item[2] == 0:
+                newData.append((255, 255, 255))
+            else:
+                newData.append(item)
+
+        img.putdata(newData)
+        return img
+        # img.save(str(cog_data_path(self)) + "/temp/bar_code_temp.png", "PNG")   
 
     async def dl_image(self, url, ext="png"):
         """Downloads the users avatar to a temp folder"""
@@ -65,10 +88,16 @@ class Badges:
         temp_barcode = generate("code39", str(userid), 
                                 writer=ImageWriter(), 
                                 output=str(cog_data_path(self)) + "/temp/bar_code_temp")
-        template = Image.open(str(bundled_data_path(self))+ "/" + self.blank_template[badge])
+        barcode = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
+        barcode = await self.remove_white_barcode(barcode)
+        fill = (0, 0, 0) # text colour fill
+        if badge == "Q":
+            fill = (255, 255, 255)
+            barcode = await self.invert_barcode(barcode)
+        template = Image.open(str(bundled_data_path(self))+ "/" + blank_template[badge]["loc"])
         template = template.convert("RGBA")
         avatar = Image.open(str(cog_data_path(self)) + "/temp/temp." + ext)
-        barcode = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
+        
         barcode = barcode.convert("RGBA")
         barcode = barcode.resize((555,125), Image.ANTIALIAS)
         template.paste(barcode, (400,520), barcode)
@@ -87,19 +116,22 @@ class Badges:
         
         draw = ImageDraw.Draw(template)
         # adds username
-        draw.text((225, 330), str(username), fill=(0, 0, 0), font=font1)
+        draw.text((225, 330), str(username), fill=fill, font=font1)
         # adds ID Class
-        draw.text((225, 400), badge.upper() + "-" + str(user).split("#")[1], fill=(0, 0, 0), font=font1)
+        draw.text((225, 400), badge.upper() + "-" + str(user).split("#")[1], fill=fill, font=font1)
         # adds user id
-        draw.text((250, 115), str(userid), fill=(0, 0, 0), font=font2)
+        draw.text((250, 115), str(userid), fill=fill, font=font2)
         # adds user status
-        draw.text((250, 175), status, fill=(0, 0, 0), font=font2)
+        draw.text((250, 175), status, fill=fill, font=font2)
         # adds department from top role
-        draw.text((250, 235), department, fill=(0, 0, 0), font=font2)
+        draw.text((250, 235), department, fill=fill, font=font2)
         # adds user level
         draw.text((420, 475), "LEVEL " + str(len(user.roles)), fill="red", font=font1)
         # adds user level
-        draw.text((60, 585), str(user.joined_at), fill=(0, 0, 0), font=font2)
+        if badge != "discord":
+          draw.text((60, 585), str(user.joined_at), fill=fill, font=font2)
+        else:
+          draw.text((60, 585), str(user.created_at), fill=fill, font=font2)
         if ext == "gif":
             for image in glob.glob(str(cog_data_path(self)) + "/temp/tempgif/*"):
                 os.remove(image)
@@ -126,12 +158,27 @@ class Badges:
             template.paste(watermark, (845,45, 945,145), watermark)
             template.paste(id_image, (60,95, 225, 260))
             template.save(str(cog_data_path(self)) + "/temp/tempbadge.png")
+
+    @commands.command(pass_context=True)
+    async def listbadges(self, ctx):
+        msg = ""
+        for template in blank_template:
+            msg += template + ", "
+        await ctx.send(msg[:-2])
     
     @commands.command()
     async def badges(self, ctx, badge, user:discord.Member=None):
         """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
-        if badge.lower() not in self.blank_template:
-            await ctx.send("That badge doesn't exist yet!")
+        if badge.lower() == "list":
+            await ctx.invoke(self.listbadges)
+            return
+        is_badge = False
+        for template in blank_template:
+            if badge.lower() in template.lower():
+                badge = template
+                is_badge = True
+        if not is_badge:
+            await ctx.send("{} badge doesn't exist yet!".format(badge))
             return
         if user is None:
             user = ctx.message.author
@@ -139,6 +186,7 @@ class Badges:
         ext = "png"
         if "gif" in avatar:
             ext = "gif"
-        await self.create_badge(user, badge.lower())
-        image = discord.File(str(cog_data_path(self)) + "/temp/tempbadge." + ext)
-        await ctx.send(file=image)
+        async with ctx.channel.typing():
+            await self.create_badge(user, badge)
+            image = discord.File(str(cog_data_path(self)) + "/temp/tempbadge." + ext)
+            await ctx.send(file=image)
