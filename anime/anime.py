@@ -21,7 +21,7 @@ class Anime:
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.url = "https://anilist.co/api/"
         self.config = Config.get_conf(self, 15863754656)
-        default_global = {"last_check":None, "airing":{}, "api":{'client_id': '', 'client_secret': '', "access_token":{}}}
+        default_global = {"last_check":None, "airing":[], "api":{'client_id': '', 'client_secret': '', "access_token":{}}}
         default_guild = {"enabled":False, "channel":None}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
@@ -41,7 +41,7 @@ class Anime:
 
     async def check_airing_start(self):
         await self.bot.wait_until_ready()
-        while self is self.bot.get_cog("Anilist"):
+        while self is self.bot.get_cog("Anime"):
             await self.check_last_posted()
             time_now = datetime.utcnow()
             anime_list = await self.config.airing()
@@ -60,14 +60,14 @@ class Anime:
             await self.remove_posted_shows()
             # dataIO.save_json("data/anilist/settings.json", self.settings)
             await asyncio.sleep(60)
-            # print("Checking anime")
+            print("Checking anime")
 
     @anime.command(pass_context=True)
     async def airing(self, ctx):
         animes=""
         for anime in await self.config.airing():
             animes += "{},".format(anime["title_english"])
-        await self.bot.say(animes[:-2])
+        await ctx.send(animes[:-2])
 
     async def remove_posted_shows(self):
         time_now = datetime.utcnow()
@@ -90,7 +90,10 @@ class Anime:
         await self.config.airing.set(airing_list)
 
     async def check_last_posted(self):
-        last_time = datetime.utcfromtimestamp(await self.config.last_check())
+        time = await self.config.last_check()
+        if time is None:
+            time = 0
+        last_time = datetime.utcfromtimestamp(time)
         time_now = datetime.utcnow()
         if last_time.day != last_time.day:
             await self.get_currently_airing()
@@ -214,12 +217,12 @@ class Anime:
         if "error" not in data:
             await self.search_menu(ctx, data)
         else:
-            await self.bot.say("{} was not found or credentials were not set!".format(search))
+            await ctx.send("{} was not found or credentials were not set!".format(search))
 
     @commands.command(pass_context=True)
     async def forceairing(self, ctx):
         await self.get_currently_airing()
-        await self.bot.say("Done.")
+        await ctx.send("Done.")
 
     async def get_currently_airing(self):
         header1 = await self.check_auth()
