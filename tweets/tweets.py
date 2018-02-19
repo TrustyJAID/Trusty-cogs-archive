@@ -297,7 +297,7 @@ class Tweets():
         if not account:
             return
         try:
-            if status.in_reply_to_screen_name is not None and not account[0].replies:
+            if status.in_reply_to_screen_name is not None and not account.replies:
                 return
             post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
             em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
