@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 from .utils.chat_formatting import *
 from .utils.dataIO import dataIO
-from cogs.utils import checks
+from redbot.core import checks
+from redbot.core import Config
 import asyncio
 import os
 import urllib.request
