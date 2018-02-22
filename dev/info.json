@@ -1,0 +1,8 @@
+{
+    "AUTHOR" : "R.Danny",
+    "DESCRIPTION" : "made the dev commands an importable cog using legacy sudo command",
+    "DISABLED" : false,
+    "INSTALL_MSG" : "Separate loadable dev functions instead of --dev startup command",
+    "NAME" : "Dev",
+    "SHORT" : "Developer commands"
+}
