@@ -127,7 +127,7 @@ class ModLogs:
             await ctx.send("Enabled join logs.")
         elif db['togglejoin'] == True:
             db['togglejoin'] = False
-            fileIO(self.direct, 'save', db)
+            await self.config.guild(guild).settings.set(db)
             await ctx.send("Disabled join logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
@@ -141,7 +141,7 @@ class ModLogs:
             await ctx.send("Enabled guild logs.")
         elif db['toggleguild'] == True:
             db['toggleguild'] = False
-            fileIO(self.direct, 'save', db)
+            await self.config.guild(guild).settings.set(db)
             await ctx.send("Disabled guild logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
@@ -155,7 +155,7 @@ class ModLogs:
             await ctx.send("Enabled channel logs.")
         elif db['togglechannel'] == True:
             db['togglechannel'] = False
-            fileIO(self.direct, 'save', db)
+            await self.config.guild(guild).settings.set(db)
             await ctx.send("Disabled channel logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
@@ -169,7 +169,7 @@ class ModLogs:
             await ctx.send("Enabled leave logs.")
         elif db['toggleleave'] == True:
             db['toggleleave'] = False
-            fileIO(self.direct, 'save', db)
+            await self.config.guild(guild).settings.set(db)
             await ctx.send("Disabled leave logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
@@ -278,7 +278,7 @@ class ModLogs:
 
     async def on_member_join(self, member):
         guild = member.guild
-        db = fileIO(self.direct, 'load')
+        db = await self.config.guild(guild).settings()
         if await self.config.guild(guild).settings() == {}:
             return
         if db['togglejoin'] == False:
@@ -307,7 +307,7 @@ class ModLogs:
 
     async def on_member_remove(self, member):
         guild = member.guild
-        db = fileIO(self.direct, 'load')
+        db = await self.config.guild(guild).settings()
         if await self.config.guild(guild).settings() == {}:
             return
         if db['toggleleave'] == False:
@@ -336,7 +336,7 @@ class ModLogs:
 
     async def on_channel_update(self, before, after):
         guild = before.guild
-        db = fileIO(self.direct, 'load')
+        db = await self.config.guild(guild).settings()
         if await self.config.guild(guild).settings() == {}:
             return
         if db['togglechannel'] == False:
