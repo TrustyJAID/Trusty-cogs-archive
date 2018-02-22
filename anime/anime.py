@@ -43,6 +43,7 @@ class Anime:
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("Anime"):
             await self.check_last_posted()
+            # print("hello")
             time_now = datetime.utcnow()
             anime_list = await self.config.airing()
             for anime in anime_list:
@@ -102,7 +103,7 @@ class Anime:
     async def post_anime_announcement(self, anime, episode, time_start):
         title = "{} | {}".format(anime["title_english"], anime["title_japanese"])
         url = "https://anilist.co/anime/{}/".format(anime["id"])
-        # print(url)
+        print(url)
         em = discord.Embed(colour=discord.Colour(value=self.random_colour()))
         desc = "Episode {} of {} starting!".format(episode, anime["title_english"])
         em.description = desc
@@ -111,9 +112,11 @@ class Anime:
         em.set_footer(text="Start Date ")
         em.timestamp = time_start
         for guild in await self.config.all_guilds():
-            if not guild["enabled"] and guild["channel"] is None:
+            guild = self.bot.get_guild(id=guild)
+            if not await self.config.guild(guild).enabled() and await self.config.guild(guild).channel() is None:
                 continue
-            channel = self.bot.get_channel(id=await self.config.guild(guild).channel())
+            channel_id = await self.config.guild(guild).channel()
+            channel = self.bot.get_channel(id=channel_id)
             await channel.send(embed=em)
         return
 
