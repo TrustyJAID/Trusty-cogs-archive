@@ -61,7 +61,7 @@ class Anime:
             await self.remove_posted_shows()
             # dataIO.save_json("data/anilist/settings.json", self.settings)
             await asyncio.sleep(60)
-            print("Checking anime")
+            # print("Checking anime")
 
     @anime.command(pass_context=True)
     async def airing(self, ctx):
