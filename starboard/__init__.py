@@ -1,4 +1,4 @@
-from .star import Star
+from .starboard import Starboard
 
 def setup(bot):
-    bot.add_cog(Star(bot))
+    bot.add_cog(Starboard(bot))
