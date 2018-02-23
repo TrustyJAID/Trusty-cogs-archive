@@ -224,7 +224,7 @@ class QPosts:
         em.set_footer(text=board)
         
         
-        for channel_id in self.settings:
+        for channel_id in await self.config.channels():
             channel = self.bot.get_channel(id=channel_id)
             guild = channel.guild
             try:
@@ -245,7 +245,7 @@ class QPosts:
                 em.set_image(url=img_url)   
             em.set_footer(text=board)
             
-            for channel_id in self.settings:
+            for channel_id in await self.config.channels():
                 channel = self.bot.get_channel(id=channel_id)
                 if channel is None:
                     continue
@@ -332,7 +332,7 @@ class QPosts:
                     await message.remove_reaction("➡", ctx.message.author)
                 except:
                     pass
-                return await self.q_menu(ctx, post_list, message=message,
+                return await self.q_menu(ctx, post_list, board, message=message,
                                              page=next_page, timeout=timeout)
             elif react == "back":
                 next_page = 0
@@ -344,7 +344,7 @@ class QPosts:
                     await message.remove_reaction("⬅", ctx.message.author)
                 except:
                     pass
-                return await self.q_menu(ctx, post_list, message=message,
+                return await self.q_menu(ctx, post_list, board, message=message,
                                              page=next_page, timeout=timeout)
             else:
                 return await message.delete()
