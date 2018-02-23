@@ -32,7 +32,7 @@ class Welcome:
         if await self.config.guild(guild).guild_settings() is None:
             await self.config.guild(guild).guild_settings.set(default_settings)
         guild_settings = await self.config.guild(guild).guild_settings()
-        print(guild_settings)
+        # print(guild_settings)
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
             msg = "```"
@@ -306,7 +306,7 @@ class Welcome:
     async def send_testing_msg(self, ctx, bot=False, msg=None):
         guild = ctx.message.guild
         guild_settings = await self.config.guild(guild).guild_settings()
-        print(guild_settings)
+        # print(guild_settings)
         channel = self.get_welcome_channel(guild, guild_settings)
         rand_msg = msg or rand_choice(guild_settings["GREETING"])
         is_embed = guild_settings["EMBED"]
