@@ -524,27 +524,30 @@ class ModLogs:
                 time.strftime(fmt), before.region, after.region)
         await guild.get_channel(channel).send(msg)
 
-    async def on_voice_state_update(self, before, after):
-        guild = before.guild
+    async def on_voice_state_update(self, member, before, after):
+        try:
+            guild = before.channel.guild
+        except:
+            guild = after.channel.guild
         db = await self.config.guild(guild).settings()
         if await self.config.guild(guild).settings() == {}:
             return
         if db['togglevoice'] == False:
             return
-        if before.bot:
+        if member.bot:
             return
         channel = db["Channel"]
         time = datetime.datetime.utcnow()
         fmt = '%H:%M:%S'
         if db["embed"] == True:
-            name = before
+            name = member
             name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
             updmessage = discord.Embed(description=name, colour=discord.Color.blue(), timestamp=time)
-            infomessage = "__{}__'s voice status has changed".format(before.name)
+            infomessage = "__{}__'s voice status has changed".format(member.name)
             updmessage.add_field(name="Info:", value=infomessage, inline=False)
-            updmessage.add_field(name="Voice Channel Before:", value=before.voice_channel)
-            updmessage.add_field(name="Voice Channel After:", value=after.voice_channel)
-            updmessage.set_footer(text="User ID: {}".format(before.id))
+            updmessage.add_field(name="Voice Channel Before:", value=before.channel)
+            updmessage.add_field(name="Voice Channel After:", value=after.channel)
+            updmessage.set_footer(text="User ID: {}".format(member.id))
             updmessage.set_author(name=time.strftime(fmt) + " - Voice Channel Changed",
                                   url="http://i.imgur.com/8gD34rt.png")
             updmessage.set_thumbnail(url="http://i.imgur.com/8gD34rt.png")
