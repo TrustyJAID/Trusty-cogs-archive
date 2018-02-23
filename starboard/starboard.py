@@ -51,7 +51,7 @@ class Starboard:
                 await ctx.send("That emoji is not on this guild!")
                 return
             else:
-                emoji = ":" + emoji.name + ":" + str(emoji.id)
+                emoji = "<:" + emoji.name + ":" + str(emoji.id) + ">"
         
         if role is None:
             role = await self.get_everyone_role(guild)
@@ -103,10 +103,10 @@ class Starboard:
                 return
             else:
                 is_guild_emoji = True
-                emoji = ":" + emoji.name + ":" + str(emoji.id)
+                emoji = "<:" + emoji.name + ":" + str(emoji.id) + ">"
         await self.config.guild(guild).emoji.set(emoji)
         if is_guild_emoji:
-            await ctx.send("Starboard emoji set to <{}>.".format(emoji))
+            await ctx.send("Starboard emoji set to {}.".format(emoji))
         else:
             await ctx.send("Starboard emoji set to {}.".format(emoji))
 
@@ -209,9 +209,13 @@ class Starboard:
         await self.config.guild(guild).messages.set(msg_list)
         return msg["new_message"], msg["count"]
   
-    async def on_reaction_add(self, reaction, user):
-        guild = reaction.message.guild
-        msg = reaction.message
+    async def on_raw_reaction_add(self, emoji, message_id, channel_id, user_id):
+        channel = self.bot.get_channel(id=channel_id)
+        guild = channel.guild
+        msg = await channel.get_message(id=message_id)
+        user = guild.get_member(user_id)
+        print(self.bot.owner_id)
+        reaction = [reaction for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
         if msg.channel.id in await self.config.guild(guild).ignore():
             return
         if msg.channel.id == await self.config.guild(guild).channel():
@@ -221,10 +225,10 @@ class Starboard:
         if not await self.check_roles(user, msg.author, guild):
             return
         react = await self.config.guild(guild).emoji()
-        if react in str(reaction.emoji):
+        if str(react) == str(emoji):
             threshold = await self.config.guild(guild).threshold()
             count = reaction.count
-
+            print(count)
             if await self.check_is_posted(guild, msg):
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
                 msg_id, count2 = await self.get_posted_message(guild, msg)
@@ -238,8 +242,7 @@ class Starboard:
                     past_message_list.append(StarboardMessage(msg.id, None, count).to_json())
                     await self.config.guild(guild).messages.set(past_message_list)
                     return
-            author = reaction.message.author
-            channel = reaction.message.channel
+            author = msg.author
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
             if reaction.message.embeds != []:
                 embed = reaction.message.embeds[0].to_dict()
