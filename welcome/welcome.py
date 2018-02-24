@@ -29,20 +29,17 @@ class Welcome:
     async def welcomeset(self, ctx):
         """Sets welcome module settings"""
         guild = ctx.message.guild
-        if await self.config.guild(guild).guild_settings() is None:
-            await self.config.guild(guild).guild_settings.set(default_settings)
-        guild_settings = await self.config.guild(guild).guild_settings()
         # print(guild_settings)
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
             msg = "```"
-            msg += "Random GREETING: {}\n".format(rand_choice(guild_settings["GREETING"]))
-            msg += "CHANNEL: #{}\n".format(guild_settings["CHANNEL"])
-            msg += "ON: {}\n".format(guild_settings["ON"])
-            msg += "WHISPER: {}\n".format(guild_settings["WHISPER"])
-            msg += "BOTS_MSG: {}\n".format(guild_settings["BOTS_MSG"])
-            msg += "BOTS_ROLE: {}\n".format(guild_settings["BOTS_ROLE"])
-            msg += "EMBED: {}\n".format(guild_settings["EMBED"])
+            msg += "Random GREETING: {}\n".format(rand_choice(await self.config.guild(guild).GREETING()))
+            msg += "CHANNEL: #{}\n".format(await self.config.guild(guild).CHANNEL())
+            msg += "ON: {}\n".format(await self.config.guild(guild).ON())
+            msg += "WHISPER: {}\n".format(await self.config.guild(guild).WHISPER())
+            msg += "BOTS_MSG: {}\n".format(await self.config.guild(guild).BOTS_MSG())
+            msg += "BOTS_ROLE: {}\n".format(await self.config.guild(guild).BOTS_ROLE())
+            msg += "EMBED: {}\n".format(await self.config.guild(guild).EMBED())
             msg += "```"
             await ctx.send(msg)
 
@@ -69,9 +66,9 @@ class Welcome:
             {1.name} has a new member! {0.name}#{0.discriminator} - {0.id}
             Someone new joined! Who is it?! D: IS HE HERE TO HURT US?!"""
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
-        guild_settings["GREETING"].append(format_msg)
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+        guild_settings = await self.config.guild(guild).GREETING()
+        guild_settings.append(format_msg)
+        await self.config.guild(guild).GREETING.set(guild_settings)
         await ctx.send("Welcome message added for the guild.")
         await self.send_testing_msg(ctx, msg=format_msg)
 
@@ -81,22 +78,22 @@ class Welcome:
         """
         guild = ctx.message.guild
         author = ctx.message.author
-        guild_settings = await self.config.guild(guild).guild_settings()
+        guild_settings = await self.config.guild(guild).GREETING()
         msg = 'Choose a welcome message to delete:\n\n'
-        for c, m in enumerate(guild_settings["GREETING"]):
+        for c, m in enumerate(guild_settings):
             msg += "  {}. {}\n".format(c, m)
         for page in pagify(msg, ['\n', ' '], shorten_by=20):
             await ctx.send("```\n{}\n```".format(page))
         answer = await self.bot.wait_for_message(timeout=120, author=author)
         try:
             num = int(answer.content)
-            choice = guild_settings["GREETING"].pop(num)
+            choice = guild_settings.pop(num)
         except:
             await ctx.send("That's not a number in the list :/")
             return
-        if not guild_settings["GREETING"]:
-            guild_settings["GREETING"] = [default_greeting]
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+        if not guild_settings:
+            guild_settings = [default_greeting]
+        await self.config.guild(guild).GREETING.set(guild_settings)
         await ctx.send("**This message was deleted:**\n{}".format(choice))
 
     @welcomeset_msg.command(pass_context=True, name="list", no_pm=True)
@@ -105,8 +102,8 @@ class Welcome:
         """
         guild = ctx.message.guild
         msg = 'Welcome messages:\n\n'
-        guild_settings = await self.config.guild(guild).guild_settings()
-        for c, m in enumerate(guild_settings["GREETING"]):
+        guild_settings = await self.config.guild(guild).GREETING()
+        for c, m in enumerate(guild_settings):
             msg += "  {}. {}\n".format(c, m)
         for page in pagify(msg, ['\n', ' '], shorten_by=20):
             await ctx.send("```\n{}\n```".format(page))
@@ -115,14 +112,14 @@ class Welcome:
     async def toggle(self, ctx):
         """Turns on/off welcoming new users to the guild"""
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
-        guild_settings["ON"] = not guild_settings["ON"]
-        if guild_settings["ON"]:
+        guild_settings = await self.config.guild(guild).ON()
+        guild_settings = not guild_settings
+        if guild_settings:
             await ctx.send("I will now welcome new users to the guild.")
             await self.send_testing_msg(ctx)
         else:
             await ctx.send("I will no longer welcome new users.")
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+        await self.config.guild(guild).ON.set(guild_settings)
 
     @welcomeset.command(pass_context=True)
     async def channel(self, ctx, channel : discord.TextChannel=None):
@@ -130,7 +127,7 @@ class Welcome:
 
         If channel isn't specified, the guild's default channel will be used"""
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
+        guild_settings = await self.config.guild(guild).CHANNEL()
         if channel is None:
             channel = ctx.message.channel
         if not guild.get_member(self.bot.user.id
@@ -138,8 +135,8 @@ class Welcome:
             await ctx.send("I do not have permissions to send "
                                "messages to {0.mention}".format(channel))
             return
-        guild_settings["CHANNEL"] = channel.id
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+        guild_settings = channel.id
+        await self.config.guild(guild).CHANNEL.set(guild_settings)
         channel = self.get_welcome_channel(guild, guild_settings)
         await channel.send("I will now send welcome "
                                     "messages to {0.mention}".format(channel))
@@ -159,9 +156,9 @@ class Welcome:
 
         Leave blank to reset to regular user welcome"""
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
-        guild_settings["BOTS_MSG"] = format_msg
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+        guild_settings = await self.config.guild(guild).BOT_MSG()
+        guild_settings = format_msg
+        await self.config.guild(guild).BOT_MSG.set(guild_settings)
         if format_msg is None:
             await ctx.send("Bot message reset. Bots will now be welcomed as regular users.")
         else:
@@ -175,9 +172,9 @@ class Welcome:
 
         Leave blank to not give them a role."""
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
-        guild_settings["BOTS_ROLE"] = role.name if role else role
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+        guild_settings = await self.config.guild(guild).BOTS_ROLE()
+        guild_settings = role.name if role else role
+        await self.config.guild(guild).BOTS_ROLE.set(guild_settings)
         await ctx.send("Bots that join this guild will "
                            "now be put into the {} role".format(role.name))
 
@@ -194,19 +191,19 @@ class Welcome:
         DMs will not be sent to bots"""
         options = {"off": False, "only": True, "both": "BOTH"}
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
+        guild_settings = await self.config.guild(guild).WHISPER()
         if choice is None:
-            guild_settings["WHISPER"] = not guild_settings["WHISPER"]
+            guild_settings = not guild_settings
         elif choice.lower() not in options:
             await ctx.send_help()
             return
         else:
-            guild_settings["WHISPER"] = options[choice.lower()]
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+            guild_settings = options[choice.lower()]
+        await self.config.guild(guild).WHISPER.set(guild_settings)
         channel = self.get_welcome_channel(guild, guild_settings)
-        if not guild_settings["WHISPER"]:
+        if not guild_settings:
             await ctx.send("I will no longer send DMs to new users")
-        elif guild_settings["WHISPER"] == "BOTH":
+        elif guild_settings == "BOTH":
             await channel.send("I will now send welcome "
                                         "messages to {0.mention} as well as to "
                                         "the new user in a DM".format(channel))
@@ -220,20 +217,21 @@ class Welcome:
     async def embed(self, ctx):
         """Turns on/off embed messages"""
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
-        guild_settings["EMBED"] = not guild_settings["EMBED"]
-        if guild_settings["EMBED"]:
+        guild_settings = await self.config.guild(guild).EMBED()
+        guild_settings = not guild_settings
+        if guild_settings:
+            await self.config.guild(guild).EMBED.set(guild_settings)
             await ctx.send("I will now welcome new users to the guild in embeds.")
             await self.send_testing_msg(ctx)
         else:
+            await self.config.guild(guild).EMBED.set(guild_settings)
             await ctx.send("I will test without embedds.")
             await self.send_testing_msg(ctx)
-        await self.config.guild(guild).guild_settings.set(guild_settings)
+        
 
     async def on_member_join(self, member):
         guild = member.guild
-        guild_settings = await self.config.guild(guild).guild_settings()
-        if not guild_settings["ON"]:
+        if not await self.config.guild(guild).ON():
             return
         if guild is None:
             print("guild is None. Private Message or some new fangled "
@@ -241,14 +239,14 @@ class Welcome:
                   "the user was {}".format(member.name))
             return
 
-        only_whisper = guild_settings["WHISPER"] is True
-        bot_welcome = member.bot and guild_settings["BOTS_MSG"]
-        bot_role = member.bot and guild_settings["BOTS_ROLE"]
-        msg = bot_welcome or rand_choice(guild_settings["GREETING"])
-        is_embed = guild_settings["EMBED"]
+        only_whisper = await self.config.guild(guild).WHISPER() is True
+        bot_welcome = member.bot and await self.config.guild(guild).BOTS_MSG()
+        bot_role = member.bot and await self.config.guild(guild).BOTS_ROLE()
+        msg = bot_welcome or rand_choice(await self.config.guild(guild).GREETING())
+        is_embed = await self.config.guild(guild).EMBED()
 
         # whisper the user if needed
-        if not member.bot and guild_settings["WHISPER"]:
+        if not member.bot and await self.config.guild(guild).WHISPER():
             try:
                 await self.bot.send_message(member, msg.format(member, guild))
             except:
@@ -292,7 +290,7 @@ class Welcome:
 
     def get_welcome_channel(self, guild, guild_settings):
         try:
-            return guild.get_channel(guild_settings["CHANNEL"])
+            return guild.get_channel(guild_settings)
         except:
             return None
 
@@ -307,9 +305,9 @@ class Welcome:
         guild = ctx.message.guild
         guild_settings = await self.config.guild(guild).guild_settings()
         # print(guild_settings)
-        channel = self.get_welcome_channel(guild, guild_settings)
-        rand_msg = msg or rand_choice(guild_settings["GREETING"])
-        is_embed = guild_settings["EMBED"]
+        channel = self.get_welcome_channel(guild, await self.config.guild(guild).CHANNEL())
+        rand_msg = msg or rand_choice(await self.config.guild(guild).GREETING())
+        is_embed = await self.config.guild(guild).EMBED()
         member = ctx.message.author
         if channel is None:
             await ctx.send("I can't find the specified channel. "
@@ -317,9 +315,9 @@ class Welcome:
             return
         await ctx.send("`Sending a testing message to "
                        "`{0.mention}".format(channel))
-        if self.speak_permissions(guild, guild_settings):
-            msg = guild_settings["BOTS_MSG"] if bot else rand_msg
-            if not bot and guild_settings["WHISPER"]:
+        if self.speak_permissions(guild, await self.config.guild(guild).CHANNEL()):
+            msg = await self.config.guild(guild).BOTS_MSG() if bot else rand_msg
+            if not bot and await self.config.guild(guild).WHISPER():
                 if is_embed:
                     em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
                     em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
@@ -327,7 +325,7 @@ class Welcome:
                     await channel.send(embed=em)
                 else:
                     await channel.send(msg.format(member, guild))
-            if bot or guild_settings["WHISPER"] is not True:
+            if bot or await self.config.guild(guild).WHISPER() is not True:
                 if is_embed:
                     em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
                     em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
@@ -336,7 +334,6 @@ class Welcome:
                 else:
                     await channel.send(msg.format(member, guild))
         else:
-            await ctx.send(
-                                        "I do not have permissions "
-                                        "to send messages to "
-                                        "{0.mention}".format(channel))
+            await ctx.send("I do not have permissions "
+                            "to send messages to "
+                            "{0.mention}".format(channel))
