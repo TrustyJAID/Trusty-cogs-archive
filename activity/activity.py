@@ -20,7 +20,6 @@ class ActivityChecker():
         self.settings = dataIO.load_json(self.settings_file)
         self.log = dataIO.load_json(self.log_file)
         self.units = {"minute" : 60, "hour" : 3600, "day" : 86400, "week": 604800, "month": 2592000}
-        # loop = asyncio.get_event_loop()
         self.activitycheck = bot.loop.create_task(self.activity_checker())
 
     def __unload(self):
@@ -57,9 +56,11 @@ class ActivityChecker():
             except KeyError:
                 pass
             return True
-        if member.bot:
-            # print("member is a bot account, we don't care about those " + member.name)
+        if member.id == self.bot.user.id:
             return True
+        # if member.bot:
+            # print("member is a bot account, we don't care about those " + member.name)
+            # return True
         if  member is server.owner:
             # print("member is the server owner, we can't kick them anyways " + member.name)
             return True
@@ -152,20 +153,14 @@ class ActivityChecker():
             return
 
     @activity.command(pass_context=True, name="link")
-    async def set_invite_link(self, ctx, *, link=None):
+    async def set_invite_link(self, ctx, *, link):
         """Sets the invite link for when the bot can't create one."""
         server = ctx.message.server
-        if link is None:
-            invite_link = await self.get_invite_link(server)
-            if invite_link is None:
-                await self.bot.send_message(ctx.message.channel, "I cannot create a link here! Please set a link for me to use!")
-                return
-        else:
-            try:
-                invite_link = await self.bot.get_invite(link)
-            except(discord.errors.NotFound, HTTPException):
-                await self.bot.send_message(ctx.message.channel, "That is not a valid discord invite link!")
-                return
+        try:
+            invite_link = await self.bot.get_invite(link)
+        except(discord.errors.NotFound, HTTPException):
+            await self.bot.send_message(ctx.message.channel, "That is not a valid discord invite link!")
+            return
         self.settings[server.id]["link"] = invite_link.url
         dataIO.save_json(self.settings_file, self.settings)
         await self.bot.send_message(ctx.message.channel, "Invite link set to {} for this server!".format(invite_link))
@@ -175,10 +170,6 @@ class ActivityChecker():
         try:
             # tries to create a server link
             link = await self.bot.create_invite(server, unique=False)
-            return link
-        except discord.errors.NotFound:
-            # tries to create a server default channel link
-            link = await self.bot.create_invite(server.default_channel, unique=False)
             return link
         except:
             # if a link cannot be created it returns None
@@ -238,7 +229,7 @@ class ActivityChecker():
 
 
     @activity.command(pass_context=True, name="set")
-    async def add_server(self, ctx, channel:discord.Channel=None, role:discord.Role=None):
+    async def add_server(self, ctx, channel:discord.Channel=None, role:discord.Role=None, invite_link=None):
         """Set the server for activity checking"""
         server = ctx.message.server
         if channel is None:
@@ -250,10 +241,8 @@ class ActivityChecker():
         if server.id in self.log:
             await self.bot.say("This server is already checking for activity!")
             return
-        invite_link = await self.get_invite_link(server)
         if invite_link is None:
-            await self.bot.send_message(ctx.message.channel, "I could not create an invite link here! Set a link I can use with the link command.")
-        else:
+            await self.bot.say("You'll need to supply an invite link if you want one for members to rejoin")
             invite_link = invite_link.url
         self.settings[server.id] = {"channel": channel.id,
                                     "check_roles": [role],
@@ -269,7 +258,7 @@ class ActivityChecker():
         """Checks if a role name is in a members roles."""
         has_role = False
         for role in member.roles:
-            if role.name in roles:
+            if role.id in roles:
                 has_role = True
         return has_role
 
@@ -299,10 +288,6 @@ class ActivityChecker():
                             await self.bot.send_message(channel, "Goodbye {}!".format(member.mention))
                             if self.settings[server.id]["invite"]:
                                 invite = self.settings[server.id]["link"]
-                                if invite is None:
-                                    # tries to create an invite link
-                                    invite = self.get_invite_link(server)
-                                    invite = invite.url
                                 if invite is not None:
                                     invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(server.name, invite)
                                     try:
