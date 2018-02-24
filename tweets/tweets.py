@@ -122,7 +122,7 @@ class Tweets():
         # em.add_field(name="Text", value=s.text)
         em.set_footer(text="Retweet count: " + str(s.retweet_count))
         if hasattr(s, "extended_entities"):
-            em.set_image(url=s.extended_entities["media"][0]["media_url"] + ":thumb")
+            em.set_image(url=s.extended_entities["media"][0]["media_url_https"] + ":thumb")
         print(message)
         if not message:
             message = await ctx.send(embed=em)
@@ -311,12 +311,12 @@ class Tweets():
                     print(status.user.name + " could not get profile image!")
                 status = status.retweeted_status
                 if hasattr(status, "extended_entities"):
-                    em.set_image(url=status.extended_entities["media"][0]["media_url"])
+                    em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
                 if hasattr(status, "extended_tweet"):
                     text = status.extended_tweet["full_text"]
                     # print(status.extended_tweet)
                     if  "media" in status.extended_tweet["entities"]:
-                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url"])
+                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
                 else:
                     text = status.text
             else:
@@ -325,12 +325,12 @@ class Tweets():
                 except:
                     print(status.user.name + " could not get profile image!")
                 if hasattr(status, "extended_entities"):
-                    em.set_image(url=status.extended_entities["media"][0]["media_url"])
+                    em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
                 if hasattr(status, "extended_tweet"):
                     text = status.extended_tweet["full_text"]
                     # print(status.extended_tweet)
                     if  "media" in status.extended_tweet["entities"]:
-                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url"])
+                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
                 else:
                     text = status.text
             em.description = text.replace("&amp;", "\n\n")
