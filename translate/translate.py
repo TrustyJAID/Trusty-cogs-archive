@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from .utils.dataIO import dataIO
 from .utils import checks
-import os
+from .flags import flags
 
 '''Translator cog 
 
@@ -14,8 +14,8 @@ Links
 Wiki                                                https://goo.gl/3fxjSA
 Github                                              https://goo.gl/oQAQde
 Support the developer                               https://goo.gl/Brchj4
-Invite the bot to your server                       https://goo.gl/aQm2G7
-Join the official development server                https://discord.gg/uekTNPj
+Invite the bot to your guild                       https://goo.gl/aQm2G7
+Join the official development guild                https://discord.gg/uekTNPj
 '''
 
 
@@ -25,7 +25,7 @@ class Translate:
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.url = "https://translation.googleapis.com"
         self.settings = dataIO.load_json("data/translate/settings.json")
-        self.languages = dataIO.load_json("data/translate/flags.json")
+        self.languages = flags
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -83,16 +83,16 @@ class Translate:
     @commands.command(pass_context=True)
     @checks.mod_or_permissions(manage_channels=True)
     async def translatereact(self, ctx):
-        """Set the bot to post reaction flags to translate messages on this server"""
-        server = ctx.message.server
-        if "servers" not in self.settings:
-            self.settings["servers"] = []
-        if server.id not in self.settings["servers"]:
-            self.settings["servers"].append(server.id)
-            await self.bot.say("{} has been added to post translated responses!".format(server.name))
-        elif server.id in self.settings["servers"]:
-            self.settings["servers"].remove(server.id)
-            await self.bot.say("{} has been removed from translated responses!".format(server.name))
+        """Set the bot to post reaction flags to translate messages on this guild"""
+        guild = ctx.message.guild
+        if "guilds" not in self.settings:
+            self.settings["guilds"] = []
+        if guild.id not in self.settings["guilds"]:
+            self.settings["guilds"].append(guild.id)
+            await self.bot.say("{} has been added to post translated responses!".format(guild.name))
+        elif guild.id in self.settings["guilds"]:
+            self.settings["guilds"].remove(guild.id)
+            await self.bot.say("{} has been removed from translated responses!".format(guild.name))
         dataIO.save_json("data/google/settings.json", self.settings)
 
 
@@ -102,7 +102,7 @@ class Translate:
             return
         if reaction.emoji not in self.languages:
             return
-        if reaction.message.channel.server.id not in self.settings["servers"]:
+        if reaction.message.channel.guild.id not in self.settings["guilds"]:
             return
         if reaction.message.embeds != []:
             to_translate = reaction.message.embeds[0]["description"]
@@ -133,7 +133,7 @@ def check_folder():
         os.makedirs("data/translate")
 
 def check_file():
-    data = {"key": None, "servers": []}
+    data = {"key": None, "guilds": []}
     f = "data/translate/settings.json"
     if not dataIO.is_valid_json(f):
         print("Creating default settings.json...")

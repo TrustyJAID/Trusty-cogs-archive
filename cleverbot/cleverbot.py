@@ -105,14 +105,14 @@ class Cleverbot():
     async def get_response(self, author, text):
         payload = {}
         payload["key"] = await self.get_credentials()
-        payload["cs"] = self.instances.get(author.id, "")
+        payload["cs"] = self.instances.get(str(author.id), "")
         payload["input"] = text
         session = aiohttp.ClientSession()
 
         async with session.get(API_URL, params=payload) as r:
             if r.status == 200:
                 data = await r.json()
-                self.instances[author.id] = data["cs"] # Preserves conversation status
+                self.instances[str(author.id)] = data["cs"] # Preserves conversation status
             elif r.status == 401:
                 raise InvalidCredentials()
             elif r.status == 503:
