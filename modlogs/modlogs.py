@@ -7,19 +7,25 @@ import asyncio
 import os
 from random import choice, randint
 
-inv_settings = {"settings":{"embed": False, "Channel": None, "toggleedit": False, "toggledelete": False, "toggleuser": False,
+inv_settings = {"embed": False, "Channel": None, "toggleedit": False, "toggledelete": False, "toggleuser": False,
                 "toggleroles": False,
                 "togglevoice": False,
                 "toggleban": False, "togglejoin": False, "toggleleave": False, "togglechannel": False,
-                "toggleguild": False}}
+                "toggleguild": False}
 
 
 class ModLogs:
     def __init__(self, bot):
         self.bot = bot
         self.direct = "data/modlogset/settings.json"
-        self.config = Config.get_conf(self, 154457677895, force_registration=True)
+        self.config = Config.get_conf(self, 154457677895)
         self.config.register_guild(**inv_settings)
+
+    @commands.command()
+    @checks.is_owner()
+    async def clearallmodlogs(self, ctx):
+        await self.config.clear_all()
+        await self.config.clear_all_guilds()
 
     @checks.admin_or_permissions(administrator=True)
     @commands.group(name='modlogtoggle', pass_context=True, no_pm=True)
@@ -29,20 +35,20 @@ class ModLogs:
             await self.config.guild(ctx.message.guild).set(inv_settings)
         if ctx.invoked_subcommand is None:
             guild = ctx.message.guild
-            db = await self.config.guild(guild).settings()
+            
             await ctx.send_help()
             try:
                 e = discord.Embed(title="Setting for {}".format(guild.name), colour=discord.Colour.blue())
-                e.add_field(name="Delete", value=str(db["toggledelete"]))
-                e.add_field(name="Edit", value=str(db["toggleedit"]))
-                e.add_field(name="Roles", value=str(db["toggleroles"]))
-                e.add_field(name="User", value=str(db["toggleuser"]))
-                e.add_field(name="Voice", value=str(db["togglevoice"]))
-                e.add_field(name="Ban", value=str(db["toggleban"]))
-                e.add_field(name="Join", value=str(db["togglejoin"]))
-                e.add_field(name="Leave", value=str(db["toggleleave"]))
-                e.add_field(name="Channel", value=str(db["togglechannel"]))
-                e.add_field(name="guild", value=str(db["toggleguild"]))
+                e.add_field(name="Delete", value=str(await self.config.guild(guild).toggledelete()))
+                e.add_field(name="Edit", value=str(await self.config.guild(guild).toggleedit()))
+                e.add_field(name="Roles", value=str(await self.config.guild(guild).toggleroles()))
+                e.add_field(name="User", value=str(await self.config.guild(guild).toggleuser()))
+                e.add_field(name="Voice", value=str(await self.config.guild(guild).togglevoice()))
+                e.add_field(name="Ban", value=str(await self.config.guild(guild).toggleban()))
+                e.add_field(name="Join", value=str(await self.config.guild(guild).togglejoin()))
+                e.add_field(name="Leave", value=str(await self.config.guild(guild).toggleleave()))
+                e.add_field(name="Channel", value=str(await self.config.guild(guild).togglechannel()))
+                e.add_field(name="guild", value=str(await self.config.guild(guild).toggleguild()))
                 e.set_thumbnail(url=guild.icon_url)
                 await ctx.send(embed=e)
             except KeyError:
@@ -52,8 +58,6 @@ class ModLogs:
     @commands.group(pass_context=True, no_pm=True)
     async def modlogset(self, ctx):
         """Change modlog settings"""
-        if await self.config.guild(ctx.message.guild).settings() == {}:
-            await self.config.guild(ctx.message.guild).set(inv_settings)
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
@@ -61,17 +65,15 @@ class ModLogs:
     async def _channel(self, ctx):
         """Set the channel to send notifications too"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        print(db)
+        print(guild)
         if ctx.message.guild.me.permissions_in(ctx.message.channel).send_messages:
-            if db["Channel"] is not None:
-                db['Channel'] = ctx.message.channel.id
-                await self.config.guild(guild).settings.set(db)
+            print(await self.config.guild(guild).Channel())
+            if await self.config.guild(guild).Channel() is not None:
+                await self.config.guild(guild).Channel.set(ctx.message.channel.id)
                 await ctx.send("Channel changed.")
                 return
             else:
-                db["Channel"] = ctx.message.channel.id
-                await self.config.guild(guild).settings.set(db)
+                await self.config.guild(guild).Channel.set(ctx.message.channel.id)
                 await ctx.send("I will now send toggled modlog notifications here")
         else:
             return
@@ -80,184 +82,181 @@ class ModLogs:
     async def embed(self, ctx):
         """Enables or disables embed modlog."""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["embed"] == False:
-            db["embed"] = True
-            await self.config.guild(guild).settings.set(db)
+        if await self.config.guild(guild).embed() == False:
+            await self.config.guild(guild).embed.set(True)
+            
             await ctx.send("Enabled embed modlog.")
-        elif db["embed"] == True:
-            db["embed"] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).embed() == True:
+            await self.config.guild(guild).embed.set(False)
+            
             await ctx.send("Disabled embed modlog.")
 
     @modlogset.command(pass_context=True, no_pm=True)
     async def disable(self, ctx):
         """disables the modlog"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
+        
+        if await self.config.guild(guild).Channel() is None:
             await ctx.send("guild not found, use modlogset to set a channnel")
             return
-        del db
-        await self.config.guild(guild).settings.set(db)
+        await self.config.guild(guild).Channel.set(None)
+        
         await ctx.send("I will no longer send modlog notifications here")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def edit(self, ctx):
         """toggle notifications when a member edits theyre message"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["toggleedit"] == False:
-            db["toggleedit"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).toggleedit() == False:
+            await self.config.guild(guild).toggleedit.set(True)
+            
             await ctx.send("Edit messages enabled")
-        elif db["toggleedit"] == True:
-            db["toggleedit"] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).toggleedit() == True:
+            await self.config.guild(guild).toggleedit.set(False)
+            
             await ctx.send("Edit messages disabled")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def join(self, ctx):
         """toggles notofications when a member joins the guild."""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["togglejoin"] == False:
-            db["togglejoin"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).togglejoin() == False:
+            await self.config.guild(guild).togglejoin.set(True)
+            
             await ctx.send("Enabled join logs.")
-        elif db['togglejoin'] == True:
-            db['togglejoin'] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).togglejoin() == True:
+            await self.config.guild(guild).togglejoin.set(False)
+            
             await ctx.send("Disabled join logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def guild(self, ctx):
         """toggles notofications when the guild updates."""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["toggleguild"] == False:
-            db["toggleguild"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).toggleguild() == False:
+            await self.config.guild(guild).toggleguild.set(True)
+            
             await ctx.send("Enabled guild logs.")
-        elif db['toggleguild'] == True:
-            db['toggleguild'] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).toggleguild() == True:
+            await self.config.guild(guild).toggleguild.set(False)
+            
             await ctx.send("Disabled guild logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def channel(self, ctx):
         """toggles channel update logging for the guild."""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["togglechannel"] == False:
-            db["togglechannel"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).togglechannel() == False:
+            await self.config.guild(guild).togglechannel.set(True)
+            
             await ctx.send("Enabled channel logs.")
-        elif db['togglechannel'] == True:
-            db['togglechannel'] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).togglechannel() == True:
+            await self.config.guild(guild).togglechannel.set(False)
+            
             await ctx.send("Disabled channel logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def leave(self, ctx):
         """toggles notofications when a member leaves the guild."""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["toggleleave"] == False:
-            db["toggleleave"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).toggleleave() == False:
+            await self.config.guild(guild).toggleleave.set(True)
+            
             await ctx.send("Enabled leave logs.")
-        elif db['toggleleave'] == True:
-            db['toggleleave'] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).toggleleave() == True:
+            await self.config.guild(guild).toggleleave.set(False)
+            
             await ctx.send("Disabled leave logs.")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def delete(self, ctx):
         """toggle notifications when a member delete theyre message"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["toggledelete"] == False:
-            db["toggledelete"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).toggledelete() == False:
+            await self.config.guild(guild).toggledelete.set(True)
+            
             await ctx.send("Delete messages enabled")
-        elif db["toggledelete"] == True:
-            db["toggledelete"] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).toggledelete() == True:
+            await self.config.guild(guild).toggledelete.set(False)
+            
             await ctx.send("Delete messages disabled")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def user(self, ctx):
         """toggle notifications when a user changes his profile"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["toggleuser"] == False:
-            db["toggleuser"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).toggleuser() == False:
+            await self.config.guild(guild).toggleuser.set(True)
+            
             await ctx.send("User messages enabled")
-        elif db["toggleuser"] == True:
-            db["toggleuser"] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).toggleuser() == True:
+            await self.config.guild(guild).toggleuser.set(False)
+            
             await ctx.send("User messages disabled")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def roles(self, ctx):
         """toggle notifications when roles change"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["toggleroles"] == False:
-            db["toggleroles"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).toggleroles() == False:
+            await self.config.guild(guild).toggleroles.set(True)
             await ctx.send("Role messages enabled")
-        elif db["toggleroles"] == True:
-            db["toggleroles"] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).toggleroles() == True:
+            await self.config.guild(guild).toggleroles.set(False)
             await ctx.send("Role messages disabled")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def voice(self, ctx):
         """toggle notifications when voice status change"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["togglevoice"] == False:
-            db["togglevoice"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).togglevoice() == False:
+            await self.config.guild(guild).togglevoice.set(True)
             await ctx.send("Voice messages enabled")
-        elif db["togglevoice"] == True:
-            db["togglevoice"] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).togglevoice() == True:
+            await self.config.guild(guild).togglevoice.set(False)
             await ctx.send("Voice messages disabled")
 
     @modlogtoggles.command(pass_context=True, no_pm=True)
     async def ban(self, ctx):
         """toggle notifications when a user is banned"""
         guild = ctx.message.guild
-        db = await self.config.guild(guild).settings()
-        if db["toggleban"] == False:
-            db["toggleban"] = True
-            await self.config.guild(guild).settings.set(db)
+        
+        if await self.config.guild(guild).toggleban() == False:
+            await self.config.guild(guild).toggleban.set(True)
+            
             await ctx.send("Ban messages enabled")
-        elif db["toggleban"] == True:
-            db["toggleban"] = False
-            await self.config.guild(guild).settings.set(db)
+        elif await self.config.guild(guild).toggleban() == True:
+            await self.config.guild(guild).toggleban.set(False)
+            
             await ctx.send("Ban messages disabled")
 
     async def on_message_delete(self, message):
         guild = message.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
+        
+        if await self.config.guild(guild).Channel() is None:
             return
-        if db['toggledelete'] == False:
+        if await self.config.guild(guild).toggledelete() == False:
             return
         if message.author is message.author.bot:
             pass
-        channel = db["Channel"]
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
+            return
         time = datetime.datetime.utcnow()
         cleanmsg = message.content
         for i in message.mentions:
             cleanmsg = cleanmsg.replace(i.mention, str(i))
         fmt = '%H:%M:%S'
-        if db["embed"] == True:
+        if await self.config.guild(guild).embed() == True:
             name = message.author
             name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
             infomessage = "A message by {}, was deleted in {}".format(message.author.mention, message.channel.mention)
@@ -278,16 +277,16 @@ class ModLogs:
 
     async def on_member_join(self, member):
         guild = member.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
+        
+        if await self.config.guild(guild).toggljoin() == False:
             return
-        if db['togglejoin'] == False:
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
             return
-        channel = db["Channel"]
         time = datetime.datetime.utcnow()
         fmt = '%H:%M:%S'
         users = len([e.name for e in guild.members])
-        if db["embed"] == True:
+        if await self.config.guild(guild).embed() == True:
             name = member
             # name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
             joinmsg = discord.Embed(description=member.mention, colour=discord.Color.red(), timestamp=member.joined_at)
@@ -300,23 +299,23 @@ class ModLogs:
                 await guild.get_channel(channel).send( embed=joinmsg)
             except:
                 pass
-        if db["embed"] == False:
+        if await self.config.guild(guild).embed() == False:
             msg = ":white_check_mark: `{}` **{}** join the guild. Total users: {}.".format(time.strftime(fmt),
                                                                                             member.name, users)
             await guild.get_channel(channel).send( msg)
 
     async def on_member_remove(self, member):
         guild = member.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
+
+        if await self.config.guild(guild).toggleleave() == False:
             return
-        if db['toggleleave'] == False:
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
             return
-        channel = db["Channel"]
         time = datetime.datetime.utcnow()
         fmt = "%H:%M:%S"
         users = len([e.name for e in guild.members])
-        if db["embed"] == True:
+        if await self.config.guild(guild).embed() == True:
             name = member
             # name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
             joinmsg = discord.Embed(description=member.mention, colour=discord.Color.red(), timestamp=time)
@@ -329,25 +328,25 @@ class ModLogs:
                 await guild.get_channel(channel).send( embed=joinmsg)
             except:
                 pass
-        if db["embed"] == False:
+        if await self.config.guild(guild).embed() == False:
             msg = ":x: `{}` **{}** has left the guild or was kicked. Total members {}.".format(time.strftime(fmt),
                                                                                                 member.name, users)
             await guild.get_channel(channel).send( msg)
 
     async def on_channel_update(self, before, after):
         guild = before.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
+    
+        if await self.config.guild(guild).togglechannel() == False:
             return
-        if db['togglechannel'] == False:
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
             return
-        channel = db["Channel"]
         time = datetime.datetime.utcnow()
         fmt = "%H:%M:%S"
         msg = ""
         if before.name != after.name:
             if before.type == discord.ChannelType.voice:
-                if db["embed"] == True:
+                if await self.config.guild(guild).embed() == True:
                     fmt = "%H:%M:%S"
                     voice1 = discord.Embed(colour=discord.Color.blue(), timestamp=time)
                     infomessage = ":loud_sound: Voice channel name update. Before: **{}** After: **{}**.".format(
@@ -367,7 +366,7 @@ class ModLogs:
                                                 ":loud_sound: `{}` Voice channel name update. Before: **{}** After: **{}**.".format(
                                                     time.strftime(fmt), before.name, after.name))
             if before.type == discord.ChannelType.text:
-                if db["embed"] == True:
+                if await self.config.guild(guild).embed() == True:
                     fmt = "%H:%M:%S"
                     text1 = discord.Embed(colour=discord.Color.blue(), timestamp=time)
                     infomessage = ":loud_sound: Text channel name update. Before: **{}** After: **{}**.".format(
@@ -384,7 +383,7 @@ class ModLogs:
                                                 ":page_facing_up: `{}` Text channel name update. Before: **{}** After: **{}**.".format(
                                                     time.strftime(fmt), before.name, after.name))
         if before.topic != after.topic:
-            if db["embed"] == True:
+            if await self.config.guild(guild).embed() == True:
                 fmt = "%H:%M:%S"
                 topic = discord.Embed(colour=discord.Colour.blue(), timestamp=time)
                 infomessage = ":page_facing_up: `{}` Channel topic has been updated.\n**Before:** {}\n**After:** {}".format(
@@ -405,7 +404,7 @@ class ModLogs:
                                                 time.strftime(fmt), before.topic, after.topic))
         if before.position != after.position:
             if before.type == discord.ChannelType.voice:
-                if db["embed"] == True:
+                if await self.config.guild(guild).embed() == True:
                     fmt = "%H:%M:%S"
                     voice2 = discord.Embed(colour=discord.Colour.blue(), timestamp=time)
                     voice2.set_thumbnail(
@@ -425,7 +424,7 @@ class ModLogs:
                                                 ":loud_sound: `{}` Voice channel position update. Channel: **{}** Before: **{}** After: **{}**.".format(
                                                     time.strftime(fmt), before.name, before.position, after.position))
             if before.type == discord.ChannelType.text:
-                if db["embed"] == True:
+                if await self.config.guild(guild).embed() == True:
                     fmt = "%H:%M:%S"
                     text2 = discord.Embed(colour=discord.Colour.blue(), timestamp=time)
                     text2.set_thumbnail(
@@ -445,7 +444,7 @@ class ModLogs:
                                                 ":page_facing_up: `{}` Text channel position update. Channel: **{}** Before: **{}** After: **{}**.".format(
                                                     time.strftime(fmt), before.name, before.position, after.position))
         if before.bitrate != after.bitrate:
-            if db["embed"] == True:
+            if await self.config.guild(guild).embed() == True:
                 fmt = "%H:%M:%S"
                 bitrate = discord.Embed(colour=discord.Colour.blue(), timestamp=time)
                 bitrate.set_author(name=time.strftime(fmt) + " Voice Channel Bitrate Update",
@@ -466,12 +465,10 @@ class ModLogs:
 
     async def on_message_edit(self, before, after):
         guild = before.guild
-        db = await self.config.guild(guild).settings()
+        
         if before.author.bot:
             return
-        if await self.config.guild(guild).settings() == {}:
-            return
-        if db['toggleedit'] == False:
+        if await self.config.guild(guild).toggleedit() == False:
             return
         if before.content == after.content:
             return
@@ -481,10 +478,12 @@ class ModLogs:
         cleanafter = after.content
         for i in after.mentions:
             cleanafter = cleanafter.replace(i.mention, str(i))
-        channel = db["Channel"]
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
+            return
         time = datetime.datetime.utcnow()
         fmt = '%H:%M:%S'
-        if db["embed"] == True:
+        if await self.config.guild(guild).embed() == True:
             name = before.author
             name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
             
@@ -506,14 +505,14 @@ class ModLogs:
 
     async def on_guild_update(self, before, after):
         guild = before
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
-            return
-        if db['toggleguild'] == False:
+        
+        if await self.config.guild(guild).toggleguild() == False:
             return
         if before.bot:
             return
-        channel = db["Channel"]
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
+            return
         time = datetime.datetime.utcnow()
         fmt = '%H:%M:%S'
         if before.name != after.name:
@@ -529,17 +528,17 @@ class ModLogs:
             guild = before.channel.guild
         except:
             guild = after.channel.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
-            return
-        if db['togglevoice'] == False:
+
+        if await self.config.guild(guild).togglevoice() == False:
             return
         if member.bot:
             return
-        channel = db["Channel"]
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
+            return
         time = datetime.datetime.utcnow()
         fmt = '%H:%M:%S'
-        if db["embed"] == True:
+        if await self.config.guild(guild).embed() == True:
             name = member
             name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
             updmessage = discord.Embed(description=name, colour=discord.Color.blue(), timestamp=time)
@@ -564,14 +563,14 @@ class ModLogs:
 
     async def on_member_update(self, before, after):
         guild = before.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
+        
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
             return
-        channel = db["Channel"]
         time = datetime.datetime.utcnow()
         fmt = '%H:%M:%S'
-        if not before.roles == after.roles and db['toggleroles']:
-            if db["embed"] == True:
+        if not before.roles == after.roles and await self.config.guild(guild).toggleroles():
+            if await self.config.guild(guild).embed() == True:
                 name = after
                 name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
                 role = discord.Embed(colour=discord.Color.red(), timestamp=time)
@@ -584,14 +583,14 @@ class ModLogs:
                     await guild.get_channel(channel).send( embed=role)
                 except:
                     pass
-            if db["embed"] == False:
+            if await self.config.guild(guild).embed() == False:
                 msg = ":person_with_pouting_face::skin-tone-3: `{}` **{}'s** roles have changed. Old: `{}` New: `{}`".format(
                     time.strftime(fmt), before.name, ", ".join([r.name for r in before.roles]),
                     ", ".join([r.name for r in after.roles]))
                 await guild.get_channel(channel).send(
                                             msg)
         if not before.nick == after.nick and db['toggleuser']:
-            if db["embed"] == True:
+            if await self.config.guild(guild).embed() == True:
                 name = before
                 name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
                 infomessage = "{}'s nickname has changed".format(before.mention)
@@ -612,15 +611,15 @@ class ModLogs:
 
     async def on_member_ban(self, member):
         guild = member.guild
-        db = await self.config.guild(guild).settings()
-        if await self.config.guild(guild).settings() == {}:
+
+        if await self.config.guild(guild).toggleban() == False:
             return
-        if db['toggleban'] == False:
+        channel = await self.config.guild(guild).Channel()
+        if channel is None:
             return
-        channel = db["Channel"]
         time = datetime.datetime.utcnow()
         fmt = '%H:%M:%S'
-        if db["embed"] == True:
+        if await self.config.guild(guild).embed() == True:
             name = member
             name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
             
