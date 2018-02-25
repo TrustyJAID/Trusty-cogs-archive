@@ -400,7 +400,7 @@ class Tweets():
         return (TweetEntry.from_json(d) for d in (await self.config.accounts()))
 
     async def is_followed_account(self, twitter_id) -> bool:
-        followed_accounts = [x for x in await self.config.accounts()]
+        followed_accounts = await self.config.accounts()
 
         for account in followed_accounts:
             if account["twitter_id"] == twitter_id:
@@ -423,7 +423,7 @@ class Tweets():
             return
         if channel is None:
             channel = ctx.message.channel
-        followed_accounts = [x for x in await self.config.accounts()]
+        followed_accounts = await self.config.accounts()
 
         is_followed, twitter_account = await self.is_followed_account(user_id)
         if is_followed:

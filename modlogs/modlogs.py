@@ -39,6 +39,7 @@ class ModLogs:
             await ctx.send_help()
             try:
                 e = discord.Embed(title="Setting for {}".format(guild.name), colour=discord.Colour.blue())
+                e.description = "ModLogs channel set to {}".format(self.bot.get_channel(id=await self.config.guild(guild).Channel()).mention)
                 e.add_field(name="Delete", value=str(await self.config.guild(guild).toggledelete()))
                 e.add_field(name="Edit", value=str(await self.config.guild(guild).toggleedit()))
                 e.add_field(name="Roles", value=str(await self.config.guild(guild).toggleroles()))
@@ -609,9 +610,8 @@ class ModLogs:
                                             ":person_with_pouting_face::skin-tone-3: `{}` **{}** changed their nickname from **{}** to **{}**".format(
                                                 time.strftime(fmt), before.name, before.nick, after.nick))
 
-    async def on_member_ban(self, member):
-        guild = member.guild
-
+    async def on_member_ban(self, guild, member):
+        
         if await self.config.guild(guild).toggleban() == False:
             return
         channel = await self.config.guild(guild).Channel()

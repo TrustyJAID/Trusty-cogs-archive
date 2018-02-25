@@ -84,8 +84,8 @@ class QPosts:
         guild = ctx.message.guild
         try:
             role = [role for role in guild.roles if role.name == "QPOSTS"][0]
-            await self.bot.add_roles(ctx.message.author, role)
-            await self.bot.send_message(ctx.message.channel, "Role applied.")
+            await ctx.message.author.add_roles(role)
+            await ctx.send("Role applied.")
         except:
             return
 
