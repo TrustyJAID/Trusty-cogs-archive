@@ -133,6 +133,8 @@ class Cleverbot():
         guild = message.guild
         author = message.author
         channel = message.channel
+        if not hasattr(author, "guild"):
+            return
 
         if message.author.id != self.bot.user.id:
             to_strip = "@" + author.guild.me.display_name + " "

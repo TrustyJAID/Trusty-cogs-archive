@@ -378,24 +378,23 @@ class Tweets():
         await self.start_stream()
     
     @_autotweet.command( name="replies")
-    async def _replies(self, ctx, account, replies):
+    async def _replies(self, ctx, account):
         """Enable or disable twitter replies from being posted for an account"""
         account = account.lower()
-        for user_id in list(await self.config.accounts()):
-            if account == self.config.accounts[user_id].username.lower():
-                channel_list = self.settings["accounts"][user_id]["channel"]
-                user = user_id
-        if channel_list is None:
-            await ctx.send("{} is not in my list of accounts!".format(account))
+        edited_account = None
+        all_accounts = await self.config.accounts()
+        for accounts in all_accounts:
+            if accounts["twitter_name"].lower() == account:
+                edited_account = accounts
+        if edited_account is None:
+            await ctx.send("I am not tracking {}".format(account))
             return
-        if replies.lower() in ["true", "on"]:
-            self.settings["accounts"][user]["replies"] = True
-            dataIO.save_json(self.settings_file, self.settings)
-            await ctx.send("I will post replies for {} now!".format(account))
-        if replies.lower() in ["false", "off"]:
-            self.settings["accounts"][user]["replies"] = False
-            dataIO.save_json(self.settings_file, self.settings)
-            await ctx.send("I will stop posting replies for {} now!".format(account))
+        else:
+            all_accounts.remove(edited_account)
+            edited_account["replies"] = not edited_account["replies"]
+            all_accounts.append(edited_account)
+            await self.config.accounts.set(all_accounts)
+            await ctx.send("posting twitter replies for {}".format(account))
 
     async def get_followed_accounts(self) -> Generator[TweetEntry, None, None]:
         return (TweetEntry.from_json(d) for d in (await self.config.accounts()))
@@ -441,7 +440,7 @@ class Tweets():
             followed_accounts.append(twitter_account.to_json())
             await self.config.accounts.set(followed_accounts)
         await ctx.send("{0} Added to {1}!".format(account, channel.mention))
-        await self.autotweet_restart()
+        # await self.autotweet_restart()
 
     @_autotweet.command( name="list")
     async def _list(self, ctx):

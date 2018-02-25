@@ -58,8 +58,8 @@ class Gab:
                 else:
                     return True
     
-    @gab.command(pass_context=True)
-    async def set(self, ctx, channel: discord.TextChannel, role_add: discord.Role, role_remove: discord.Role=None):
+    @commands.command(pass_context=True)
+    async def gabset(self, ctx, channel: discord.TextChannel, role_add: discord.Role, role_remove: discord.Role=None):
         guild = ctx.message.guild
         await self.config.guild(guild).channel.set(channel.id)
         await self.config.guild(guild).role_add.set(role_add.id)
