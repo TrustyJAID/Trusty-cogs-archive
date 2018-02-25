@@ -12,7 +12,7 @@ class Imgflip:
         self.config = Config.get_conf(self, 356889977)
         default_global = {"username": "", "password": ""}
         self.config.register_global(**default_global)
-        self.url = "https://api.imgflip.com/caption_image?template_id={0}&username={1}&password={2}&text0={3}&text1={4}"
+        self.url = "https://api.imgflip.com/caption_image?template_id={0}&username={1}&password={2}"
         self.search = "https://api.imgflip.com/get_memes?username={0}&password={1}"
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
@@ -58,6 +58,9 @@ class Imgflip:
             meme, text1, text2 = msg[0], msg[1], " "
         if len(msg) == 3:
             meme, text1, text2 = msg[0], msg[1], msg[2]
+
+        text_lines = len(msg) - 1
+        meme = msg.pop(0)
         
         text1 = text1[:20] if len(text1) > 20 else text1
         text2 = text1[:20] if len(text2) > 20 else text2
@@ -65,7 +68,11 @@ class Imgflip:
         password = await self.config.password()
         if not meme.isdigit():
             meme = await self.get_meme_id(meme)
-        url = self.url.format(meme, username, password, text1, text2)
+        url = self.url.format(meme, username, password)
+        for i in range(0, text_lines):
+            url += "&text{}={}".format(i, msg[i])
+        if text_lines == 0:
+            url += "&text0=%20"
         try:
             async with self.session.get(url) as r:
                 result = await r.json()
@@ -73,7 +80,7 @@ class Imgflip:
                 url = result["data"]["url"]
                 await ctx.send(url)
         except:
-            await self.get_memes(ctx)
+            await ctx.send("That meme wasn't found!")
 
     @commands.group(name='imgflipset', aliases=["memeset"])
     @checks.is_owner()

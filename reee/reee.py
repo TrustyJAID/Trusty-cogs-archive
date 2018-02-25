@@ -20,6 +20,8 @@ class Reee:
         self.config.register_guild(**default_guild)
     
     async def on_message(self, message):
+        if message.guild is None:
+            return
         if message.author.bot:
             return
         if message.guild.id == "236313384100954113" and message.channel.id not in ["244653444504223755", "367879950466023425"]:

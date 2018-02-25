@@ -214,7 +214,6 @@ class Starboard:
         guild = channel.guild
         msg = await channel.get_message(id=message_id)
         user = guild.get_member(user_id)
-        print(self.bot.owner_id)
         reaction = [reaction for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
         if msg.channel.id in await self.config.guild(guild).ignore():
             return
@@ -228,7 +227,7 @@ class Starboard:
         if str(react) == str(emoji):
             threshold = await self.config.guild(guild).threshold()
             count = reaction.count
-            print(count)
+            # print(count)
             if await self.check_is_posted(guild, msg):
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
                 msg_id, count2 = await self.get_posted_message(guild, msg)
@@ -246,7 +245,7 @@ class Starboard:
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
             if reaction.message.embeds != []:
                 embed = reaction.message.embeds[0].to_dict()
-                # print(embed)
+                # # print(embed)
                 em = discord.Embed(timestamp=reaction.message.created_at)
                 if "title" in embed:
                     em.title = embed["title"]
