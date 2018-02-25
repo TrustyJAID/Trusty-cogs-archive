@@ -4,6 +4,7 @@ import datetime
 import aiohttp
 import asyncio
 import json
+import re
 
 
 class Conversions:
@@ -70,6 +71,26 @@ class Conversions:
             if base.upper() == coin["symbol"].upper() or base.lower() == coin["name"].lower():
                 return coin 
         return None
+
+    @commands.command(pass_context=True)
+    async def multicoin(self, ctx, *, coins=None):
+        """Gets the current USD for a list of coins seperated by ;"""
+        coin_list = []
+        if coins is None:
+            async with self.session.get("https://api.coinmarketcap.com/v1/ticker/") as resp:
+                data = await resp.json()
+            for i in range(25):
+                coin_list.append(data[i])
+        else:
+            coins = re.split("\W+", coins)
+            for coin in coins:
+                coin_list.append(await self.checkcoins(coin))
+        embed = discord.Embed(title="Crypto coin comparison")
+        for coin in coin_list:
+            if coin is not None:
+                msg = "1 {0} is {1:.2f} USD".format(coin["symbol"], float(coin["price_usd"]))
+                embed.add_field(name=coin["name"], value=msg)
+        await ctx.send(embed=embed)
 
     @commands.command(pass_context=True)
     async def crypto(self, ctx, coin, ammount:float=1.0, currency="USD", full=True):
