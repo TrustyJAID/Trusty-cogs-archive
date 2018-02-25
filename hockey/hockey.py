@@ -1140,10 +1140,16 @@ class Hockey:
                 url = "{}/api/v1/teams/{}/roster".format(self.url, self.teams[team]["id"])
                 async with self.session.get(url) as resp:
                     data = await resp.json()
-                rosters[team] = [data["roster"]]
+                # print(data)
+                try:
+                    rosters[team] = data["roster"]
+                except KeyError:
+                    pass
             
             for team in rosters:
+                # print(team)
                 for player in rosters[team]:
+                    # print(player["person"])
                     if search.lower() in player["person"]["fullName"].lower():
                         players.append(player)
         

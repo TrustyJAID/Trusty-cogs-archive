@@ -84,7 +84,11 @@ class Welcome:
             msg += "  {}. {}\n".format(c, m)
         for page in pagify(msg, ['\n', ' '], shorten_by=20):
             await ctx.send("```\n{}\n```".format(page))
-        answer = await self.bot.wait_for_message(timeout=120, author=author)
+        check = lambda message:message.author == ctx.message.author and message.channel == ctx.message.channel
+        try:
+            answer = await self.bot.wait_for("message", check=check, timeout=120)
+        except asyncio.TimeoutError:
+            return
         try:
             num = int(answer.content)
             choice = guild_settings.pop(num)
