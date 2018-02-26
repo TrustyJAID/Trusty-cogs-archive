@@ -63,7 +63,7 @@ class Gab:
         guild = ctx.message.guild
         await self.config.guild(guild).channel.set(channel.id)
         await self.config.guild(guild).role_add.set(role_add.id)
-        await self.config.guild(guild).role_remove.set(role_remove)
+        await self.config.guild(guild).role_remove.set(role_remove.id)
         await self.config.guild(guild).require_gab.set(True)
         await ctx.send("Accepting gab tags in {} and applying role {}".format(channel, role_add))
 

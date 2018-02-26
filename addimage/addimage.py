@@ -87,7 +87,7 @@ class AddImage:
 
 
     async def on_message(self, message):
-        if len(message.content) < 2:
+        if len(message.content) < 2 or message.guild is None:
             return
 
         msg = message.content

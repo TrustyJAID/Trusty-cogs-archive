@@ -7,11 +7,15 @@ from discord.ext import commands
 from redbot.core import checks
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.data_manager import cog_data_path
+from .data import links, messages
 import datetime
 import os
 import string
 import time
 import io
+from redbot.core.i18n import CogI18n
+
+_ = CogI18n("TrustyBot", __file__)
 
 numbs = {
     "next": "➡",
@@ -24,6 +28,8 @@ class TrustyBot:
     def __init__(self, bot):
         self.bot = bot
         # self.donotdo = dataIO.load_json("data/dnd/donotdo.json")
+        self.text = messages
+        self.links = links
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     async def on_message(self, message):
@@ -31,9 +37,42 @@ class TrustyBot:
             return
 
         msg = message.content
-        guild = message.guild
         channel = message.channel
+
+        try:
+            prefix = await self.get_prefix(message)
+        except ValueError:
+            return
+        alias = await self.first_word(msg[len(prefix):])
+        if alias == "beemovie":
+            return
+        if alias in self.text:
+            await channel.send(self.text[alias])
+        if alias in self.links:
+            await channel.send(self.links[alias])
         return
+
+    async def first_word(self, msg):
+        return msg.split(" ")[0].lower()
+
+    async def get_prefix(self, message: discord.Message) -> str:
+        """
+        From Redbot Alias Cog
+        Tries to determine what prefix is used in a message object.
+            Looks to identify from longest prefix to smallest.
+            Will raise ValueError if no prefix is found.
+        :param message: Message object
+        :return:
+        """
+        content = message.content
+        prefix_list = await self.bot.command_prefix(self.bot, message)
+        prefixes = sorted(prefix_list,
+                          key=lambda pfx: len(pfx),
+                          reverse=True)
+        for p in prefixes:
+            if content.startswith(p):
+                return p
+        raise ValueError(_("No prefix found."))
 
     @commands.command(pass_context=True)
     async def emoji(self, ctx, emoji):
@@ -164,6 +203,8 @@ class TrustyBot:
         em.add_field(name="Voice Channels", value=voice_channels)
         em.add_field(name="Roles", value=len(guild.roles))
         em.add_field(name="Owner", value="{} | {}".format(str(guild.owner), guild.owner.mention))
+        if guild.features != []:
+            em.add_field(name="Guild Features", value=", ".join(feature for feature in guild.features))
         em.set_footer(text="guild ID: {}".format(guild.id))
 
         if guild.icon_url:
@@ -289,7 +330,69 @@ class TrustyBot:
             msg += (role.name + ",")
         await ctx.send(msg)
 
-    @commands.command(pass_context=True)
+    async def emoji_menu(self, ctx, post_list: list,
+                         message: discord.Message=None,
+                         page=0, timeout: int=30):
+        """menu control logic for this taken from
+           https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
+
+        emojis = post_list[page]
+        guild = ctx.message.guild
+        em = discord.Embed(timestamp=ctx.message.created_at)
+        em.set_author(name=guild.name, icon_url=guild.icon_url)
+        regular = []
+        msg = ""
+        for emoji in emojis:
+            msg += emoji
+        em.add_field(name="Emojis", value=msg)
+        
+        if not message:
+            message = await ctx.send(embed=em)
+            await message.add_reaction("⬅")
+            await message.add_reaction("❌")
+            await message.add_reaction("➡")
+        else:
+            # message edits don't return the message object anymore lol
+            await message.edit(embed=em)
+        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"]
+        try:
+            react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
+        except asyncio.TimeoutError:
+            await message.remove_reaction("⬅", self.bot.user)
+            await message.remove_reaction("❌", self.bot.user)
+            await message.remove_reaction("➡", self.bot.user)
+            return None
+        else:
+            reacts = {v: k for k, v in numbs.items()}
+            react = reacts[react.emoji]
+            if react == "next":
+                next_page = 0
+                if page == len(post_list) - 1:
+                    next_page = 0  # Loop around to the first item
+                else:
+                    next_page = page + 1
+                try:
+                    await message.remove_reaction("➡", ctx.message.author)
+                except:
+                    pass
+                return await self.emoji_menu(ctx, post_list, message=message,
+                                             page=next_page, timeout=timeout)
+            elif react == "back":
+                next_page = 0
+                if page == 0:
+                    next_page = len(post_list) - 1  # Loop around to the last item
+                else:
+                    next_page = page - 1
+                try:
+                    await message.remove_reaction("⬅", ctx.message.author)
+                except:
+                    pass
+                return await self.emoji_menu(ctx, post_list, message=message,
+                                             page=next_page, timeout=timeout)
+            else:
+                return await message.delete()
+
+    @commands.command(pass_context=True, aliases=["serveremojis"])
     async def guildemojis(self, ctx, *, guildname=None):
         msg = ""
         guild = None
@@ -303,28 +406,29 @@ class TrustyBot:
         if guild is None:
             ctx.send("I don't see that guild!")
             return
-        if len(guild.emojis) > 25:
-            emoji_list1 = guild.emojis[:25]
-            index = guild.emojis.index(emoji_list1[-1])
-            emoji_list2 = guild.emojis[index:]
-        else:
-            emoji_list1 = guild.emojis
-            emoji_list2 = None
-        embed = discord.Embed(timestamp=ctx.message.timestamp)
+        
+        embed = discord.Embed(timestamp=ctx.message.created_at)
         embed.set_author(name=guild.name, icon_url=guild.icon_url)
-        for emoji in emoji_list1:
-            embed.add_field(name=":" + emoji.name + ":",
-                            value="<:" + emoji.name + ":" + emoji.id + "> ",
-                            inline=True)
-        ctx.send(embed=embed)
-        if emoji_list2 is not None:
-            embed = discord.Embed(timestamp=ctx.message.timestamp)
-            embed.set_author(name=guild.name, icon_url=guild.icon_url)
-            for emoji in emoji_list2[1:]:
-                embed.add_field(name=":" + emoji.name + ":",
-                                value="<:" + emoji.name + ":" + emoji.id + "> ",
-                                inline=True)
-            ctx.send(embed=embed)
+        regular = []
+        for emoji in guild.emojis:
+            if emoji.animated:
+                regular.append("<a:{emoji.name}:{emoji.id}> = `:{emoji.name}:`\n".format(emoji=emoji))
+            else:
+                regular.append("<:{emoji.name}:{emoji.id}> = `:{emoji.name}:`\n".format(emoji=emoji))
+        if regular != "":
+            embed.description = regular
+        chunks, chunk_size = len(regular), len(regular)//4
+        x = [regular[i:i+chunk_size] for i in range(0, chunks, chunk_size)]
+        # if animated != "":
+            # embed.add_field(name="Animated Emojis", value=animated[:1023])
+        await self.emoji_menu(ctx, x)
+
+    @commands.command()
+    async def beemovie(self, ctx):
+        msg = "<a:beemovie1_1:394355466022551552><a:beemovie1_2:394355486625103872><a:beemovie1_3:394355526496026624><a:beemovie1_4:394355551859113985><a:beemovie1_5:394355549581606912><a:beemovie1_6:394355542849617943><a:beemovie1_7:394355537925373952><a:beemovie1_8:394355511912300554>\n<a:beemovie2_1:394355541616361475><a:beemovie2_2:394355559719239690><a:beemovie2_3:394355587409772545><a:beemovie2_4:394355593567272960><a:beemovie2_5:394355578337624064><a:beemovie2_6:394355586067726336><a:beemovie2_7:394355558104432661><a:beemovie2_8:394355539716472832>\n<a:beemovie3_1:394355552626409473><a:beemovie3_2:394355572381843459><a:beemovie3_3:394355594955456532><a:beemovie3_4:394355578253737984><a:beemovie3_5:394355579096793098><a:beemovie3_6:394355586411528192><a:beemovie3_7:394355565788397568><a:beemovie3_8:394355551556861993>\n<a:beemovie4_1:394355538181488640><a:beemovie4_2:394355548944072705><a:beemovie4_3:394355568669884426><a:beemovie4_4:394355564504809485><a:beemovie4_5:394355567843606528><a:beemovie4_6:394355577758679040><a:beemovie4_7:394355552655900672><a:beemovie4_8:394355527867564032>"
+        em = discord.Embed(title="The Entire Bee Movie", description=msg)
+        await ctx.send(embed=em)
+
     
     @commands.command()
     async def listtext(self):
@@ -365,15 +469,8 @@ class TrustyBot:
 
     @commands.command(pass_context=True,)
     async def donate(self, ctx):
-        """Donate some bitcoin!"""
-        gabcoin = "1471VCzShn9kBSrZrSX1Y3KwjrHeEyQtup"
-        msg = "Feel free to send bitcoin donations to `{}` :smile:"
-        gabimg = "data/trustybot/img/gabbtc.jpg"
-        if ctx.message.guild.id == "261565811309674499":
-            await self.bot.upload(gabimg)
-            await ctx.send(msg.format(gabcoin))
-        else:
-            await ctx.send("Help support me  and development of TrustyBot by buying my album or donating bitcoin on my website :smile: https://trustyjaid.com/")
+        """Donate to the development of TrustyBot!"""
+        await ctx.send("Help support me  and development of TrustyBot by buying my album or donating bitcoin on my website :smile: https://trustyjaid.com/")
 
     
     @commands.command(pass_context=True)

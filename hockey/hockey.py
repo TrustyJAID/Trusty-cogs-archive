@@ -575,7 +575,6 @@ class Hockey:
             for channel_id, message_id in og_msg.items():
                 try:
                     role = None
-                    print("trying to edit")
                     channel = self.bot.get_channel(id=int(channel_id))
                     # print("channel {} ID {}".format(channel, message_id))
                     message = await channel.get_message(message_id)
@@ -587,7 +586,7 @@ class Hockey:
                     if role is None or "missed" in event.lower():
                         await message.edit(embed=em)
                     else:  
-                        await message.edit(role.mention, embed=em)
+                        await message.edit(content=role.mention, embed=em)
                 except:
                     print("Could not edit goal in {}".format(channel_id))
             return

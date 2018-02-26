@@ -590,7 +590,7 @@ class ModLogs:
                     ", ".join([r.name for r in after.roles]))
                 await guild.get_channel(channel).send(
                                             msg)
-        if not before.nick == after.nick and db['toggleuser']:
+        if not before.nick == after.nick and await self.config.guild(guild).toggleuser():
             if await self.config.guild(guild).embed() == True:
                 name = before
                 name = " ~ ".join((name.name, name.nick)) if name.nick else name.name
