@@ -249,17 +249,17 @@ class Starboard:
                 embed = reaction.message.embeds[0].to_dict()
                 em = discord.Embed(timestamp=reaction.message.created_at)
                 if "title" in embed:
-                    em.title = embed.title
+                    em.title = embed["title"]
                 if "thumbnail" in embed:
-                    em.set_thumbnail(url=embed.thumbnail.url)
+                    em.set_thumbnail(url=embed["thumbnail"]["url"])
                 if "description" in embed:
-                    em.description = msg.clean_content + embed.description
+                    em.description = msg.clean_content + embed["description"]
                 if "description" not in embed:
                     em.description = msg.clean_content
                 if "url" in embed:
-                    em.url = embed.url
+                    em.url = embed["url"]
                 if "footer" in embed:
-                    em.set_footer(text=embed.footer.text)
+                    em.set_footer(text=embed["footer"]["text"])
                 if "author" in embed:
                     postauthor = embed["author"]
                     if "icon_url" in postauthor:
@@ -269,23 +269,23 @@ class Starboard:
                 if "author" not in embed:
                     em.set_author(name=author.name, icon_url=author.avatar_url)
                 if "color" in embed:
-                    em.color = embed.color
+                    em.color = embed["color"]
                 if "color" not in embed:
                     em.color = author.top_role.color
                 if "image" in embed:
-                    em.set_image(url=embed.image.url)
+                    em.set_image(url=embed["image"]["url"])
                 if embed["type"] == "image":
                     em.type = "image"
-                    if ".png" in embed.url or ".jpg" in embed.url:
+                    if ".png" in embed["url"] or ".jpg" in embed["url"]:
                         em.set_thumbnail(url="")
-                        em.set_image(url=embed.url)
+                        em.set_image(url=embed["url"])
                     else:
-                        em.set_thumbnail(url=embed.url)
-                        em.set_image(url=embed.url+"."+embed.thumbnail.url.rsplit(".")[-1])
+                        em.set_thumbnail(url=embed["url"])
+                        em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
                 if embed["type"] == "gifv":
                     em.type = "gifv"
-                    em.set_thumbnail(url=embed.url)
-                    em.set_image(url=embed.url+".gif")
+                    em.set_thumbnail(url=embed["url"])
+                    em.set_image(url=embed["url"]+".gif")
                 
             else:
                 em = discord.Embed(timestamp=reaction.message.created_at)
