@@ -66,9 +66,9 @@ class ModLogs:
     async def _channel(self, ctx):
         """Set the channel to send notifications too"""
         guild = ctx.message.guild
-        print(guild)
+        # print(guild)
         if ctx.message.guild.me.permissions_in(ctx.message.channel).send_messages:
-            print(await self.config.guild(guild).Channel())
+            # print(await self.config.guild(guild).Channel())
             if await self.config.guild(guild).Channel() is not None:
                 await self.config.guild(guild).Channel.set(ctx.message.channel.id)
                 await ctx.send("Channel changed.")
