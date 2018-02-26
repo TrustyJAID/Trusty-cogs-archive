@@ -217,10 +217,6 @@ class Starboard:
             return
         msg = await channel.get_message(id=message_id)
         user = guild.get_member(user_id)
-        try:
-            reaction = [reaction for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
-        except KeyError:
-            return
         if msg.channel.id in await self.config.guild(guild).ignore():
             return
         if msg.channel.id == await self.config.guild(guild).channel():
@@ -234,13 +230,16 @@ class Starboard:
         react = await self.config.guild(guild).emoji()
         if str(react) == str(emoji):
             threshold = await self.config.guild(guild).threshold()
-            count = reaction.count
+            try:
+                count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
+            except KeyError:
+                count = 0
             if await self.check_is_posted(guild, msg):
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
                 msg_id, count2 = await self.get_posted_message(guild, msg)
                 if msg_id is not None:
                     msg_edit = await channel.get_message(msg_id)
-                    await msg_edit.edit(content="{} **#{}**".format(reaction.emoji, count))
+                    await msg_edit.edit(content="{} **#{}**".format(emoji, count))
                     return
 
             if count < threshold:
@@ -250,9 +249,9 @@ class Starboard:
                     return
             author = msg.author
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
-            if reaction.message.embeds != []:
-                embed = reaction.message.embeds[0].to_dict()
-                em = discord.Embed(timestamp=reaction.message.created_at)
+            if msg.embeds != []:
+                embed = msg.embeds[0].to_dict()
+                em = discord.Embed(timestamp=msg.created_at)
                 if "title" in embed:
                     em.title = embed["title"]
                 if "thumbnail" in embed:
@@ -293,14 +292,14 @@ class Starboard:
                     em.set_image(url=embed["url"]+".gif")
                 
             else:
-                em = discord.Embed(timestamp=reaction.message.created_at)
+                em = discord.Embed(timestamp=msg.created_at)
                 em.color = author.top_role.color
                 em.description = msg.content
-                em.set_author(name=author.name, icon_url=author.avatar_url)
-                if reaction.message.attachments != []:
-                    em.set_image(url=reaction.message.attachments[0].url)
+                em.set_author(name=author.display_name, icon_url=author.avatar_url)
+                if msg.attachments != []:
+                    em.set_image(url=msg.attachments[0].url)
             em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
-            post_msg = await channel2.send("{} **#{}**".format(reaction.emoji, count), embed=em)
+            post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
             past_message_list = await self.config.guild(guild).messages()
             past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
             await self.config.guild(guild).messages.set(past_message_list)
