@@ -230,7 +230,6 @@ class Starboard:
         if str(react) == str(emoji):
             threshold = await self.config.guild(guild).threshold()
             count = reaction.count
-            # print(count)
             if await self.check_is_posted(guild, msg):
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
                 msg_id, count2 = await self.get_posted_message(guild, msg)
@@ -248,20 +247,19 @@ class Starboard:
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
             if reaction.message.embeds != []:
                 embed = reaction.message.embeds[0].to_dict()
-                # # print(embed)
                 em = discord.Embed(timestamp=reaction.message.created_at)
                 if "title" in embed:
-                    em.title = embed["title"]
+                    em.title = embed.title
                 if "thumbnail" in embed:
-                    em.set_thumbnail(url=embed["thumbnail"]["url"])
+                    em.set_thumbnail(url=embed.thumbnail.url)
                 if "description" in embed:
-                    em.description = msg.clean_content + embed["description"]
+                    em.description = msg.clean_content + embed.description
                 if "description" not in embed:
                     em.description = msg.clean_content
                 if "url" in embed:
-                    em.url = embed["url"]
+                    em.url = embed.url
                 if "footer" in embed:
-                    em.set_footer(text=embed["footer"]["text"])
+                    em.set_footer(text=embed.footer.text)
                 if "author" in embed:
                     postauthor = embed["author"]
                     if "icon_url" in postauthor:
@@ -271,23 +269,23 @@ class Starboard:
                 if "author" not in embed:
                     em.set_author(name=author.name, icon_url=author.avatar_url)
                 if "color" in embed:
-                    em.color = embed["color"]
+                    em.color = embed.color
                 if "color" not in embed:
                     em.color = author.top_role.color
                 if "image" in embed:
-                    em.set_image(url=embed["image"]["url"])
+                    em.set_image(url=embed.image.url)
                 if embed["type"] == "image":
                     em.type = "image"
-                    if ".png" in embed["url"] or ".jpg" in embed["url"]:
+                    if ".png" in embed.url or ".jpg" in embed.url:
                         em.set_thumbnail(url="")
-                        em.set_image(url=embed["url"])
+                        em.set_image(url=embed.url)
                     else:
-                        em.set_thumbnail(url=embed["url"])
-                        em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
+                        em.set_thumbnail(url=embed.url)
+                        em.set_image(url=embed.url+"."+embed.thumbnail.url.rsplit(".")[-1])
                 if embed["type"] == "gifv":
                     em.type = "gifv"
-                    em.set_thumbnail(url=embed["url"])
-                    em.set_image(url=embed["url"]+".gif")
+                    em.set_thumbnail(url=embed.url)
+                    em.set_image(url=embed.url+".gif")
                 
             else:
                 em = discord.Embed(timestamp=reaction.message.created_at)
@@ -295,7 +293,7 @@ class Starboard:
                 em.description = msg.content
                 em.set_author(name=author.name, icon_url=author.avatar_url)
                 if reaction.message.attachments != []:
-                    em.set_image(url=reaction.message.attachments[0]["url"])
+                    em.set_image(url=reaction.message.attachments[0].url)
             em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
             post_msg = await channel2.send("{} **#{}**".format(reaction.emoji, count), embed=em)
             past_message_list = await self.config.guild(guild).messages()
