@@ -76,27 +76,28 @@ class TrustyBot:
 
     @commands.command(pass_context=True)
     async def emoji(self, ctx, emoji):
+        async with ctx.channel.typing():
         # print(emoji)
-        if emoji is discord.Emoji:
-            emoji_name = emoji.name
-            ext = emoji.url.split(".")[-1]
-            async with self.session.get(emoji.url) as resp:
-                data = await resp.read()
-            file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
-            await ctx.send(file=file)
-            # await self.bot.say(emoji.url)
-        else:
-            emoji_id = emoji.split(":")[-1].replace(">", "")
-            # print(emoji_id)
-            if emoji.startswith("<a"):
-                async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
+            if emoji is discord.Emoji:
+                emoji_name = emoji.name
+                ext = emoji.url.split(".")[-1]
+                async with self.session.get(emoji.url) as resp:
                     data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.gif".format(emoji_id))
+                file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
+                await ctx.send(file=file)
+                # await self.bot.say(emoji.url)
             else:
-                async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.png".format(emoji_id))
-            await ctx.send(file=file)
+                emoji_id = emoji.split(":")[-1].replace(">", "")
+                # print(emoji_id)
+                if emoji.startswith("<a"):
+                    async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
+                        data = await resp.read()
+                    file = discord.File(io.BytesIO(data),filename="{}.gif".format(emoji_id))
+                else:
+                    async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
+                        data = await resp.read()
+                    file = discord.File(io.BytesIO(data),filename="{}.png".format(emoji_id))
+                await ctx.send(file=file)
 
 
     @commands.command(pass_context=True)
@@ -125,30 +126,37 @@ class TrustyBot:
         
 
     @commands.command(pass_context=True)
-    async def getavatar(self, ctx, member:discord.Member=None):
-        if member is None:
-            member = ctx.message.author
-        ext = member.avatar_url.split(".")[-1]
-        print(member.avatar_url)
-        async with self.session.get(member.avatar_url) as resp:
-            data = await resp.read()
-        file = discord.File(io.BytesIO(data),filename="{}.{}".format(member.name, ext))
-        await ctx.send(file=file)
+    async def avatar(self, ctx, member:discord.Member=None):
+        async with ctx.channel.typing():
+            if member is None:
+                member = ctx.message.author
+            if member.is_avatar_animated():
+                async with self.session.get(member.avatar_url_as(format="gif")) as resp:
+                    data = await resp.read()
+                file = discord.File(io.BytesIO(data),filename="{}.gif".format(member.name))
+            if not member.is_avatar_animated():
+                async with self.session.get(member.avatar_url_as(static_format="png")) as resp:
+                    data = await resp.read()
+                file = discord.File(io.BytesIO(data),filename="{}.png".format(member.name))
+            await ctx.send(file=file)
 
 
-    @commands.command(pass_context=True, aliases=["guildhelp"])
+    @commands.command(pass_context=True, aliases=["guildhelp", "serverhelp", "helpserver"])
     async def helpguild(self, ctx):
         await ctx.send("https://discord.gg/wVVrqej")
 
     @commands.command(pass_context=True)
     @checks.is_owner()
-    async def members(self, ctx, guild_id):
-        guild = self.bot.get_guild(id=guild_id)
+    async def members(self, ctx, guild_id:int=None):
+        if guild_id is not None:
+            guild = self.bot.get_guild(id=guild_id)
+        else:
+            guild = ctx.message.guild
         member_list = sorted(guild.members, key=lambda m: m.joined_at)
         new_msg = ""
         for member in member_list[:10]:
-            new_msg += member.name + ": " + str((member_list.index(member)+1)) + "\n"
-        ctx.send(new_msg)
+            new_msg += "{}. {}\n".format((member_list.index(member)+1), member.name)
+        await ctx.send(new_msg)
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -194,7 +202,7 @@ class TrustyBot:
         invite_link = "https://discord.trustyjaid.com"
 
         em = discord.Embed(
-            description=created_at+ "\n[Invite Link]({})".format(invite_link),
+            description=created_at,
             colour=discord.Colour(value=colour),
             timestamp=guild.created_at)
         em.add_field(name="Region", value=str(guild.region))
@@ -345,6 +353,7 @@ class TrustyBot:
         for emoji in emojis:
             msg += emoji
         em.add_field(name="Emojis", value=msg)
+        em.set_footer(text="Page {} of {}".format(page+1, len(post_list)))
         
         if not message:
             message = await ctx.send(embed=em)
