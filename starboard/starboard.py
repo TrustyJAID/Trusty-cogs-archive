@@ -217,7 +217,10 @@ class Starboard:
             return
         msg = await channel.get_message(id=message_id)
         user = guild.get_member(user_id)
-        reaction = [reaction for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
+        try:
+            reaction = [reaction for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
+        except KeyError:
+            return
         if msg.channel.id in await self.config.guild(guild).ignore():
             return
         if msg.channel.id == await self.config.guild(guild).channel():
@@ -225,6 +228,8 @@ class Starboard:
         if not await self.config.guild(guild).enabled():
             return
         if not await self.check_roles(user, msg.author, guild):
+            return
+        if user.bot:
             return
         react = await self.config.guild(guild).emoji()
         if str(react) == str(emoji):

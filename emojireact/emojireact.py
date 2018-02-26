@@ -7,7 +7,7 @@ class EmojiReactions:
     
     def __init__(self, bot):
         self.bot = bot
-        defult_guild = {"unicode": True, "guild":True}
+        defult_guild = {"unicode": False, "guild":False, "random":False}
         self.config = Config.get_conf(self, 35677998656)
         self.config.register_guild(**defult_guild)
 

@@ -122,7 +122,7 @@ class Tweets():
         # em.add_field(name="Text", value=s.text)
         em.set_footer(text="Retweet count: " + str(s.retweet_count))
         if hasattr(s, "extended_entities"):
-            em.set_image(url=s.extended_entities["media"][0]["media_url_https"] + ":thumb")
+            em.set_image(url=s.extended_entities["media"][0]["media_url_https"])
         print(message)
         if not message:
             message = await ctx.send(embed=em)
