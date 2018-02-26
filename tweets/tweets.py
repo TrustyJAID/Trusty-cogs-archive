@@ -339,7 +339,7 @@ class Tweets():
             for channel in channel_list:
                 try:
                     channel_send = self.bot.get_channel(int(channel))
-                    await channel_send.send(embed=em)
+                    await channel_send.send(post_url, embed=em)
                 except Exception as e:
                     error_channel = await self.bot.get_channel(await self.error_channel())
                     error_channel.send("{} error in {}: {}".format(username, channel, e))
