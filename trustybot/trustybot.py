@@ -11,6 +11,7 @@ import datetime
 import os
 import string
 import time
+import io
 
 numbs = {
     "next": "➡",
@@ -33,6 +34,31 @@ class TrustyBot:
         guild = message.guild
         channel = message.channel
         return
+
+    @commands.command(pass_context=True)
+    async def emoji(self, ctx, emoji):
+        # print(emoji)
+        if emoji is discord.Emoji:
+            emoji_name = emoji.name
+            ext = emoji.url.split(".")[-1]
+            async with self.session.get(emoji.url) as resp:
+                data = await resp.read()
+            file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
+            await ctx.send(file=file)
+            # await self.bot.say(emoji.url)
+        else:
+            emoji_id = emoji.split(":")[-1].replace(">", "")
+            # print(emoji_id)
+            if emoji.startswith("<a"):
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
+                    data = await resp.read()
+                file = discord.File(io.BytesIO(data),filename="{}.gif".format(emoji_id))
+            else:
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
+                    data = await resp.read()
+                file = discord.File(io.BytesIO(data),filename="{}.png".format(emoji_id))
+            await ctx.send(file=file)
+
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -60,8 +86,15 @@ class TrustyBot:
         
 
     @commands.command(pass_context=True)
-    async def getavatar(self, ctx, member:discord.Member):
-        ctx.send(member.avatar_url)
+    async def getavatar(self, ctx, member:discord.Member=None):
+        if member is None:
+            member = ctx.message.author
+        ext = member.avatar_url.split(".")[-1]
+        print(member.avatar_url)
+        async with self.session.get(member.avatar_url) as resp:
+            data = await resp.read()
+        file = discord.File(io.BytesIO(data),filename="{}.{}".format(member.name, ext))
+        await ctx.send(file=file)
 
 
     @commands.command(pass_context=True, aliases=["guildhelp"])
