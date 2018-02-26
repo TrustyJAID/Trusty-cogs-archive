@@ -211,7 +211,10 @@ class Starboard:
   
     async def on_raw_reaction_add(self, emoji, message_id, channel_id, user_id):
         channel = self.bot.get_channel(id=channel_id)
-        guild = channel.guild
+        try:
+            guild = channel.guild
+        except:
+            return
         msg = await channel.get_message(id=message_id)
         user = guild.get_member(user_id)
         reaction = [reaction for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]

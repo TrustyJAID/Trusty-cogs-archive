@@ -92,7 +92,10 @@ class Translate:
         """Translates the message based off the flag added"""
         channel = self.bot.get_channel(id=channel_id)
         message = await channel.get_message(id=message_id)
-        guild = channel.guild
+        try:
+            guild = channel.guild
+        except:
+            return
         if await self.config.api_key() is None:
             return
         # check_emoji = lambda emoji: emoji in self.flags
@@ -103,7 +106,13 @@ class Translate:
         if message.embeds != []:
             to_translate = message.embeds[0]["description"]
         else:
-            to_translate = message.clean_content    
+            to_translate = message.clean_content
+        num_emojis = 0
+        for reaction in message.reactions:
+            if reaction.emoji == str(emoji):
+                num_emojis = reaction.count
+        if num_emojis > 1:
+            return
         target = self.flags[str(emoji)]["code"]
         from_lang = await self.detect_language(to_translate)
         translated_text = await self.translate_text(from_lang[0][0]["language"], target, to_translate)
