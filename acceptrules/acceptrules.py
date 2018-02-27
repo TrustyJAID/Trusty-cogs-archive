@@ -31,6 +31,7 @@ class AcceptRules:
         self.settings[ctx.message.server.id] = {"rules": "Welcome! Please react with 🇾 to accept the rules.", "channel": channel.id,
         "role": ""}
         self.savefile()
+        await self.bot.say("Rules set to {} in channel {} applying role {}".format(self.settings[ctx.message.server.id]["rules"], channel.mention, role))
 
 
     
