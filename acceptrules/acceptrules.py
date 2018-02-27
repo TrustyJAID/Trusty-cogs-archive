@@ -42,6 +42,7 @@ class AcceptRules:
             await self.bot.say("Please use the rules set command to change the rules message")
             return
         self.settings[ctx.message.server.id]["channel"] = channel.id
+        await self.bot.say("Channel changed to {}".format(channel.mention))
         self.savefile()
     
     @rules.command(pass_context=True)
@@ -50,6 +51,7 @@ class AcceptRules:
             await self.bot.say("Please use the rules set command to change the rules message")
             return
         self.settings[ctx.message.server.id]["rules"] = message
+        await self.bot.say("Message changed to {}".format(message))
         self.savefile()
         
     @rules.command(pass_context=True)
@@ -57,6 +59,7 @@ class AcceptRules:
         try:
             serverrole = self.getroles(ctx.message.server.roles, role)
             self.settings[ctx.message.server.id]["role"] = role
+            await self.bot.say("Role changed to {}".format(role))
             self.savefile()
         except KeyError:
             await self.bot.say("The {} role does not exist, make sure it's spelled correctly and exists!".format(role))
