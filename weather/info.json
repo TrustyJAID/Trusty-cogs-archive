@@ -4,7 +4,6 @@
     "DESCRIPTION" : "Gathers weather data for a city.",
     "DISABLED" : false,
     "NAME" : "weather",
-    "REQUIREMENTS" : [""],
     "TAGS" : ["weather"],
     "INSTALL_MSG" : "gathers weather data."
 }
