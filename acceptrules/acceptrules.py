@@ -24,14 +24,22 @@ class AcceptRules:
             await self.bot.send_cmd_help(ctx)
 
     @rules.command(pass_context=True, name="set")
-    async def _set(self, ctx):
-        defaultchannel = ctx.message.server.default_channel.id
-        self.settings[ctx.message.server.id] = {"rules": "Welcome! Please react with 🇾 to accept the rules.", "channel": defaultchannel,
+    async def _set(self, ctx, channel:discord.Channel=None, role:discord.Role=None):
+        """Setup the rules channel and role to be applied"""
+        if channel is None:
+            channel = ctx.message.channel
+        self.settings[ctx.message.server.id] = {"rules": "Welcome! Please react with 🇾 to accept the rules.", "channel": channel.id,
         "role": ""}
         self.savefile()
+
+
     
     @rules.command(pass_context=True)
     async def channel(self, ctx, channel : discord.Channel):
+        server = ctx.message.server
+        if server.id not in self.settings:
+            await self.bot.say("Please use the rules set command to change the rules message")
+            return
         self.settings[ctx.message.server.id]["channel"] = channel.id
         self.savefile()
     
