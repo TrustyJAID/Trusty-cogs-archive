@@ -14,7 +14,7 @@ import time
 import aiohttp
 import asyncio
 import json
-import struct
+import struct# test commit
 
 
 BADTRANSACTION = ["4a0088a249e9099d205fb4760c28275d4b8965ac9fd56f5ddf6771cdb0d94f38",
