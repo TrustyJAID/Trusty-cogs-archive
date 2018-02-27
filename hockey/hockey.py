@@ -917,21 +917,6 @@ class Hockey:
             else:
                 return await message.delete()
 
-    @hockey_commands.command(pass_context=True, aliases=["pepe"])
-    async def feels(self, ctx, *, team):
-        """Post NHL feels"""
-        await self.bot.send_typing(ctx.message.channel)
-        team_name = ""
-        if "canadiens" in team.lower() or "habs" in team.lower():
-            team_name = "Montr\u00e9al Canadiens"
-        else:
-            try:
-                team_name = [teams for teams in self.teams if team.lower() in teams.lower()][0]
-            except IndexError:
-                await self.bot.say("{} is not an available team!".format(team))
-                return
-        await self.bot.send_file(ctx.message.channel, "data/hockey/pepe/{}.png".format(team_name))
-
     async def post_automatic_standings(self):
         async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
             data = await resp.json()
@@ -968,8 +953,6 @@ class Hockey:
                         em = await self.conference_standing_embed(conference_data, 1)
                 elif search.lower() == "all":
                     em = await self.all_standing_embed(post_list, 0)
-                
-
 
     async def division_standing_embed(self, post_list, page=0):
         em = discord.Embed()
