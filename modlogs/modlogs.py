@@ -21,12 +21,6 @@ class ModLogs:
         self.config = Config.get_conf(self, 154457677895)
         self.config.register_guild(**inv_settings)
 
-    @commands.command()
-    @checks.is_owner()
-    async def clearallmodlogs(self, ctx):
-        await self.config.clear_all()
-        await self.config.clear_all_guilds()
-
     @checks.admin_or_permissions(administrator=True)
     @commands.group(name='modlogtoggle', pass_context=True, no_pm=True)
     async def modlogtoggles(self, ctx):

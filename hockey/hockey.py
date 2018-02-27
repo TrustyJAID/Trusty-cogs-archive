@@ -40,9 +40,11 @@ class Hockey:
             default_global["teams"].append(team_entry.to_json())
         team_entry = TeamEntry("Null", "all", 0, [], {}, [], "")
         default_global["teams"].append(team_entry.to_json())
+        default_guild = {"standings_channel":None, "standings_type":None, "post_standings":False, "standings_msg":None,
+                         "create_channels":False, "category":None, "gdc_team":None}
 
         self.config = Config.get_conf(self, 13457745779)
-        self.config.register_global(**default_global)
+        self.config.register_global(**default_global, force_registration=True)
         self.url = "https://statsapi.web.nhl.com"
         self.teams = teams
         self.headshots = "https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg"
@@ -54,10 +56,6 @@ class Hockey:
         self.loop.cancel()
         # self.new_loop.cancel()
 
-    @commands.command(pass_context=True)
-    async def testdata(self, ctx):
-        for team in await self.config.teams():
-            print(team["team_name"])
 
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
@@ -68,17 +66,18 @@ class Hockey:
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
     async def add_team_data(self, ctx):
-        for team in self.settings:
-            self.settings[team]["game_state"] = "Null"
-            self.settings[team]["game_start"] = ""
-            self.settings[team]["period"] = 0
-        dataIO.save_json("data/hockey/settings.json", self.settings)
+        team_data = await self.config.teams()
+        team_entry = TeamEntry("Null", "all", 0, [], {}, [], "")
+        team_data.append(team_entry.to_json())
+        await self.config.teams.set(team_data)
 
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
     async def clear_broken_channels(self, ctx):
-        for team in await self.config.teams:
+        team_list = await self.config.teams()
+        for team in team_list:
             remove_list = []
+            team_list.remove(team)
             for channel in team["channel"]:
                 chn = self.bot.get_channel(id=channel)
                 if chn is None:
@@ -86,7 +85,9 @@ class Hockey:
             for channel in remove_list:
                 print(channel)
                 team["channel"].remove(channel)
-        dataIO.save_json("data/hockey/settings.json", self.settings)
+            team_list.append(team)
+        await self.config.teams.set(team_list)
+        await ctx.send("done")
 
     async def get_team_goals(self):
         """Loop to check what teams are playing and see if a goal was scored"""
@@ -96,9 +97,10 @@ class Hockey:
                 data = await resp.json()
 
             games = [game["link"] for game in data["dates"][0]["games"] if game["status"]["abstractGameState"] != "Final"]
-
+            posted_standings = True
             while games != []:
                 to_remove = []
+                posted_standings = False
                 for link in games:
                     # print(link)
                     try:
@@ -157,6 +159,8 @@ class Hockey:
                         pass
                 await asyncio.sleep(120)
             print("is_playing")
+            # if not posted_standings:
+                # await self.post_automatic_standings()
             all_teams = await self.config.teams()
             for team in await self.config.teams():
                 all_teams.remove(team)
@@ -224,6 +228,8 @@ class Hockey:
                     em.set_footer(text="Game start ", icon_url=alt_logo)
                     for channels in await self.get_team_channels(state):
                         channel = self.bot.get_channel(id=channels)
+                        if channel is None:
+                            continue
                         try:
                             await channel.send(embed=em)
                         except Exception as e:
@@ -268,6 +274,8 @@ class Hockey:
                     em.set_footer(text="Game start ", icon_url=alt_logo)
                     for channels in await self.get_team_channels(state):
                         channel = self.bot.get_channel(id=channels)
+                        if channel is None:
+                            continue
                         guild = channel.guild
                         # print(home_role)
                         home_role, away_role = await self.get_team_role(guild, home_team, away_team)
@@ -317,6 +325,8 @@ class Hockey:
                     em.set_footer(text="Game start ", icon_url=alt_logo)
                     for channels in await self.get_team_channels(state):
                         channel = self.bot.get_channel(id=channels)
+                        if channel is None:
+                            continue
                         guild = channel.guild
                         try:
                             await channel.send(embed=em)
@@ -464,6 +474,7 @@ class Hockey:
                     for channel_id, message_id in all_old_msgs:
                         try:
                             channel = self.bot.get_channel(id=int(channel_id))
+
                             message = await channel.get_message(message_id)
                             await self.bot.delete_message(message)
                         except Exception as e:
@@ -546,16 +557,18 @@ class Hockey:
             em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
         msg_list = {}
         if og_msg is None:
-            # if "oilers" in goal["team"]["name"].lower() and "missed" not in event.lower() and team != "all":
-                # try:
-                    # hue = Oilers(self.bot)
-                    # await hue.oilersgoal2()
-                # except:
-                    # pass
+            if "oilers" in goal["team"]["name"].lower() and "missed" not in event.lower() and team != "all":
+                try:
+                    hue = Oilers(self.bot)
+                    await hue.oilersgoal2()
+                except:
+                    pass
             for channels in team_data["channel"]:
                 try:
                     role = None
                     channel = self.bot.get_channel(id=channels)
+                    if channel is None:
+                        continue
                     guild = channel.guild
                     for roles in guild.roles:
                         if roles.name == goal["team"]["name"] + " GOAL":
@@ -576,6 +589,8 @@ class Hockey:
                 try:
                     role = None
                     channel = self.bot.get_channel(id=int(channel_id))
+                    if channel is None:
+                        continue
                     # print("channel {} ID {}".format(channel, message_id))
                     message = await channel.get_message(message_id)
                     # print("I can get the message")
@@ -595,22 +610,29 @@ class Hockey:
     async def hockey_commands(self, ctx):
         """Various Hockey related commands"""
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
-    @hockey_commands.command(pass_context=True, hidden=True, name="reset")
+    @hockey_commands.command(hidden=True)
     @checks.is_owner()
-    async def reset_hockey(self, ctx):
-        for team in self.settings:
-            self.settings[team]["goal_id"] = {}
-        dataIO.save_json("data/hockey/settings.json", self.settings)
-        await self.bot.say("Cleared saved hockey data.")
+    async def reset(self, ctx):
+        all_teams = await self.config.teams()
+        for team in await self.config.teams():
+            all_teams.remove(team)
+            team["goal_id"] = {}
+            team["game_state"] = "Null"
+            team["game_start"] = ""
+            team["period"] = 0
+            all_teams.append(team)
+
+        await self.config.teams.set(all_teams)
+        await ctx.send("Done.")
 
 
     @hockey_commands.command(pass_context=True, name="add", aliases=["add_goals"])
     @checks.admin_or_permissions(manage_channels=True)
     async def add_goals(self, ctx, team, channel:discord.TextChannel=None):
         """Adds a hockey team goal updates to a channel do 'all' for all teams"""
-        all_team_data = [team for team in await self.config.teams()]
+        all_team_data = await self.config.teams()
         if team.lower() == "all":
             team = "all"
         else:
@@ -910,18 +932,141 @@ class Hockey:
                 return
         await self.bot.send_file(ctx.message.channel, "data/hockey/pepe/{}.png".format(team_name))
 
-    async def standings_menu(self, ctx, post_list: list,
-                         display_type,
-                         message: discord.Message=None,
-                         page=0, timeout: int=30):
-        # Change between standing pages
+    async def post_automatic_standings(self):
+        async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
+            data = await resp.json()
+        conference = ["eastern", "western"]
+        division = ["metropolitan", "atlantic", "pacific", "central"]
+        division_data = []
+        conference_data = []
+        eastern = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Eastern"]
+        western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
+        all_teams = [team for record in data["records"] for team in record["teamRecords"]]
+        conference_data.append(eastern)
+        conference_data.append(western)
+        all_teams = sorted(all_teams, key=lambda k: int(k["leagueRank"]))
+        division_data = [record for record in data["records"]]
+
+        for guilds in self.config.get_guilds():
+            guild = self.bot.get_guild(guild)
+            if await self.config.guild(guild).post_standings():
+            
+                standings = await self.config.guild(guild).standings_type()
+                channel = self.bot.get_channel(id=await self.config.guild(guild).standings_channel())
+
+                if standings in division:
+                    division_search = None
+                    for record in division_data:
+                        if search.lower() == record["division"]["name"].lower():
+                            division_search = record
+                    index = division_data.index(division_search)
+                    em = await self.division_standing_embed(division_data, index)
+                elif standings.lower() in conference:
+                    if search.lower() == "eastern":
+                        em = await self.conference_standing_embed(conference_data, 0)
+                    else:
+                        em = await self.conference_standing_embed(conference_data, 1)
+                elif search.lower() == "all":
+                    em = await self.all_standing_embed(post_list, 0)
+                
+
+
+    async def division_standing_embed(self, post_list, page=0):
         em = discord.Embed()
         standing_list = post_list[page]
-        
-        if display_type == "division":
-            conference = standing_list["conference"]["name"]
-            division = standing_list["division"]["name"]
-            for team in standing_list["teamRecords"]:
+        conference = standing_list["conference"]["name"]
+        division = standing_list["division"]["name"]
+        for team in standing_list["teamRecords"]:
+            team_name = team["team"]["name"]
+            emoji = "<:" + self.teams[team_name]["emoji"] + ">"
+            wins = team["leagueRecord"]["wins"]
+            losses = team["leagueRecord"]["losses"]
+            ot = team["leagueRecord"]["ot"]
+            gp = team["gamesPlayed"]
+            pts = team["points"]
+            pl = team["divisionRank"]
+            division_logo = self.teams["Team {}".format(division)]["logo"]
+            msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
+            timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+            em.add_field(name=pl + ". " + emoji + " " + team_name, value=msg, inline=False)
+            em.timestamp = timestamp
+            em.set_footer(text="Stats last Updated", icon_url=division_logo)
+            em.set_thumbnail(url=division_logo)
+            em.colour = int(self.teams["Team {}".format(division)]["home"].replace("#", ""), 16)
+            em.set_author(name=division + " Division", url="https://www.nhl.com/standings", icon_url=division_logo)
+        return em
+
+    async def conference_standing_embed(self, post_list, page=0):
+        em = discord.Embed()
+        standing_list = post_list[page]
+        conference = "Eastern" if page == 0 else "Western"
+        new_list = sorted(standing_list, key=lambda k: int(k["conferenceRank"]))
+        for team in new_list:
+            team_name = team["team"]["name"]
+            emoji = "<:" + self.teams[team_name]["emoji"] + ">"
+            wins = team["leagueRecord"]["wins"]
+            losses = team["leagueRecord"]["losses"]
+            ot = team["leagueRecord"]["ot"]
+            gp = team["gamesPlayed"]
+            pts = team["points"]
+            pl = team["conferenceRank"]
+            msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
+            timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+            em.add_field(name=pl + ". " + emoji + " " + team_name, value=msg, inline=True)
+            em.timestamp = timestamp
+            em.set_footer(text="Stats last Updated")
+        if conference == "Eastern":
+            em.colour = int("c41230", 16)
+            em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/1/16/NHL_Eastern_Conference.svg/1280px-NHL_Eastern_Conference.svg.png")
+        if conference == "Western":
+            em.colour = int("003e7e", 16)
+            em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/6/65/NHL_Western_Conference.svg/1280px-NHL_Western_Conference.svg.png")
+        return em
+
+    async def team_standing_embed(self, post_list, page=0):
+        em = discord.Embed()
+        standing_list = post_list[page]
+        team = standing_list
+        team_name = team["team"]["name"]
+        league_rank = team["leagueRank"]
+        division_rank = team["divisionRank"]
+        conference_rank = team["conferenceRank"]
+        emoji = "<:" + self.teams[team_name]["emoji"] + ">"
+        wins = team["leagueRecord"]["wins"]
+        losses = team["leagueRecord"]["losses"]
+        ot = team["leagueRecord"]["ot"]
+        gp = team["gamesPlayed"]
+        pts = team["points"]
+        streak = "{} {}".format(team["streak"]["streakNumber"], team["streak"]["streakType"])
+        goals = team["goalsScored"]
+        goals_against = team["goalsAgainst"]
+        timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+        em.set_author(name="# {} {}".format(league_rank, team_name), url="https://www.nhl.com/standings", icon_url=self.teams[team_name]["logo"])
+        em.colour = int(self.teams[team_name]["home"].replace("#", ""), 16)
+        em.set_thumbnail(url=self.teams[team_name]["logo"])
+        em.add_field(name="Division", value="# " + division_rank)
+        em.add_field(name="Conference", value="# " + conference_rank)
+        em.add_field(name="Wins", value=wins)
+        em.add_field(name="Losses", value=losses)
+        em.add_field(name="OT", value=ot)
+        em.add_field(name="Points", value=pts)
+        em.add_field(name="Games Played", value=gp)
+        em.add_field(name="Goals Scored", value=goals)
+        em.add_field(name="Goals Against", value=goals_against)
+        em.add_field(name="Current Streak", value=streak)
+        em.timestamp = timestamp
+        em.set_footer(text="Stats last Updated", icon_url=self.teams[team_name]["logo"])
+        return em
+
+    async def all_standing_embed(self, post_standings, page=0):
+        em = discord.Embed()
+        em.set_author(name="NHL Standings", url="https://www.nhl.com/standings/2017/wildcard", icon_url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
+        em.set_thumbnail(url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
+        # standing_list = post_list[page]
+        for division in post_standings:
+            msg = "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n"  
+            division_name = division["division"]["name"]
+            for team in division["teamRecords"]:
                 team_name = team["team"]["name"]
                 emoji = "<:" + self.teams[team_name]["emoji"] + ">"
                 wins = team["leagueRecord"]["wins"]
@@ -930,72 +1075,33 @@ class Hockey:
                 gp = team["gamesPlayed"]
                 pts = team["points"]
                 pl = team["divisionRank"]
-                division_logo = self.teams["Team {}".format(division)]["logo"]
-                msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
+                # division_logo = self.teams["Team {}".format(division)]["logo"]
+                msg += "{rank}. <:{team}> GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**\n".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp, rank=pl, team=self.teams[team_name]["emoji"])
                 timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
-                em.add_field(name=pl + ". " + emoji + " " + team_name, value=msg, inline=False)
-                em.timestamp = timestamp
-                em.set_footer(text="Stats last Updated", icon_url=division_logo)
-                em.set_thumbnail(url=division_logo)
-                em.colour = int(self.teams["Team {}".format(division)]["home"].replace("#", ""), 16)
-                em.set_author(name=division + " Division", url="https://www.nhl.com/standings", icon_url=division_logo)
+            msg += "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+            em.add_field(name=division_name, value=msg, inline=True)
+            # em.add_field(name="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
+        em.timestamp = timestamp
+        em.set_footer(text="Stats Last Updated", icon_url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
+        return em
 
+
+    async def standings_menu(self, ctx, post_list: list,
+                         display_type,
+                         message: discord.Message=None,
+                         page=0, timeout: int=30):
+        # Change between standing pages
+        #This part builds the embed depending on display_type argument    
+        if display_type == "division":
+            em = await self.division_standing_embed(post_list, page)
         if display_type == "conference":
-            conference = "Eastern" if page == 0 else "Western"
-            new_list = sorted(standing_list, key=lambda k: int(k["conferenceRank"]))
-            for team in new_list:
-                team_name = team["team"]["name"]
-                emoji = "<:" + self.teams[team_name]["emoji"] + ">"
-                wins = team["leagueRecord"]["wins"]
-                losses = team["leagueRecord"]["losses"]
-                ot = team["leagueRecord"]["ot"]
-                gp = team["gamesPlayed"]
-                pts = team["points"]
-                pl = team["conferenceRank"]
-                msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
-                timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
-                em.add_field(name=pl + ". " + emoji + " " + team_name, value=msg, inline=True)
-                em.timestamp = timestamp
-                em.set_footer(text="Stats last Updated")
-            if conference == "Eastern":
-                em.colour = int("c41230", 16)
-                em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/1/16/NHL_Eastern_Conference.svg/1280px-NHL_Eastern_Conference.svg.png")
-            if conference == "Western":
-                em.colour = int("003e7e", 16)
-                em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url="https://upload.wikimedia.org/wikipedia/en/thumb/6/65/NHL_Western_Conference.svg/1280px-NHL_Western_Conference.svg.png")
+            em = await self.conference_standing_embed(post_list, page)
         if display_type == "teams":
-            team = standing_list
-            team_name = team["team"]["name"]
-            league_rank = team["leagueRank"]
-            division_rank = team["divisionRank"]
-            conference_rank = team["conferenceRank"]
-            emoji = "<:" + self.teams[team_name]["emoji"] + ">"
-            wins = team["leagueRecord"]["wins"]
-            losses = team["leagueRecord"]["losses"]
-            ot = team["leagueRecord"]["ot"]
-            gp = team["gamesPlayed"]
-            pts = team["points"]
-            streak = "{} {}".format(team["streak"]["streakNumber"], team["streak"]["streakType"])
-            goals = team["goalsScored"]
-            goals_against = team["goalsAgainst"]
-            timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
-            em.set_author(name="# {} {}".format(league_rank, team_name), url="https://www.nhl.com/standings", icon_url=self.teams[team_name]["logo"])
-            em.colour = int(self.teams[team_name]["home"].replace("#", ""), 16)
-            em.set_thumbnail(url=self.teams[team_name]["logo"])
-            em.add_field(name="Division", value="# " + division_rank)
-            em.add_field(name="Conference", value="# " + conference_rank)
-            em.add_field(name="Wins", value=wins)
-            em.add_field(name="Losses", value=losses)
-            em.add_field(name="OT", value=ot)
-            em.add_field(name="Points", value=pts)
-            em.add_field(name="Games Played", value=gp)
-            em.add_field(name="Goals Scored", value=goals)
-            em.add_field(name="Goals Against", value=goals_against)
-            em.add_field(name="Current Streak", value=streak)
-            em.timestamp = timestamp
-            em.set_footer(text="Stats last Updated", icon_url=self.teams[team_name]["logo"])
+            em = await self.team_standing_embed(post_list, page)
+        if display_type == "all":
+            em = await self.all_standing_embed(post_list, page)
 
-
+        # This part controls the logic for changing pages
         if not message:
             message = await ctx.send(embed=em)
             await message.add_reaction("⬅")
@@ -1042,6 +1148,7 @@ class Hockey:
             else:
                 return await message.delete()
 
+
     @hockey_commands.command(pass_context=True)
     async def standings(self, ctx, *, search=None):
         """Displays current standings for each division"""
@@ -1078,6 +1185,8 @@ class Hockey:
                 await self.standings_menu(ctx, conference_data, "conference", None, 0)
             else:
                 await self.standings_menu(ctx, conference_data, "conference", None, 1)
+        elif search.lower() == "all":
+            await self.standings_menu(ctx, division_data, "all")
         elif team is not None or "team" in search.lower():
             if team is None:
                 await self.standings_menu(ctx, all_teams, "teams")
