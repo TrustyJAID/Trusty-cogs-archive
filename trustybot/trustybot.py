@@ -38,6 +38,13 @@ class TrustyBot:
 
         msg = message.content
         channel = message.channel
+        guild = message.guild
+        if "fuck" in msg:
+            if guild is not None:
+                if guild.id in [321105104931389440, 408762274908602368]:
+                    async with channel.typing():
+                        file = discord.File(str(bundled_data_path(self)) + "/christian.jpg")
+                        await channel.send(file=file)
 
         try:
             prefix = await self.get_prefix(message)
@@ -47,8 +54,10 @@ class TrustyBot:
         if alias == "beemovie":
             return
         if alias in self.text:
+            await channel.trigger_typing()
             await channel.send(self.text[alias])
         if alias in self.links:
+            await channel.trigger_typing()
             await channel.send(self.links[alias])
         return
 
@@ -458,7 +467,7 @@ class TrustyBot:
     @commands.command(pass_context=True)
     async def neat(self, ctx, number:int=None):
         """Neat"""
-        files = str(cog_data_path(self)) + "/bundled_data/img/neat{}.gif"
+        files = str(cog_data_path(self)) + "/bundled_data/neat{}.gif"
         if number is None:
             image = discord.File(files.format(str(choice(range(1, 6)))))
             await ctx.send(file=image)
@@ -469,7 +478,7 @@ class TrustyBot:
     @commands.command(pass_context=True)
     async def reviewbrah(self, ctx):
         """Reviewbrah"""
-        files = ["/bundled_data/img/revi.png", "/bundled_data/img/ew.png", "/bundled_data/img/brah.png"]
+        files = ["/bundled_data/revi.png", "/bundled_data/ew.png", "/bundled_data/brah.png"]
         print(cog_data_path(self))
         for file in files:
             data = discord.File(str(cog_data_path(self))+file)
