@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Add images for the bot to upload",
+    "DESCRIPTION" : "Add an image for the bot to upload on command like alias but saves the image.",
+    "DISABLED" : false,
+    "NAME" : "addimage",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "type `[p]addimage commandname` to add an image for the bot to upload on command."
+}
