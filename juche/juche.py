@@ -16,6 +16,8 @@ class Juche:
 
     async def on_message(self, message):
         msg = message.content
+        if not hasattr(msg, "guild"):
+            return
         guild = message.guild
         channel = message.channel
 

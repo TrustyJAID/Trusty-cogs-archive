@@ -215,7 +215,10 @@ class Starboard:
             guild = channel.guild
         except:
             return
-        msg = await channel.get_message(id=message_id)
+        try:
+            msg = await channel.get_message(id=message_id)
+        except:
+            return
         user = guild.get_member(user_id)
         if msg.channel.id in await self.config.guild(guild).ignore():
             return
