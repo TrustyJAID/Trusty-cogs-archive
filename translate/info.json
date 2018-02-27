@@ -4,7 +4,6 @@
     "NAME" : "translate",
     "DISABLED" : false,
     "SHORT" : "Translate messages using google translate!",
-    "REQUIREMENTS" : [], 
     "DESCRIPTION" : "Set a server to post translated messages when a flag emoji has been reacted to the message or translate any text!",
     "TAGS": ["utility"]
 }

@@ -59,12 +59,12 @@ class weather:
     async def getweather(self, ctx, location):
         server = ctx.message.server
         author = ctx.message.author
-        if server.id in self.settings["server"]:
-            print("yes")
-            units = self.settings["server"][server.id]
+        if server is not None:
+            if server.id in self.settings["server"]:
+                units = self.settings["server"][server.id]
         if author.id in self.settings["user"]:
             units = self.settings["user"][author.id]
-        elif server.id not in self.settings["server"] and author.id not in self.settings["user"]:
+        else:
             units = "imperial"
         if units == "kelvin":
             url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units=metric".format(location)

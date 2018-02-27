@@ -5,6 +5,5 @@
     "DISABLED" : false,
     "NAME" : "backup",
     "TAGS" : ["general"],
-    "REQUIREMENTS" :[],
     "INSTALL_MSG" : "Type [p]logs to backup every channel on a server and save them to json in the backup folder."
 }
