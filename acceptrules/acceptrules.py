@@ -68,9 +68,23 @@ class AcceptRules:
         if answer.reaction.emoji == "🇳":
             await self.bot.kick(member)
             
+def check_folder():
+    if not os.path.exists("data/acceptrules"):
+        print("Creating data/acceptrules folder")
+        os.makedirs("data/acceptrules")
 
+
+def check_file():
+    data = {}
+    f = "data/acceptrules/settings.json"
+    if not dataIO.is_valid_json(f):
+        print("Creating default settings.json...")
+        dataIO.save_json(f, data)
 
 
 def setup(bot):
+    check_folder()
+    check_file()
     n = AcceptRules(bot)
     bot.add_cog(n)
+
