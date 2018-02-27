@@ -52,4 +52,4 @@ class TrustyAvatar:
                 await self.bot.user.edit(avatar=data)
             except Exception as e:
                 print(e)
-            await asyncio.sleep(randint(600, 1200))
+            await asyncio.sleep(randint(1000, 1500))
