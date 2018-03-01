@@ -55,10 +55,12 @@ class Weather:
         author = ctx.message.author
         guild_units = await self.config.guild(guild).units()
         user_units = await self.config.user(author).units()
-        if user_units != guild_units:
-            units = user_units
-        else:
+        units = "imperial"
+        if guild_units != "imperial" and guild_units != user_units:
             units = guild_units
+        if user_units != "imperial" and user_units != guild_units:
+            units = user_units
+        
         if units == "kelvin":
             url = "http://api.openweathermap.org/data/2.5/weather?q={0}&appid=88660f6af079866a3ef50f491082c386&units=metric".format(location)
         else:
