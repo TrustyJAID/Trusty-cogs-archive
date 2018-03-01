@@ -32,6 +32,25 @@ class TrustyBot:
         self.links = links
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def trustyrules(self, ctx):
+        rules = """1. Don't be a jerk - We're here to have fun and enjoy music, new bot features, and games!\n
+2. No sharing of personal or confidential information - This is a [discord Terms of Service](https://discordapp.com/terms) violation and can result in immediate ban.\n
+3. Keep NSFW content in <#412884243195232257> anything outside there deemed NSFW by a mod can and will be deleted as per discords [Community Guidelines](https://discordapp.com/guidelines).\n
+4. Do not harass, threaten, or otherwise make another user feel poorly about themselves - This is another [discord TOS](https://discordapp.com/terms) violation.\n
+5. Moderator action is at the discretion of a moderator and changes may be made without warning to your privliges.\n
+***Any violation of the [discord TOS](https://discordapp.com/terms) or [Community Guidelines](https://discordapp.com/guidelines) will result in immediate banning and possible report to discord.***\n
+"""
+        em = discord.Embed(colour=discord.Colour.gold())
+        em.add_field(name="__RULES__", value=rules)
+        em.set_image(url="https://i.imgur.com/6FPYjoU.gif")
+        # em.set_thumbnail(url="https://i.imgur.com/EfOnDQy.gif")
+        em.set_author(name=ctx.guild.name, icon_url="https://i.imgur.com/EfOnDQy.gif")
+        await ctx.message.delete()
+        await ctx.send(embed=em)
+
+
     async def on_message(self, message):
         if len(message.content) < 2:
             return
@@ -41,7 +60,7 @@ class TrustyBot:
         guild = message.guild
         if "fuck" in msg:
             if guild is not None:
-                if guild.id in [321105104931389440, 408762274908602368]:
+                if guild.id in [321105104931389440, 402161292644712468]:
                     async with channel.typing():
                         file = discord.File(str(bundled_data_path(self)) + "/christian.jpg")
                         await channel.send(file=file)
@@ -82,6 +101,10 @@ class TrustyBot:
             if content.startswith(p):
                 return p
         raise ValueError(_("No prefix found."))
+
+    @commands.command(hidden=True)
+    async def say(self, ctx, *, msg):
+        await ctx.send(msg)
 
     @commands.command(pass_context=True)
     async def emoji(self, ctx, emoji):
