@@ -81,6 +81,41 @@ class Star:
             await self.bot.send_message(ctx.message.channel, "{} added to the ignored channel list!".format(channel.mention))
         dataIO.save_json("data/star/settings.json", self.settings)
 
+    @commands.command(pass_context=True)
+    async def star(self, ctx, msg_id):
+        """Manually add message to the starboard follows same restrictions
+           does not have a threshold"""
+        server = ctx.message.server
+        channel = ctx.message.channel
+        msg = await self.bot.get_message(channel, msg_id)
+        if server.id not in self.settings:
+            return
+        if msg.channel.id in self.settings[server.id]["ignore"]:
+            return
+        if not await self.check_roles(user, msg.author, server):
+            return
+        if reaction.message.channel.id == self.settings[server.id]["channel"]:
+            return
+        emoji =self.settings[server.id]["emoji"]
+        threshold = self.settings[server.id]["threshold"]
+        count = await self.get_count(server, msg)
+        if await self.check_is_posted(server, msg):
+            channel = self.bot.get_channel(self.settings[server.id]["channel"])
+            msg_id, count = await self.get_posted_message(server, msg)
+            if msg_id is not None:
+                msg_edit = await self.bot.get_message(channel, msg_id)
+                await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count-1))
+                return
+
+        # else:
+        channel2 = self.bot.get_channel(id=self.settings[server.id]["channel"])
+        em = await self.build_embed(msg)
+        post_msg = await self.bot.send_message(channel2, "{} **#{}**".format(emoji, 1), embed=em)
+        past_message_list = self.settings[server.id]["messages"]
+        past_message_list.append({"original_message":msg.id, "new_message":post_msg.id,"count":1})
+        dataIO.save_json("data/star/settings.json", self.settings)
+        
+
     @starboard.command(pass_context=True, name="emoji")
     async def set_emoji(self, ctx, emoji="⭐"):
         """Set the emoji for the starboard defaults to ⭐"""
@@ -213,6 +248,64 @@ class Star:
         self.settings[server.id]["messages"] = msg_list
         dataIO.save_json("data/star/settings.json", self.settings)
         return msg["new_message"], msg["count"]
+
+    async def build_embed(self, msg):
+        author = msg.author
+        channel = msg.channel
+        if msg.embeds != []:
+            embed = msg.embeds[0] # .to_dict()
+            # print(embed)
+            em = discord.Embed(timestamp=msg.timestamp)
+            if "title" in embed:
+                em.title = embed["title"]
+            if "thumbnail" in embed:
+                em.set_thumbnail(url=embed["thumbnail"]["url"])
+            if "description" in embed:
+                em.description = msg.clean_content + "\n\n" + embed["description"]
+            if "description" not in embed:
+                em.description = msg.clean_content
+            if "url" in embed:
+                em.url = embed["url"]
+            if "footer" in embed:
+                em.set_footer(text=embed["footer"]["text"])
+            if "author" in embed:
+                postauthor = embed["author"]
+                if "icon_url" in postauthor:
+                    em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
+                else:
+                    em.set_author(name=postauthor["name"])
+            if "author" not in embed:
+                em.set_author(name=author.name, icon_url=author.avatar_url)
+            if "color" in embed:
+                em.color = embed["color"]
+            if "color" not in embed:
+                em.color = author.top_role.color
+            if "image" in embed:
+                em.set_image(url=embed["image"]["url"])
+            if embed["type"] == "image":
+                em.type = "image"
+                if ".png" in embed["url"] or ".jpg" in embed["url"]:
+                    em.set_thumbnail(url="")
+                    em.set_image(url=embed["url"])
+                else:
+                    em.set_thumbnail(url=embed["url"])
+                    em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
+            if embed["type"] == "gifv":
+                em.type = "gifv"
+                em.set_thumbnail(url=embed["url"])
+                em.set_image(url=embed["url"]+".gif")
+            
+        else:
+            em = discord.Embed(timestamp=msg.timestamp)
+            em.color = author.top_role.color
+            em.description = msg.content
+            em.set_author(name=author.display_name, icon_url=author.avatar_url)
+            if msg.attachments != []:
+                em.set_image(url=msg.attachments[0]["url"])
+            em.set_footer(text='{} | {}'.format(channel.server.name, channel.name))
+        return em
+
+
   
     async def on_reaction_add(self, reaction, user):
         server = reaction.message.server
@@ -254,60 +347,8 @@ class Star:
             if threshold == 0:
                 count = 2
             # else:
-            author = reaction.message.author
-            channel = reaction.message.channel
             channel2 = self.bot.get_channel(id=self.settings[server.id]["channel"])
-            if reaction.message.embeds != []:
-                embed = reaction.message.embeds[0] # .to_dict()
-                # print(embed)
-                em = discord.Embed(timestamp=reaction.message.timestamp)
-                if "title" in embed:
-                    em.title = embed["title"]
-                if "thumbnail" in embed:
-                    em.set_thumbnail(url=embed["thumbnail"]["url"])
-                if "description" in embed:
-                    em.description = msg.clean_content + "\n\n" + embed["description"]
-                if "description" not in embed:
-                    em.description = msg.clean_content
-                if "url" in embed:
-                    em.url = embed["url"]
-                if "footer" in embed:
-                    em.set_footer(text=embed["footer"]["text"])
-                if "author" in embed:
-                    postauthor = embed["author"]
-                    if "icon_url" in postauthor:
-                        em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
-                    else:
-                        em.set_author(name=postauthor["name"])
-                if "author" not in embed:
-                    em.set_author(name=author.name, icon_url=author.avatar_url)
-                if "color" in embed:
-                    em.color = embed["color"]
-                if "color" not in embed:
-                    em.color = author.top_role.color
-                if "image" in embed:
-                    em.set_image(url=embed["image"]["url"])
-                if embed["type"] == "image":
-                    em.type = "image"
-                    if ".png" in embed["url"] or ".jpg" in embed["url"]:
-                        em.set_thumbnail(url="")
-                        em.set_image(url=embed["url"])
-                    else:
-                        em.set_thumbnail(url=embed["url"])
-                        em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
-                if embed["type"] == "gifv":
-                    em.type = "gifv"
-                    em.set_thumbnail(url=embed["url"])
-                    em.set_image(url=embed["url"]+".gif")
-                
-            else:
-                em = discord.Embed(timestamp=reaction.message.timestamp)
-                em.color = author.top_role.color
-                em.description = msg.content
-                em.set_author(name=author.name, icon_url=author.avatar_url)
-                if reaction.message.attachments != []:
-                    em.set_image(url=reaction.message.attachments[0]["url"])
-            em.set_footer(text='{} | {}'.format(channel.server.name, channel.name))
+            em = await self.build_embed(msg)
             post_msg = await self.bot.send_message(channel2, "{} **#{}**".format(reaction.emoji, count-1), embed=em)
             past_message_list = self.settings[server.id]["messages"]
             past_message_list.append({"original_message":msg.id, "new_message":post_msg.id,"count":count})
