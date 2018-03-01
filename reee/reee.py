@@ -28,20 +28,24 @@ class Reee:
             return
         msg = message.content.lower()
         guild = message.guild
+        channel = message.channel
 
         if "reee" in msg and await self.config.guild(guild).reee():
             for word in msg.split(" "):
                 if "reee" in word:
+                    await channel.trigger_typing()
                     file = await self.change_size_reee(len(word)-3)
                     await message.channel.send(file=file)
         if "zioo" in msg and await self.config.guild(guild).zio():
             for word in msg.split(" "):
                 if "zioo" in word:
+                    await channel.trigger_typing()
                     file = await self.change_size_zio(len(word)-3)
                     await message.channel.send(file=file)
         if "taaa" in msg and "nk" in msg and await self.config.guild(guild).tank():
             for word in msg.split(" "):
                 if "taaa" in word:
+                    await channel.trigger_typing()
                     file = await self.change_size_tank(len(word)-3)
                     await message.channel.send(file=file)
             
