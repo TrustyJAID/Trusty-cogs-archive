@@ -159,8 +159,8 @@ class Hockey:
                         pass
                 await asyncio.sleep(120)
             print("is_playing")
-            # if not posted_standings:
-                # await self.post_automatic_standings()
+            if not posted_standings:
+                await self.post_automatic_standings()
             all_teams = await self.config.teams()
             for team in await self.config.teams():
                 all_teams.remove(team)
@@ -627,6 +627,53 @@ class Hockey:
         await self.config.teams.set(all_teams)
         await ctx.send("Done.")
 
+    @hockey_commands.command(name="poststandings", aliases=["poststanding"])
+    async def post_standings(self, ctx, standings_type:str, channel:discord.TextChannel=None):
+        """Posts automatic standings when all games for the day are done"""
+        guild = ctx.message.guild
+        if channel is None:
+            channel = ctx.message.channel
+        standings_list = ["metropolitan", "atlantic", "pacific", "central", "eastern", "western", "all"]
+        if standings_type.lower() not in standings_list:
+            await ctx.send("You must choose from {}".format(", ".join(s for s in standings_list)))
+            return
+        await self.config.guild(guild).standings_type.set(standings_type)
+        await self.config.guild(guild).standings_channel.set(channel.id)
+        await ctx.send("Sending standings to {}".format(channel.mention))
+
+        async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
+            data = await resp.json()
+        conference = ["eastern", "western"]
+        division = ["metropolitan", "atlantic", "pacific", "central"]
+        division_data = []
+        conference_data = []
+        eastern = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Eastern"]
+        western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
+        conference_data.append(eastern)
+        conference_data.append(western)
+        division_data = [record for record in data["records"]]
+
+        if standings_type in division:
+            division_search = None
+            for record in division_data:
+                if standings_type.lower() == record["division"]["name"].lower():
+                    division_search = record
+            index = division_data.index(division_search)
+            em = await self.division_standing_embed(division_data, index)
+        elif standings_type.lower() in conference:
+            if standings_type.lower() == "eastern":
+                em = await self.conference_standing_embed(conference_data, 0)
+            else:
+                em = await self.conference_standing_embed(conference_data, 1)
+        elif standings_type == "all":
+            em = await self.all_standing_embed(division_data, 0)
+        message = await channel.send(embed=em)
+        await self.config.guild(guild).standings_msg.set(message.id)
+        await ctx.send("{} standings will now be automatically updated in {}".format(standings_type, channel.mention))
+
+
+
+
 
     @hockey_commands.command(pass_context=True, name="add", aliases=["add_goals"])
     @checks.admin_or_permissions(manage_channels=True)
@@ -683,9 +730,6 @@ class Hockey:
     async def team_role(self, ctx, *, team):
         """Set your role to a team role"""
         guild = ctx.message.guild
-        if guild.id != "381567805495181344":
-            await ctx.message.channel.send( "Sorry that only works on TrustyJAID's Oilers guild!")
-            return
         try:
             role = [role for role in guild.roles if (team.lower() in role.name.lower() and "GOAL" not in role.name)][0]
             await self.bot.add_roles(ctx.message.author, role)
@@ -698,9 +742,6 @@ class Hockey:
         """Subscribe to goal notifications"""
         guild = ctx.message.guild
         member = ctx.message.author
-        if guild.id != "381567805495181344":
-            await ctx.message.channel.send( "Sorry that only works on TrustyJAID's Oilers guild!")
-            return
         if team is None:
             team = [role.name for role in member.roles if role.name in self.teams]
             for t in team:
@@ -794,7 +835,7 @@ class Hockey:
         else:
             # message edits don't return the message object anymore lol
             await message.edit(embed=em)
-        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"]
+        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"] and react.message.id == message.id
         try:
             react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
@@ -879,7 +920,7 @@ class Hockey:
         else:
             # message edits don't return the message object anymore lol
             await message.edit(embed=em)
-        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"]
+        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"] and react.message.id == message.id
         try:
             react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
@@ -926,7 +967,6 @@ class Hockey:
         conference_data = []
         eastern = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Eastern"]
         western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
-        all_teams = [team for record in data["records"] for team in record["teamRecords"]]
         conference_data.append(eastern)
         conference_data.append(western)
         all_teams = sorted(all_teams, key=lambda k: int(k["leagueRank"]))
@@ -936,23 +976,26 @@ class Hockey:
             guild = self.bot.get_guild(guild)
             if await self.config.guild(guild).post_standings():
             
-                standings = await self.config.guild(guild).standings_type()
+                search = await self.config.guild(guild).standings_type()
                 channel = self.bot.get_channel(id=await self.config.guild(guild).standings_channel())
+                message = await channel.get_message(id=await self.config.guild(guild).standings_msg())
 
-                if standings in division:
+                if search in division:
                     division_search = None
                     for record in division_data:
                         if search.lower() == record["division"]["name"].lower():
                             division_search = record
                     index = division_data.index(division_search)
                     em = await self.division_standing_embed(division_data, index)
-                elif standings.lower() in conference:
+                elif search.lower() in conference:
                     if search.lower() == "eastern":
                         em = await self.conference_standing_embed(conference_data, 0)
                     else:
                         em = await self.conference_standing_embed(conference_data, 1)
                 elif search.lower() == "all":
-                    em = await self.all_standing_embed(post_list, 0)
+                    await self.standings_menu(ctx, division_data, "all")
+                if message is not None:
+                    await message.edit(embed=em)
 
     async def division_standing_embed(self, post_list, page=0):
         em = discord.Embed()
@@ -1093,7 +1136,7 @@ class Hockey:
         else:
             # message edits don't return the message object anymore lol
             await message.edit(embed=em)
-        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"]
+        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"] and react.message.id == message.id
         try:
             react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
