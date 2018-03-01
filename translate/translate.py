@@ -104,7 +104,7 @@ class Translate:
         if not await self.config.guild(guild).enabled():
             return
         if message.embeds != []:
-            to_translate = message.embeds[0]["description"]
+            to_translate = message.embeds[0].description
         else:
             to_translate = message.clean_content
         num_emojis = 0
