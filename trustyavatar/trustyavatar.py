@@ -46,7 +46,7 @@ class TrustyAvatar:
                     game_name = choice(status["game"])
                     game = discord.Game(name=game_name)
                 except:
-                    pass
+                    game=None
                 await self.bot.change_presence(status=status["status"], game=game)
                 print("changing avatar to {}".format(image_name))
                 await self.bot.user.edit(avatar=data)
