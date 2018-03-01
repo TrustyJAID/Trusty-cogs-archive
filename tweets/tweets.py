@@ -341,13 +341,13 @@ class Tweets():
                     channel_send = self.bot.get_channel(int(channel))
                     await channel_send.send(post_url, embed=em)
                 except Exception as e:
-                    error_channel = await self.bot.get_channel(await self.error_channel())
+                    error_channel = await self.bot.get_channel(await self.config.error_channel())
                     error_channel.send("{} error in {}: {}".format(username, channel, e))
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
-            if await self.error_channel() is not None:
-                error_channel = await self.bot.get_channel(await self.error_channel())
+            if await self.config.error_channel() is not None:
+                error_channel = await self.bot.get_channel(await self.config.error_channel())
                 error_channel.send(e + ": Username" + username)
             return
     
