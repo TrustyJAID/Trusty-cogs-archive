@@ -38,6 +38,50 @@ class Starboard:
             if str(emojis.id) in emoji:
                 guild_emoji = emojis
         return guild_emoji
+
+    @commands.command()
+    async def star(self, ctx, msg_id):
+        channel = ctx.message.channel
+        try:
+            guild = channel.guild
+        except:
+            return
+        try:
+            msg = await channel.get_message(id=msg_id)
+        except:
+            return
+        user = ctx.message.author
+        if msg.channel.id in await self.config.guild(guild).ignore():
+            return
+        if msg.channel.id == await self.config.guild(guild).channel():
+            return
+        if not await self.config.guild(guild).enabled():
+            return
+        if not await self.check_roles(user, msg.author, guild):
+            return
+        if user.bot:
+            return
+        threshold = await self.config.guild(guild).threshold()
+        try:
+            count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
+        except IndexError:
+            count = 1
+        emoji = await self.config.guild(guild).emoji()
+        if await self.check_is_posted(guild, msg):
+            channel = self.bot.get_channel(await self.config.guild(guild).channel())
+            msg_id, count2 = await self.get_posted_message(guild, msg)
+            if msg_id is not None:
+                msg_edit = await channel.get_message(msg_id)
+                await msg_edit.edit(content="{} **#{}**".format(emoji, count))
+                return
+        
+        channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
+        em = await self.build_embed(guild, msg)
+        post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
+        past_message_list = await self.config.guild(guild).messages()
+        past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
+        await self.config.guild(guild).messages.set(past_message_list)
+
     
     @starboard.command(pass_context=True, name="setup", aliases=["set"])
     async def setup_starboard(self, ctx, channel: discord.TextChannel=None, emoji="⭐", role:discord.Role=None):
@@ -208,6 +252,62 @@ class Starboard:
         msg_list.append(msg)
         await self.config.guild(guild).messages.set(msg_list)
         return msg["new_message"], msg["count"]
+
+    async def build_embed(self, guild, msg):
+        channel = msg.channel
+        author = msg.author        
+        if msg.embeds != []:
+            embed = msg.embeds[0].to_dict()
+            em = discord.Embed(timestamp=msg.created_at)
+            if "title" in embed:
+                em.title = embed["title"]
+            if "thumbnail" in embed:
+                em.set_thumbnail(url=embed["thumbnail"]["url"])
+            if "description" in embed:
+                em.description = msg.clean_content + embed["description"]
+            if "description" not in embed:
+                em.description = msg.clean_content
+            if "url" in embed:
+                em.url = embed["url"]
+            if "footer" in embed:
+                em.set_footer(text=embed["footer"]["text"])
+            if "author" in embed:
+                postauthor = embed["author"]
+                if "icon_url" in postauthor:
+                    em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
+                else:
+                    em.set_author(name=postauthor["name"])
+            if "author" not in embed:
+                em.set_author(name=author.name, icon_url=author.avatar_url)
+            if "color" in embed:
+                em.color = embed["color"]
+            if "color" not in embed:
+                em.color = author.top_role.color
+            if "image" in embed:
+                em.set_image(url=embed["image"]["url"])
+            if embed["type"] == "image":
+                em.type = "image"
+                if ".png" in embed["url"] or ".jpg" in embed["url"]:
+                    em.set_thumbnail(url="")
+                    em.set_image(url=embed["url"])
+                else:
+                    em.set_thumbnail(url=embed["url"])
+                    em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
+            if embed["type"] == "gifv":
+                em.type = "gifv"
+                em.set_thumbnail(url=embed["url"])
+                em.set_image(url=embed["url"]+".gif")
+            
+        else:
+            em = discord.Embed(timestamp=msg.created_at)
+            em.color = author.top_role.color
+            em.description = msg.content
+            em.set_author(name=author.display_name, icon_url=author.avatar_url)
+            if msg.attachments != []:
+                em.set_image(url=msg.attachments[0].url)
+        em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
+        return em
+
   
     async def on_raw_reaction_add(self, emoji, message_id, channel_id, user_id):
         channel = self.bot.get_channel(id=channel_id)
@@ -235,7 +335,7 @@ class Starboard:
             threshold = await self.config.guild(guild).threshold()
             try:
                 count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
-            except KeyError:
+            except IndexError:
                 count = 0
             if await self.check_is_posted(guild, msg):
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
@@ -250,58 +350,8 @@ class Starboard:
                     past_message_list.append(StarboardMessage(msg.id, None, count).to_json())
                     await self.config.guild(guild).messages.set(past_message_list)
                     return
-            author = msg.author
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
-            if msg.embeds != []:
-                embed = msg.embeds[0].to_dict()
-                em = discord.Embed(timestamp=msg.created_at)
-                if "title" in embed:
-                    em.title = embed["title"]
-                if "thumbnail" in embed:
-                    em.set_thumbnail(url=embed["thumbnail"]["url"])
-                if "description" in embed:
-                    em.description = msg.clean_content + embed["description"]
-                if "description" not in embed:
-                    em.description = msg.clean_content
-                if "url" in embed:
-                    em.url = embed["url"]
-                if "footer" in embed:
-                    em.set_footer(text=embed["footer"]["text"])
-                if "author" in embed:
-                    postauthor = embed["author"]
-                    if "icon_url" in postauthor:
-                        em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
-                    else:
-                        em.set_author(name=postauthor["name"])
-                if "author" not in embed:
-                    em.set_author(name=author.name, icon_url=author.avatar_url)
-                if "color" in embed:
-                    em.color = embed["color"]
-                if "color" not in embed:
-                    em.color = author.top_role.color
-                if "image" in embed:
-                    em.set_image(url=embed["image"]["url"])
-                if embed["type"] == "image":
-                    em.type = "image"
-                    if ".png" in embed["url"] or ".jpg" in embed["url"]:
-                        em.set_thumbnail(url="")
-                        em.set_image(url=embed["url"])
-                    else:
-                        em.set_thumbnail(url=embed["url"])
-                        em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
-                if embed["type"] == "gifv":
-                    em.type = "gifv"
-                    em.set_thumbnail(url=embed["url"])
-                    em.set_image(url=embed["url"]+".gif")
-                
-            else:
-                em = discord.Embed(timestamp=msg.created_at)
-                em.color = author.top_role.color
-                em.description = msg.content
-                em.set_author(name=author.display_name, icon_url=author.avatar_url)
-                if msg.attachments != []:
-                    em.set_image(url=msg.attachments[0].url)
-            em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
+            em = await self.build_embed(guild, msg)
             post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
             past_message_list = await self.config.guild(guild).messages()
             past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
