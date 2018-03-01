@@ -141,7 +141,7 @@ class Cleverbot():
             text = message.clean_content
             if not text.startswith(to_strip) and message.channel.id != await self.config.guild(guild).channel():
                 return
-            if str(author.guild.me.id) not in message.content:
+            if not await self.config.guild(guild).toggle():
                 return
             text = text.replace(to_strip, "", 1)
             if "make me" in text.lower() and "sudo" not in text.lower():
