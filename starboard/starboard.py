@@ -143,7 +143,7 @@ class Starboard:
         if "<" in emoji and ">" in emoji:
             emoji = await self.check_guild_emojis(guild, emoji)
             if emoji is None:
-                await self.bot.send_message(ctx.message.channel, "That emoji is not on this guild!")
+                await ctx.send("That emoji is not on this guild!")
                 return
             else:
                 is_guild_emoji = True
@@ -159,9 +159,8 @@ class Starboard:
         """Set the channel for the starboard"""
         guild = ctx.message.guild
         if not await self.config.guild(guild).enabled():
-            await self.bot.send_message(ctx.message.channel, 
-                                        "I am not setup for the starboard on this guild!\
-                                         \nuse `[p]starboard set` to set it up.")
+            await ctx.send("I am not setup for the starboard on this guild!\
+                            \nuse `[p]starboard set` to set it up.")
             return
         if channel is None:
             channel = ctx.message.channel
@@ -173,7 +172,7 @@ class Starboard:
         """Set the threshold before posting to the starboard"""
         guild = ctx.message.guild
         if not await self.config.guild(guild).enabled():
-            await self.bot.send_message(ctx.message.channel, 
+            await ctx.send(
                                         "I am not setup for the starboard on this guild!\
                                          \nuse `[p]starboard set` to set it up.")
             return
@@ -185,9 +184,8 @@ class Starboard:
         """Add a role allowed to add messages to the starboard defaults to @everyone"""
         guild = ctx.message.guild
         if not await self.config.guild(guild).enabled():
-            await self.bot.send_message(ctx.message.channel, 
-                                        "I am not setup for the starboard on this guild!\
-                                         \nuse starboard set to set it up.")
+            await ctx.send("I am not setup for the starboard on this guild!\
+                            \nuse starboard set to set it up.")
             return
         everyone_role = await self.get_everyone_role(guild)
         guild_roles = await self.config.guild(guild).role()
@@ -206,7 +204,7 @@ class Starboard:
     async def remove_role(self, ctx, role:discord.Role):
         """Remove a role allowed to add messages to the starboard"""
         if not await self.config.guild(guild).enabled():
-            await self.bot.send_message(ctx.message.channel, 
+            await ctx.send(
                                         "I am not setup for the starboard on this guild!\
                                          \nuse starboard set to set it up.")
             return
