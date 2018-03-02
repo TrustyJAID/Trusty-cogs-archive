@@ -115,7 +115,7 @@ class Starboard:
     async def enable_starboard(self, ctx):
         """Enables the starboard for this guild."""
         await self.config.guild(ctx.guild).enabled.set(True)
-        await ctx.send("Starboard disabled here!")
+        await ctx.send("Starboard enabled here!")
 
     @starboard.command(name="ignore")
     async def toggle_channel_ignore(self, ctx, channel:discord.TextChannel=None):
