@@ -257,6 +257,7 @@ class Welcome:
                 print("welcome.py: unable to whisper {}. Probably "
                       "doesn't want to be PM'd".format(member))
         # grab the welcome channel
+        guild_settings = await self.config.guild(guild).guild_settings()
         channel = self.get_welcome_channel(guild, guild_settings)
         if channel is None:  # complain even if only whisper
             print('welcome.py: Channel not found. It was most '
