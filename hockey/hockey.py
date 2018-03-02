@@ -160,6 +160,7 @@ class Hockey:
                 await asyncio.sleep(120)
             print("is_playing")
             if not posted_standings:
+                print("test")
                 await self.post_automatic_standings()
             all_teams = await self.config.teams()
             for team in await self.config.teams():
@@ -476,7 +477,7 @@ class Hockey:
                             channel = self.bot.get_channel(id=int(channel_id))
 
                             message = await channel.get_message(message_id)
-                            await self.bot.delete_message(message)
+                            await message.delete()
                         except Exception as e:
                             print("something wrong with all {}: {}".format(old_goal, e))
                             pass
@@ -670,8 +671,24 @@ class Hockey:
         message = await channel.send(embed=em)
         await self.config.guild(guild).standings_msg.set(message.id)
         await ctx.send("{} standings will now be automatically updated in {}".format(standings_type, channel.mention))
+        await self.config.guild(guild).post_standings.set(True)
 
 
+    @hockey_commands.command()
+    async def togglestandings(self, ctx):
+        """Toggles the standings on or off."""
+        guild = ctx.message.guild
+        cur_state = not await self.config.guild(guild).post_standings()
+        await self.config.guild(guild).post_standings.set(cur_state)
+        await ctx.send("Done.")
+
+    @hockey_commands.command(hidden=True)
+    async def enablestandings(self, ctx, guild_id):
+        """Toggles the standings on or off."""
+        guild = self.bot.get_guild(guild_id)
+        cur_state = not await self.config.guild(guild).post_standings()
+        await self.config.guild(guild).post_standings.set(cur_state)
+        await ctx.send("Done.")
 
 
 
@@ -732,7 +749,7 @@ class Hockey:
         guild = ctx.message.guild
         try:
             role = [role for role in guild.roles if (team.lower() in role.name.lower() and "GOAL" not in role.name)][0]
-            await self.bot.add_roles(ctx.message.author, role)
+            await ctx.message.author.add_roles(role)
             await ctx.message.channel.send( "Role applied.")
         except:
             await ctx.message.channel.send( "{} is not an available role!".format(team))
@@ -745,14 +762,14 @@ class Hockey:
         if team is None:
             team = [role.name for role in member.roles if role.name in self.teams]
             for t in team:
-                role = [role for role in guild.roles if role.name == t + " GOAL"]
-                for roles in role:
-                    await self.bot.add_roles(ctx.message.author, roles)
+                roles = [role for role in guild.roles if role.name == t + " GOAL"]
+                for role in roles:
+                    await ctx.message.author.add_roles(role)
                 await ctx.message.channel.send( "Role applied.")
         else:
             try:
                 role = [role for role in guild.roles if (team.lower() in role.name.lower() and role.name.endswith("GOAL"))][0]
-                await self.bot.add_roles(ctx.message.author, role)
+                await ctx.message.author.add_roles(role)
                 await ctx.message.channel.send( "Role applied.")
             except:
                 await ctx.message.channel.send( "{} is not an available role!".format(team))
@@ -959,6 +976,7 @@ class Hockey:
                 return await message.delete()
 
     async def post_automatic_standings(self):
+        print("Updating Standings.")
         async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
             data = await resp.json()
         conference = ["eastern", "western"]
@@ -969,18 +987,24 @@ class Hockey:
         western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
         conference_data.append(eastern)
         conference_data.append(western)
-        all_teams = sorted(all_teams, key=lambda k: int(k["leagueRank"]))
         division_data = [record for record in data["records"]]
-
-        for guilds in self.config.get_guilds():
-            guild = self.bot.get_guild(guild)
+        all_guilds = await self.config.all_guilds()
+        print(all_guilds)
+        for guilds in all_guilds:
+            print(guilds)
+            guild = self.bot.get_guild(guilds)
             if await self.config.guild(guild).post_standings():
-            
-                search = await self.config.guild(guild).standings_type()
-                channel = self.bot.get_channel(id=await self.config.guild(guild).standings_channel())
-                message = await channel.get_message(id=await self.config.guild(guild).standings_msg())
+                print("hi there")
+                try:
 
-                if search in division:
+                    search = await self.config.guild(guild).standings_type()
+                    channel = self.bot.get_channel(await self.config.guild(guild).standings_channel())
+                    message = await channel.get_message(await self.config.guild(guild).standings_msg())
+                    print("{}-{}-{}".format(search, channel.id, message.id))
+                except Exception as e:
+                    print(e)
+                    continue
+                if search.lower() in division:
                     division_search = None
                     for record in division_data:
                         if search.lower() == record["division"]["name"].lower():
@@ -993,7 +1017,7 @@ class Hockey:
                     else:
                         em = await self.conference_standing_embed(conference_data, 1)
                 elif search.lower() == "all":
-                    await self.standings_menu(ctx, division_data, "all")
+                    em = await self.all_standing_embed(division_data)
                 if message is not None:
                     await message.edit(embed=em)
 
