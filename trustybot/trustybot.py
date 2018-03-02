@@ -104,6 +104,7 @@ class TrustyBot:
 
     @commands.command(hidden=True)
     async def say(self, ctx, *, msg):
+        print(ctx.message.content)
         await ctx.send(msg)
 
     @commands.command(pass_context=True)
