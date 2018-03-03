@@ -33,6 +33,97 @@ async def division_standing_embed(post_list, page=0):
         em.set_author(name=division + " Division", url="https://www.nhl.com/standings", icon_url=division_logo)
     return em
 
+async def game_state_embed(data, state, is_preview=False):
+    post_state = ["all", data.home_team, data.away_team]
+    timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+    title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
+    colour = int(teams[data.home_team]["home"].replace("#", ""), 16)
+    em = discord.Embed(timestamp=timestamp)
+    home_field = "{} {} {}".format(data.home_emoji, data.home_team, data.home_emoji)
+    away_field = "{} {} {}".format(data.away_emoji, data.away_team, data.away_emoji)
+    if not is_preview:
+        home_str = "Goals: **{}** \nShots: **{}**".format(data.home_score, data.home_shots)
+        away_str = "Goals: **{}** \nShots: **{}**".format(data.away_score, data.away_shots)
+    else:
+        home_str = "Home"
+        away_str = "Away"
+    em.add_field(name=home_field, value=home_str, inline=True)
+    em.add_field(name=away_field, value=away_str, inline=True)
+    team = state if state != "all" else data.home_team
+    alt_team = [state for state in post_state if state != "all" and state != team][0]
+    em.colour = int(teams[team]["home"].replace("#", ""), 16)
+    logo = teams[team]["logo"]
+    alt_logo = teams[alt_team]["logo"]
+    team_url = teams[team]["team_url"]
+    em.set_author(name=title, url=team_url, icon_url=logo)
+    em.set_thumbnail(url=logo)
+    em.set_footer(text="Game start ", icon_url=alt_logo)
+    return em
+
+
+async def get_shootout_display(self, goals):
+    msg = ""
+    score = "☑"
+    miss = "❌"
+    for goal in goals:
+        if goal["result"]["eventTypeId"] == "MISSED_SHOT" and goal["about"]["ordinalNum"] == "SO":
+            msg += miss
+        else:
+            msg += score
+    return msg
+
+async def goal_post_embed(goal, game_data):
+    scoring_team = teams[goal["team"]["name"]]
+    h_emoji = game_data.home_emoji
+    a_emoji = game_data.away_emoji
+    period_time_left = goal["about"]["periodTimeRemaining"]
+    event = goal["result"]["event"]
+    shootout = False
+    if game_data.period_ord == "SO":
+        shootout = True
+    try:
+        strength = goal["result"]["strength"]["name"]
+    except KeyError:
+        strength = ""
+    if strength == "Even":
+        strength = "Even Strength"
+    try:
+        if goal["result"]["emptyNet"]:
+            strength = "Empty Net"
+    except KeyError:
+        pass
+    description = goal["result"]["description"]
+    colour = int(teams[goal["team"]["name"]]["home"].replace("#", ""), 16)
+    title = "🚨 {} {} {} 🚨".format(goal["team"]["name"], strength, event)
+    url = teams[goal["team"]["name"]]["team_url"]
+    logo = teams[goal["team"]["name"]]["logo"]
+    if not shootout:
+        
+        em = discord.Embed(description=description, colour=colour)
+        em.set_author(name=title, url=url, icon_url=logo)
+        home_str = "Goals: **{}** \nShots: **{}**".format(game_data.home_score, game_data.home_shots)
+        away_str = "Goals: **{}** \nShots: **{}**".format(game_data.away_score, game_data.away_shots)
+        home_field = "{} {} {}".format(game_data.home_emoji, game_data.home_team, game_data.home_emoji)
+        away_field = "{} {} {}".format(game_data.away_emoji, game_data.away_team, game_data.away_emoji)
+        em.add_field(name=home_field, value=home_str, inline=True)
+        em.add_field(name=away_field, value=away_str, inline=True)
+        em.set_footer(text="{} left in the {} period".format(period_time_left, game_data.period_ord), icon_url=logo)
+        em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
+    else:
+        if "missed" in event.lower():
+            em = discord.Embed(description=description, colour=colour)
+            em.set_author(name=title.replace("🚨", ""), url=url, icon_url=logo)
+        else:
+            em = discord.Embed(description=description, colour=colour)
+            em.set_author(name=title, url=url, icon_url=logo)
+        home_msg = await get_shootout_display(game_data.home_goals)
+        away_msg = await get_shootout_display(game_data.away_goals)
+        em.add_field(name=game_data.home_team, value=home_msg)
+        em.add_field(name=game_data.away_team, value=away_msg)
+        em.set_footer(text="{} left in the {} period".format(period_time_left, game_data.period_ord), icon_url=logo)
+        em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
+    return em
+
 async def conference_standing_embed(post_list, page=0):
     em = discord.Embed()
     standing_list = post_list[page]
@@ -168,7 +259,7 @@ async def roster_embed(post_list, page):
 
 async def game_embed(post_list, page):
     game = post_list[page]
-    # print("https://statsapi.web.nhl.com" + game["link"])
+    print("https://statsapi.web.nhl.com" + game["link"])
     async with aiohttp.ClientSession() as session:
         async with session.get("https://statsapi.web.nhl.com" + game["link"]) as resp:
             game_data = await resp.json()
