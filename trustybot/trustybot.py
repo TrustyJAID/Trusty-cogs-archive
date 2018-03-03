@@ -107,6 +107,14 @@ class TrustyBot:
         print(ctx.message.content)
         await ctx.send(msg)
 
+
+    @commands.command()
+    async def pingtime(self, ctx):
+        t1 = time.perf_counter()
+        await ctx.channel.trigger_typing()
+        t2 = time.perf_counter()
+        await ctx.send("pong: {}ms".format(round((t2-t1)*1000)))
+
     @commands.command(pass_context=True)
     async def emoji(self, ctx, emoji):
         async with ctx.channel.typing():

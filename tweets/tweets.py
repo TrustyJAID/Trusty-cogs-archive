@@ -202,7 +202,7 @@ class Tweets():
                 country_id = locations
                 # print(locations)
         if country_id is None:
-            await self.bot.say("{} Is not a correct location!".format(location))
+            await ctx.send("{} Is not a correct location!".format(location))
             return
         trends = api.trends_place(country_id["woeid"])[0]["trends"]
         # print(trends)
