@@ -503,8 +503,6 @@ class ModLogs:
         
         if await self.config.guild(guild).toggleguild() == False:
             return
-        if before.bot:
-            return
         channel = await self.config.guild(guild).Channel()
         if channel is None:
             return
