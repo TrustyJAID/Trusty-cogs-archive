@@ -14,13 +14,13 @@ class TrustyAvatar:
         self.bot = bot
         self.loop = bot.loop.create_task(self.change_avatar())
         self.status ={
-                    "neutral": {"status":discord.Status.online, "game":["Please Remain Calm", "Mind the Gap"]},
-                    "happy": {"status":discord.Status.online, "game":["Take it to Make it"]},
-                    "are you kidding me": {"status":discord.Status.idle, "game":["Obey Posted Limits"]},
-                    "quizzical": {"status": discord.Status.idle, "game":["Yellow Means Yield"]},
-                    "sad": {"status": discord.Status.dnd, "game":["No Public Access"]},
-                    "angry": {"status":discord.Status.dnd, "game":["Hitchhickers May Be Escaping Inmates"]},
-                    "watching": {"status":discord.Status.dnd, "game":[]},
+                    "neutral": {"status":discord.Status.online, "game":["Please Remain Calm", "Mind the Gap"], "type":[0,2,3]},
+                    "happy": {"status":discord.Status.online, "game":["Take it to Make it"], "type":[0,2,3]},
+                    "are you kidding me": {"status":discord.Status.idle, "game":["Obey Posted Limits"], "type":[0,2,3]},
+                    "quizzical": {"status": discord.Status.idle, "game":["Yellow Means Yield"], "type":[0,2,3]},
+                    "sad": {"status": discord.Status.dnd, "game":["No Public Access"], "type":[0,2,3]},
+                    "angry": {"status":discord.Status.dnd, "game":["Hitchhickers May Be Escaping Inmates"], "type":[0,2,3]},
+                    "watching": {"status":discord.Status.dnd, "game":[" "], "type":[3]},
                    }
     
     def __unload(self):
@@ -42,11 +42,7 @@ class TrustyAvatar:
                 with open(new_avatar, "rb") as image:
                     data = image.read()
                 status = self.status.get(image_name.lower(), None)
-                try:
-                    game_name = choice(status["game"])
-                    game = discord.Game(name=game_name)
-                except:
-                    game=None
+                game = discord.Game(name=choice(status["game"]), type=choice(status["type"]))
                 await self.bot.change_presence(status=status["status"], game=game)
                 print("changing avatar to {}".format(image_name))
                 await self.bot.user.edit(avatar=data)
