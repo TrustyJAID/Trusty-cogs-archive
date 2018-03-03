@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Checks gab username and applies role",
+    "DESCRIPTION" : "Set a channel to ask for gab username then apply role if username exists",
+    "DISABLED" : false,
+    "NAME" : "Gab",
+    "TAGS" : ["general"],
+    "REQUIREMENTS" : [],
+    "INSTALL_MSG" : "Type `[p]gab set channel role_add role_remove`"
+}
