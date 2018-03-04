@@ -74,6 +74,12 @@ class Hockey:
         team_data.append(team_entry.to_json())
         await self.config.teams.set(team_data)
 
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def testhockey(self, ctx):
+        team = await self.get_team("Edmonton Oilers")
+        print(team)
+
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
     async def clear_broken_channels(self, ctx):
@@ -114,7 +120,7 @@ class Hockey:
                         continue
                     # print(data)
                     game_data = await Game.from_json(data)
-                    await self.check_game_state(data)
+                    await self.check_game_state(game_data)
 
                     print("{} @ {}".format(game_data.away_team, game_data.home_team))
                     if game_data.game_state == "Preview":
@@ -162,10 +168,12 @@ class Hockey:
     async def save_game_state(self, data, is_final=False):
         home = await self.get_team(data.home_team)
         away = await self.get_team(data.away_team)
+        # home = await self.config.teams.get_attr(data.home_team)
+        # away = await self.config.teams.get_attr(data.away_team)
         team_list = await self.config.teams()
         team_list.remove(home)
         team_list.remove(away)
-        if not is_final:
+        if data.game_state != "Final":
             home["game_state"] = data.game_state
             away["game_state"] = data.game_state
             home["period"] = data.period
@@ -179,14 +187,13 @@ class Hockey:
         away["game_start"] = data.game_start
         team_list.append(home)
         team_list.append(away)
-        print("test")
         await self.config.teams.set(team_list)
 
     async def post_game_state(self, data):
         post_state = ["all", data.home_team, data.away_team]
-
+        print("test")
         for state in post_state:
-            em = await game_state_embed(data, state, False)
+            em = await game_state_embed(data, state)
             for channels in await self.get_team_channels(state):
                 channel = self.bot.get_channel(id=channels)
                 if channel is None:
@@ -212,7 +219,7 @@ class Hockey:
         away = await self.get_team(data.away_team)
         team_list = await self.config.teams()
         # Home team checking
-
+        # print(data.game_state)
         if data.game_state == "Preview":
             """Checks if the the game state has changes from Final to Preview
                Could be unnecessary since after Game Final it will check for next game
@@ -224,6 +231,8 @@ class Hockey:
 
         if data.game_state == "Live":
             """Checks what the period is and posts the game is starting in the appropriate channel"""
+            # print(data.home_team)
+            # print(home)
             if home["period"] != data.period:
                 await self.save_game_state(data)
                 msg = "**{} Period starting {} at {}**"
@@ -249,7 +258,7 @@ class Hockey:
 
     async def get_team(self, team):
         for teams in await self.config.teams():
-            if teams["team_name"] == team:
+            if team == teams["team_name"]:
                 return teams
         return None
         
@@ -279,7 +288,7 @@ class Hockey:
         all_data = await self.get_team("all")
         team_list = await self.config.teams()
         post_state = ["all", data.home_team, data.away_team]
-
+        
         home_goal_ids = [str(goal_id["result"]["eventCode"]) for goal_id in data.home_goals]
         away_goal_ids = [str(goal_id["result"]["eventCode"]) for goal_id in data.away_goals]
 
@@ -314,7 +323,7 @@ class Hockey:
             # attempts to delete the goal if it was called back
             await self.remove_goal_post(goal, data.home_team, data)
         for goal in list(away_team_data["goal_id"]):
-            await self.remove_goal_post(goal, data.home_team, data)
+            await self.remove_goal_post(goal, data.away_team, data)
 
     async def remove_goal_post(self, goal, team, data):
         # print(goal)
@@ -331,7 +340,8 @@ class Hockey:
                 channel = self.bot.get_channel(id=int(channel_id))
                 try:
                     message = await channel.get_message(message_id)
-                    await message.delete()
+                    if message is not None:
+                        await message.delete()
                     
                 except Exception as e:
                     print("something wrong with {} {}: {}".format(team, goal, e))
@@ -342,6 +352,7 @@ class Hockey:
                 team_list.append(team_data)
                 await self.config.teams.set(team_list)
                 print("done")
+        return
                     
 
     async def post_team_goal(self, goal, game_data):
@@ -645,10 +656,10 @@ class Hockey:
         all_teams = sorted(all_teams, key=lambda k: int(k["leagueRank"]))
         division_data = [record for record in data["records"]]
         if search is None or search.lower() in division:
+            division_search = None
             if search is not None:
-                division_search = None
                 for record in division_data:
-                    if search.lower() == record["division"]["name"].lower():
+                    if search.lower() in record["division"]["name"].lower():
                         division_search = record
             if division_search is not None:
                 index = division_data.index(division_search)
