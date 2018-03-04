@@ -33,7 +33,7 @@ async def division_standing_embed(post_list, page=0):
         em.set_author(name=division + " Division", url="https://www.nhl.com/standings", icon_url=division_logo)
     return em
 
-async def game_state_embed(data, state, is_preview=False):
+async def game_state_embed(data, state):
     post_state = ["all", data.home_team, data.away_team]
     timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
     title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
@@ -41,7 +41,7 @@ async def game_state_embed(data, state, is_preview=False):
     em = discord.Embed(timestamp=timestamp)
     home_field = "{} {} {}".format(data.home_emoji, data.home_team, data.home_emoji)
     away_field = "{} {} {}".format(data.away_emoji, data.away_team, data.away_emoji)
-    if not is_preview:
+    if data.game_state != "Preview":
         home_str = "Goals: **{}** \nShots: **{}**".format(data.home_score, data.home_shots)
         away_str = "Goals: **{}** \nShots: **{}**".format(data.away_score, data.away_shots)
     else:
