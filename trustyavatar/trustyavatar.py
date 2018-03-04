@@ -31,12 +31,7 @@ class TrustyAvatar:
         while self is self.bot.get_cog("TrustyAvatar"):
             self.images = glob.glob(str(bundled_data_path(self)) + "/regular/*.png")
             data = None
-            # server = self.bot.get_server(id=321105104931389440)
-            # current_game = server.me.game if server is not None else None
-
             try:
-                # async with self.session.get(choice(self.url)) as r:
-                    # data = await r.read()
                 new_avatar = choice(self.images)
                 image_name = new_avatar.split("/")[-1].split(".")[0]
                 with open(new_avatar, "rb") as image:
@@ -44,8 +39,12 @@ class TrustyAvatar:
                 status = self.status.get(image_name.lower(), None)
                 game = discord.Game(name=choice(status["game"]), type=choice(status["type"]))
                 await self.bot.change_presence(status=status["status"], game=game)
+            except Exception as e:
+                print(e)
+            try:
                 print("changing avatar to {}".format(image_name))
                 await self.bot.user.edit(avatar=data)
             except Exception as e:
                 print(e)
+            
             await asyncio.sleep(randint(1000, 1500))
