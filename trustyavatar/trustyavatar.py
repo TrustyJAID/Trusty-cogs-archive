@@ -29,7 +29,7 @@ class TrustyAvatar:
     async def change_avatar(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("TrustyAvatar"):
-            self.images = glob.glob(str(bundled_data_path(self)) + "/regular/*.png")
+            self.images = glob.glob(str(bundled_data_path(self)) + "/regular/*")
             data = None
             try:
                 new_avatar = choice(self.images)
