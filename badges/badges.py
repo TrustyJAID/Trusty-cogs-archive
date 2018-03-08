@@ -26,6 +26,7 @@ class Badges:
     def __init__(self, bot):
         self.bot = bot
         self.files = "data/badges/"
+        self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.blank_template = {"cia":{"code":"CIA", "loc":"data/badges/cia-template.png"}, 
                                "cicada":{"code":"CICADA", "loc":"data/badges/cicada-template.png"},
                                "ioi":{"code":"IOI", "loc":"data/badges/IOI-template.png"},
@@ -41,14 +42,16 @@ class Badges:
                                "dhs":{"code":"SpaceX", "loc":"data/badges/spacex-template.png"},
                                "unsc":{"code":"UNSC", "loc": "data/badges/unsc-template.png"}}
 
+    def __unload(self):
+        self.session.close()
+
         
 
     async def dl_image(self, url, ext="png"):
-        with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                test = await resp.read()
-                with open(self.files + "temp/temp." + ext, "wb") as f:
-                    f.write(test)
+        async with self.session.get(url) as resp:
+            test = await resp.read()
+            with open(self.files + "temp/temp." + ext, "wb") as f:
+                f.write(test)
 
     async def remove_white_barcode(self):
         """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
