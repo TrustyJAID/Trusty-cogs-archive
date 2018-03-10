@@ -44,19 +44,25 @@ class QPosts:
 
     async def authenticate(self):
         """Authenticate with Twitter's API"""
-        auth = tw.OAuthHandler(await self.config.twitter.consumer_key(), await self.config.twitter.consumer_secret())
-        auth.set_access_token(await self.config.twitter.access_token(), await self.config.twitter.access_secret())
-        return tw.API(auth)
+        try:
+            auth = tw.OAuthHandler(await self.config.twitter.consumer_key(), await self.config.twitter.consumer_secret())
+            auth.set_access_token(await self.config.twitter.access_token(), await self.config.twitter.access_secret())
+            return tw.API(auth)
+        except:
+            return
 
     async def send_tweet(self, message: str, file=None):
         """Sends tweets as the bot owners account"""
         if not twInstalled:
             return
-        api = await self.authenticate()
-        if file is None:
-            api.update_status(message)
-        else:
-            api.update_with_media(file, status=message)
+        try:
+            api = await self.authenticate()
+            if file is None:
+                api.update_status(message)
+            else:
+                api.update_with_media(file, status=message)
+        except:
+            return
 
     @commands.command()
     async def dlq(self, ctx):
@@ -201,9 +207,9 @@ class QPosts:
                 em.description = text[:2000]
         if ref_text != "":
             if "_" in ref_text or "~" in ref_text or "*" in ref_text:
-                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
+                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text[:1000]))
             else:
-                em.add_field(name=str(post["no"]), value=ref_text)
+                em.add_field(name=str(post["no"]), value=ref_text[:1000])
         if img_url != "":
             em.set_image(url=img_url)
             try:
@@ -226,35 +232,19 @@ class QPosts:
         
         for channel_id in await self.config.channels():
             channel = self.bot.get_channel(id=channel_id)
+            if channel is None:
+                continue
             guild = channel.guild
+            if not channel.permissions_for(guild.me).send_messages:
+                    continue
+            if not channel.permissions_for(guild.me).embed_links:
+                await channel.send(text)
             try:
                 role = [role for role in guild.roles if role.name == "QPOSTS"][0]
                 await channel.send("{} <{}>".format(role.mention, url), embed=em)
             except:
                 await channel.send("<{}>".format(url), embed=em)
 
-        if len(text) > 1993:
-            em = discord.Embed(colour=discord.Colour.red())
-            em.set_author(name=name + qpost["trip"], url=url)
-            em.timestamp = datetime.utcfromtimestamp(qpost["time"])
-            em.description = "```\n{}```".format(text[1993:])
-            reference = await self.get_quoted_post(qpost)
-            if ref_text != "":
-                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
-            if img_url != "":
-                em.set_image(url=img_url)   
-            em.set_footer(text=board)
-            
-            for channel_id in await self.config.channels():
-                channel = self.bot.get_channel(id=channel_id)
-                if channel is None:
-                    continue
-                guild = channel.guild
-                try:
-                    role = [role for role in guild.roles if role.name == "QPOSTS"][0]
-                    await self.bot.send_message(channel, "{} <{}>".format(role.mention, url), embed=em)
-                except:
-                    await self.bot.send_message(channel, "<{}>".format(url), embed=em)
 
     async def q_menu(self, ctx, post_list: list, board,
                          message: discord.Message=None,
@@ -289,7 +279,7 @@ class QPosts:
                         ref_text += "."
                     else:
                         ref_text += p.string + "\n"
-                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text))
+                em.add_field(name=str(post["no"]), value="```{}```".format(ref_text[:1000]))
             if "tim" in post and "tim" not in qpost:
                 file_id = post["tim"]
                 file_ext = post["ext"]
