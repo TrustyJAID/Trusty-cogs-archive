@@ -71,10 +71,10 @@ class Translate:
             async with self.session.get(self.url + "/language/translate/v2", params=params) as resp:
                 data = await resp.json()
         except:
-            return None, None
-        translated_text = data["data"]["translations"][0]["translatedText"]
-        
-        return translated_text
+            return None
+        if "data" in data:
+            translated_text = data["data"]["translations"][0]["translatedText"]
+            return translated_text
 
     @commands.command(pass_context=True)
     @checks.mod_or_permissions(manage_channels=True)
