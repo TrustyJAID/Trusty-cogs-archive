@@ -167,7 +167,7 @@ class Badges:
         await ctx.send(msg[:-2])
     
     @commands.command()
-    async def badges(self, ctx, badge, user:discord.Member=None):
+    async def badges(self, ctx, *, badge):
         """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
         if badge.lower() == "list":
             await ctx.invoke(self.listbadges)
