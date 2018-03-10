@@ -153,7 +153,7 @@ class Tweets():
                     await message.remove_reaction("➡", ctx.message.author)
                 except:
                     pass
-                return await self.game_menu(ctx, post_list, message=message,
+                return await self.tweet_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             elif react == "back":
                 next_page = 0
@@ -165,7 +165,7 @@ class Tweets():
                     await message.remove_reaction("⬅", ctx.message.author)
                 except:
                     pass
-                return await self.game_menu(ctx, post_list, message=message,
+                return await self.tweet_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             else:
                 return await message.delete()
