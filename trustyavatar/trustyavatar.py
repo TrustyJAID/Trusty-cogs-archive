@@ -13,14 +13,15 @@ class TrustyAvatar:
     def __init__(self, bot):
         self.bot = bot
         self.loop = bot.loop.create_task(self.change_avatar())
+        self.activities = [discord.ActivityType.playing, discord.ActivityType.listening, discord.ActivityType.watching]
         self.status ={
-                    "neutral": {"status":discord.Status.online, "game":["Please Remain Calm", "Mind the Gap"], "type":[0,2,3]},
-                    "happy": {"status":discord.Status.online, "game":["Take it to Make it"], "type":[0,2,3]},
-                    "are you kidding me": {"status":discord.Status.idle, "game":["Obey Posted Limits"], "type":[0,2,3]},
-                    "quizzical": {"status": discord.Status.idle, "game":["Yellow Means Yield"], "type":[0,2,3]},
-                    "sad": {"status": discord.Status.dnd, "game":["No Public Access"], "type":[0,2,3]},
-                    "angry": {"status":discord.Status.dnd, "game":["Hitchhickers May Be Escaping Inmates"], "type":[0,2,3]},
-                    "watching": {"status":discord.Status.dnd, "game":[" "], "type":[3]},
+                    "neutral": {"status":discord.Status.online, "game":["Please Remain Calm", "Mind the Gap"], "type":self.activities},
+                    "happy": {"status":discord.Status.online, "game":["Take it to Make it"], "type":self.activities},
+                    "are you kidding me": {"status":discord.Status.idle, "game":["Obey Posted Limits"], "type":self.activities},
+                    "quizzical": {"status": discord.Status.idle, "game":["Yellow Means Yield"], "type":self.activities},
+                    "sad": {"status": discord.Status.dnd, "game":["No Public Access"], "type":self.activities},
+                    "angry": {"status":discord.Status.dnd, "game":["Hitchhickers May Be Escaping Inmates"], "type":self.activities},
+                    "watching": {"status":discord.Status.dnd, "game":[" "], "type":[discord.ActivityType.watching]},
                    }
     
     def __unload(self):
@@ -38,7 +39,7 @@ class TrustyAvatar:
                     data = image.read()
                 status = self.status.get(image_name.lower(), None)
                 game = discord.Game(name=choice(status["game"]), type=choice(status["type"]))
-                await self.bot.change_presence(status=status["status"], game=game)
+                await self.bot.change_presence(status=status["status"], activity=game)
             except Exception as e:
                 print(e)
             try:
