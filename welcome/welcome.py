@@ -257,8 +257,8 @@ class Welcome:
                 print("welcome.py: unable to whisper {}. Probably "
                       "doesn't want to be PM'd".format(member))
         # grab the welcome channel
-        guild_settings = await self.config.guild(guild).guild_settings()
-        channel = self.get_welcome_channel(guild, guild_settings)
+        #guild_settings = await self.config.guild(guild).guild_settings()
+        channel = self.bot.get_channel(await self.config.guild(guild).CHANNEL())
         if channel is None:  # complain even if only whisper
             print('welcome.py: Channel not found. It was most '
                   'likely deleted. User joined: {}'.format(member.name))
@@ -266,7 +266,7 @@ class Welcome:
         # we can stop here
         if only_whisper and not bot_welcome:
             return
-        if not self.speak_permissions(guild, guild_settings):
+        if not self.speak_permissions(guild, channel.id):
             print("Permissions Error. User that joined: "
                   "{0.name}".format(member))
             print("Bot doesn't have permissions to send messages to "
