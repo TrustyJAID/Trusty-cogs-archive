@@ -61,12 +61,12 @@ async def game_state_embed(data, state):
     return em
 
 
-async def get_shootout_display(self, goals):
+async def get_shootout_display(goals):
     msg = ""
     score = "☑"
     miss = "❌"
     for goal in goals:
-        if goal["result"]["eventTypeId"] == "MISSED_SHOT" and goal["about"]["ordinalNum"] == "SO":
+        if goal["result"]["eventTypeId"] in ["SHOT", "MISSED_SHOT"]:
             msg += miss
         else:
             msg += score
