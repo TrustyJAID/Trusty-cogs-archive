@@ -58,7 +58,10 @@ class Game:
         event = data["liveData"]["plays"]["allPlays"]
         home_team = data["gameData"]["teams"]["home"]["name"]
         away_team = data["gameData"]["teams"]["away"]["name"]
-        goals = [goal for goal in event if goal["result"]["eventTypeId"] == "GOAL" or (goal["result"]["eventTypeId"] == "MISSED_SHOT" and goal["about"]["ordinalNum"] == "SO")]
+        
+        goals = [goal for goal in event if goal["result"]["eventTypeId"] == "GOAL"\
+        or (goal["result"]["eventTypeId"] in ["SHOT", "MISSED_SHOT"] and goal["about"]["ordinalNum"] == "SO")]
+
         if "currentPeriodOrdinal" in data["liveData"]["linescore"]:
             period_ord = data["liveData"]["linescore"]["currentPeriodOrdinal"]
         else:
