@@ -80,7 +80,6 @@ class StickyRoles:
         guild = member.guild
         sticky_roles = await self.config.guild(guild).sticky_roles()
         to_reapply = await self.config.guild(guild).to_reapply()
-        print(guild)
         if to_reapply is None:
             return
 
