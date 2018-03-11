@@ -166,7 +166,7 @@ class Badges:
             msg += template + ", "
         await ctx.send(msg[:-2])
     
-    @commands.command()
+    @commands.command(aliases=["badge"])
     async def badges(self, ctx, *, badge):
         """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
         if badge.lower() == "list":
@@ -180,8 +180,7 @@ class Badges:
         if not is_badge:
             await ctx.send("{} badge doesn't exist yet!".format(badge))
             return
-        if user is None:
-            user = ctx.message.author
+        user = ctx.message.author
         avatar = user.avatar_url if user.avatar_url != "" else user.default_avatar_url
         ext = "png"
         if "gif" in avatar:
