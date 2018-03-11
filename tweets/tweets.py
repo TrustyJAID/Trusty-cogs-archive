@@ -73,19 +73,20 @@ class Tweets():
 
     async def start_stream(self):
         await self.bot.wait_until_ready()
-        if self.mystream is None:
-            api = await self.authenticate()
-            tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
-            stream_start = TweetListener(api, self.bot)
-            self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
-            self.start_stream_loop(tweet_list)
-        if not self.mystream.running:
-            api = await self.authenticate()
-            tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
-            stream_start = TweetListener(api, self.bot)
-            self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
-            self.start_stream_loop(tweet_list)
-        await asyncio.sleep(300)
+        while self is self.bot.get_cog("Tweets"):
+            if self.mystream is None:
+                api = await self.authenticate()
+                tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
+                stream_start = TweetListener(api, self.bot)
+                self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
+                self.start_stream_loop(tweet_list)
+            if not self.mystream.running:
+                api = await self.authenticate()
+                tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
+                stream_start = TweetListener(api, self.bot)
+                self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
+                self.start_stream_loop(tweet_list)
+            await asyncio.sleep(300)
 
 
     def start_stream_loop(self, tweet_list):
