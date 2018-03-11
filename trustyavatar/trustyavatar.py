@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from redbot.core.data_manager import bundled_data_path
+from redbot.core import checks
 from random import choice, randint
 import asyncio
 import aiohttp
@@ -26,6 +27,15 @@ class TrustyAvatar:
     
     def __unload(self):
         self.loop.cancel()
+
+    @commands.command()
+    @checks.is_owner()
+    async def checkstatus(self):
+        image_name = choice(self.status.keys())
+        status = self.status.get(image_name.lower(), None)
+        activity = discord.Activity(name=choice(status["game"]), type=choice(status["type"]))
+        await self.bot.change_presence(status=status["status"], activity=activity)
+
     
     async def change_avatar(self):
         await self.bot.wait_until_ready()
@@ -38,8 +48,8 @@ class TrustyAvatar:
                 with open(new_avatar, "rb") as image:
                     data = image.read()
                 status = self.status.get(image_name.lower(), None)
-                game = discord.Game(name=choice(status["game"]), type=choice(status["type"]))
-                await self.bot.change_presence(status=status["status"], activity=game)
+                activity = discord.Activity(name=choice(status["game"]), type=choice(status["type"]))
+                await self.bot.change_presence(status=status["status"], activity=activity)
             except Exception as e:
                 print(e)
             try:
