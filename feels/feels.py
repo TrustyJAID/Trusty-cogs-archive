@@ -45,7 +45,6 @@ class Feels:
             await ctx.send(file=file)
 
     def make_animated_gif(self, user, avatar):
-        userid = user.id
         gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
         img_list = []
         num = 0
@@ -74,7 +73,7 @@ class Feels:
                 break
         return temp
 
-    def make_feels(self, user, avatar):
+    def make_feels_img(self, user, avatar):
         template = Image.open(str(bundled_data_path(self)) + "/pepetemplate.png")
         # print(template.info)
         template = template.convert("RGBA")
@@ -99,8 +98,6 @@ class Feels:
 
 
     async def make_feels(self, user):
-        username = user.display_name
-        userid = user.id
 
         if user.is_avatar_animated():
             avatar = Image.open(await self.dl_image(user.avatar_url_as(format="gif")))
@@ -112,7 +109,7 @@ class Feels:
                 return
         else:
             avatar = Image.open(await self.dl_image(user.avatar_url_as(format="png")))
-            task = functools.partial(self.make_feels, user=user, avatar=avatar)
+            task = functools.partial(self.make_feels_img, user=user, avatar=avatar)
             task = self.bot.loop.run_in_executor(None, task)
             try:
                 temp = await asyncio.wait_for(task, timeout=60)
