@@ -5,6 +5,8 @@ import aiohttp
 import discord
 import chatterbot
 from chatterbot.trainers import ListTrainer
+import functools
+import asyncio
 
 
 class Chatter():
@@ -12,20 +14,22 @@ class Chatter():
 
     def __init__(self, bot):
         self.bot = bot
-        default_guild = {"toggle": True, "channel": None}
+        default_guild = {"toggle": False, "channel": None}
         default_channel = {"message": None, "author": None}
         self.config = Config.get_conf(self, 3568777796)
         self.config.register_guild(**default_guild)
         self.config.register_channel(**default_channel)
-        self.chatbot = chatterbot.ChatBot("TrustyBot", 
+        self.chatbot = chatterbot.ChatBot("TrustyBot",
+                                          output_adapter="chatterbot.output.OutputAdapter",
                                           storage_adapter="chatterbot.storage.MongoDatabaseAdapter",
+                                          output_format="text",
                                           # database="data/chatterbot/db",
                                           logic_adapters=[
                                           "chatterbot.logic.BestMatch",
                                           "chatterbot.logic.TimeLogicAdapter",
                                           "chatterbot.logic.MathematicalEvaluation"]
                                           )
-        self.chatbot.set_trainer(ListTrainer)
+        self.chatbot.set_trainer(ListTrainer, show_training_progress=False)
 
     @commands.group(no_pm=True, invoke_without_command=True, pass_context=True)
     async def chatterbot(self, ctx, *, message):
@@ -54,6 +58,7 @@ class Chatter():
         guild = ctx.message.guild
         await self.config.guild(guild).channel.set(channel.id)
         await self.bot.say("I will reply in {}".format(channel.mention))
+
 
     async def on_message(self, message):
         guild = message.guild
@@ -84,6 +89,13 @@ class Chatter():
             if not text.startswith(to_strip) and message.channel.id != await self.config.guild(guild).channel():
                 return
             text = text.replace(to_strip, "", 1)
-            await channel.trigger_typing()
-            response = self.chatbot.get_response(text)
-            await message.channel.send(response)
+            text = text.replace("@everyone ", "")
+            text = text.replace("@here", "")
+            async with message.channel.typing():
+                task = functools.partial(self.chatbot.get_response, input_item=text)
+                task = self.bot.loop.run_in_executor(None, task)
+                try:
+                    response = await asyncio.wait_for(task, timeout=60)
+                except asyncio.TimeoutError:
+                    return
+                await message.channel.send(response)
