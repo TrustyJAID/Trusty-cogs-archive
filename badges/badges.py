@@ -10,25 +10,27 @@ from PIL import ImageSequence
 from barcode import generate
 from barcode.writer import ImageWriter
 from redbot.core.data_manager import bundled_data_path
-from redbot.core.data_manager import cog_data_path
-from pathlib import Path
-import glob
+from redbot.core import Config
+from io import BytesIO
 from .templates import blank_template
+from .badge_entry import Badge
+import sys
+import functools
+import asyncio
 
 class Badges:
 
     def __init__(self, bot):
         self.bot = bot
+        self.config = Config.get_conf(self, 1545487348434)
+        default_guild = {"badges":[]}
+        default_global = {"badges": blank_template}
+        self.config.register_global(**default_global)
+        self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-        temp_folder = cog_data_path(self) /"temp"
-        temp_folder.mkdir(exist_ok=True, parents=True)
-        temp_gif = temp_folder/"tempgif"
-        temp_gif.mkdir(exist_ok=True, parents=True)
 
-
-    async def remove_white_barcode(self, img):
+    def remove_white_barcode(self, img):
         """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
-        # img = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
         img = img.convert("RGBA")
         datas = img.getdata()
 
@@ -41,11 +43,9 @@ class Badges:
 
         img.putdata(newData)
         return img
-        # img.save(str(cog_data_path(self)) + "/temp/bar_code_temp.png", "PNG")
 
-    async def invert_barcode(self, img):
+    def invert_barcode(self, img):
         """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
-        # img = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
         img = img.convert("RGBA")
         datas = img.getdata()
 
@@ -58,17 +58,13 @@ class Badges:
 
         img.putdata(newData)
         return img
-        # img.save(str(cog_data_path(self)) + "/temp/bar_code_temp.png", "PNG")   
 
-    async def dl_image(self, url, ext="png"):
-        """Downloads the users avatar to a temp folder"""
+    async def dl_image(self, url):
         async with self.session.get(url) as resp:
             test = await resp.read()
-            with open(str(cog_data_path(self)) + "/temp/temp." + ext, "wb") as f:
-                f.write(test)
+            return BytesIO(test)
 
-    async def create_badge(self, user, badge):
-        avatar = user.avatar_url if user.avatar_url != "" else user.default_avatar_url
+    def make_template(self, user, badge):
         username = user.display_name
         userid = user.id
         department = "GENERAL SUPPORT" if user.top_role.name == "@everyone" else user.top_role.name.upper()
@@ -81,30 +77,21 @@ class Badges:
             status = "AWAITING INSTRUCTIONS"
         if str(user.status) == "dnd":
             status = "MIA"
-        ext = "png"
-        if "gif" in avatar:
-            ext = "gif"
-        await self.dl_image(avatar, ext)
-        temp_barcode = generate("code39", str(userid), 
-                                writer=ImageWriter(), 
-                                output=str(cog_data_path(self)) + "/temp/bar_code_temp")
-        barcode = Image.open(str(cog_data_path(self)) + "/temp/bar_code_temp.png")
-        barcode = await self.remove_white_barcode(barcode)
+        barcode = BytesIO()
+        temp_barcode = generate("code39", str(userid), writer=ImageWriter(), output=barcode)
+        barcode = Image.open(barcode)
+        barcode = self.remove_white_barcode(barcode)
         fill = (0, 0, 0) # text colour fill
-        if badge == "Q":
+        if badge.is_inverted:
             fill = (255, 255, 255)
-            barcode = await self.invert_barcode(barcode)
-        template = Image.open(str(bundled_data_path(self))+ "/" + blank_template[badge]["loc"])
-        template = template.convert("RGBA")
-        avatar = Image.open(str(cog_data_path(self)) + "/temp/temp." + ext)
-        
+            barcode = self.invert_barcode(barcode)
+        template = Image.open(str(bundled_data_path(self))+ "/" + badge.file_name)
+        template = template.convert("RGBA")        
         barcode = barcode.convert("RGBA")
         barcode = barcode.resize((555,125), Image.ANTIALIAS)
         template.paste(barcode, (400,520), barcode)
         # font for user information
         font_loc = str(bundled_data_path(self)/"arial.ttf") 
-        print(font_loc)
-        print(str(cog_data_path(self)))
         try:
             font1 = ImageFont.truetype(font_loc, 30)
             font2 = ImageFont.truetype(font_loc, 24)
@@ -118,7 +105,7 @@ class Badges:
         # adds username
         draw.text((225, 330), str(username), fill=fill, font=font1)
         # adds ID Class
-        draw.text((225, 400), badge.upper() + "-" + str(user).split("#")[1], fill=fill, font=font1)
+        draw.text((225, 400), badge.code + "-" + str(user).split("#")[1], fill=fill, font=font1)
         # adds user id
         draw.text((250, 115), str(userid), fill=fill, font=font2)
         # adds user status
@@ -128,64 +115,119 @@ class Badges:
         # adds user level
         draw.text((420, 475), "LEVEL " + str(len(user.roles)), fill="red", font=font1)
         # adds user level
-        if badge != "discord":
+        if badge.badge_name != "discord":
           draw.text((60, 585), str(user.joined_at), fill=fill, font=font2)
         else:
           draw.text((60, 585), str(user.created_at), fill=fill, font=font2)
-        if ext == "gif":
-            for image in glob.glob(str(cog_data_path(self)) + "/temp/tempgif/*"):
-                os.remove(image)
-            gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
-            img_list = []
-            num = 0
-            for frame in gif_list[:18]:
-                watermark = frame.copy()
-                watermark = watermark.convert("RGBA")
-                watermark = watermark.resize((100,100))
-                watermark.putalpha(128)
-                id_image = frame.resize((165, 165))
-                template.paste(watermark, (845,45, 945,145), watermark)
-                template.paste(id_image, (60,95, 225, 260))
-                template.save(str(cog_data_path(self)) + "/temp/tempgif/{}.png".format(str(num)))
-                num += 1
-            img_list = [Image.open(file) for file in glob.glob(str(cog_data_path(self)) + "/temp/tempgif/*")]
-            template.save(str(cog_data_path(self)) + "/temp/tempbadge.gif", save_all=True, append_images=img_list, duration=1, loop=10)
-        else:
-            watermark = avatar.convert("RGBA")
-            watermark.putalpha(128)
-            watermark = watermark.resize((100,100))
-            id_image = avatar.resize((165, 165))
-            template.paste(watermark, (845,45, 945,145), watermark)
-            template.paste(id_image, (60,95, 225, 260))
-            template.save(str(cog_data_path(self)) + "/temp/tempbadge.png")
+        return template
 
-    @commands.command(pass_context=True)
-    async def listbadges(self, ctx):
-        msg = ""
-        for template in blank_template:
-            msg += template + ", "
-        await ctx.send(msg[:-2])
-    
-    @commands.command(aliases=["badge"])
+    def make_animated_gif(self, template, avatar):
+        gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
+        img_list = []
+        num = 0
+        for frame in gif_list:
+            temp2 = template.copy()
+            watermark = frame.copy()
+            watermark = watermark.convert("RGBA")
+            watermark = watermark.resize((100,100))
+            watermark.putalpha(128)
+            id_image = frame.resize((165, 165))
+            temp2.paste(watermark, (845,45, 945,145), watermark)
+            temp2.paste(id_image, (60,95, 225, 260))
+            temp2.thumbnail((500, 339), Image.ANTIALIAS)
+            img_list.append(temp2)
+            num += 1
+            temp = BytesIO()
+
+            temp2.save(temp, format="GIF", save_all=True, append_images=img_list, duration=0, loop=0)
+            temp.name = "temp.gif"
+            if sys.getsizeof(temp) > 7000000 and sys.getsizeof(temp) < 8000000:
+                break
+        return temp
+
+    def make_badge(self, template, avatar):
+        watermark = avatar.convert("RGBA")
+        watermark.putalpha(128)
+        watermark = watermark.resize((100,100))
+        id_image = avatar.resize((165, 165))
+        template.paste(watermark, (845,45, 945,145), watermark)
+        template.paste(id_image, (60,95, 225, 260))
+        temp = BytesIO()
+        template.save(temp, format="PNG")
+        temp.name = "temp.gif"
+
+    async def create_badge(self, user, badge):
+        task = functools.partial(self.make_template, user=user, badge=badge)
+        task = self.bot.loop.run_in_executor(None, task)
+        try:
+            template = await asyncio.wait_for(task, timeout=60)
+        except asyncio.TimeoutError:
+            return
+        if user.is_avatar_animated():
+            avatar = Image.open(await self.dl_image(user.avatar_url_as(format="gif")))
+            task = functools.partial(self.make_animated_gif, template=template, avatar=avatar)
+            task = self.bot.loop.run_in_executor(None, task)
+            try:
+                temp = await asyncio.wait_for(task, timeout=60)
+            except asyncio.TimeoutError:
+                return
+            
+        else:
+            avatar = Image.open(await self.dl_image(user.avatar_url_as(format="png")))
+            task = functools.partial(self.make_badge, template=template, avatar=avatar)
+            task = self.bot.loop.run_in_executor(None, task)
+            try:
+                temp = await asyncio.wait_for(task, timeout=60)
+            except asyncio.TimeoutError:
+                return
+            
+        temp.seek(0)
+        return temp
+
+    async def get_badge(self, badge_name, guild=None):
+        if guild is None:
+            guild_badges = []
+        else:
+            guild_badges = await self.config.guild(guild).badges()
+        all_badges = await self.config.badges() + guild_badges
+        to_return = None
+        for badge in all_badges:
+            if badge_name.lower() in badge["badge_name"].lower():
+                to_return = await Badge.from_json(badge)
+        return to_return
+
+    @commands.group(aliases=["badge"])
     async def badges(self, ctx, *, badge):
         """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
+        guild = ctx.message.guild
+        user = ctx.message.author
         if badge.lower() == "list":
             await ctx.invoke(self.listbadges)
             return
-        is_badge = False
-        for template in blank_template:
-            if badge.lower() in template.lower():
-                badge = template
-                is_badge = True
-        if not is_badge:
-            await ctx.send("{} badge doesn't exist yet!".format(badge))
+        badge = await self.get_badge(badge, guild)
+        if badge is None:
+            await ctx.send_help()
             return
-        user = ctx.message.author
-        avatar = user.avatar_url if user.avatar_url != "" else user.default_avatar_url
-        ext = "png"
-        if "gif" in avatar:
-            ext = "gif"
         async with ctx.channel.typing():
-            await self.create_badge(user, badge)
-            image = discord.File(str(cog_data_path(self)) + "/temp/tempbadge." + ext)
+            badge_img = await self.create_badge(user, badge)
+            if badge_img is None:
+                await ctx.send("Something went wrong sorry!")
+                return
+            image = discord.File(badge_img)
             await ctx.send(file=image)
+
+
+    @commands.command(pass_context=True)
+    async def listbadges(self, ctx):
+        guild = ctx.message.guild
+        global_badges = await self.config.badges()
+        guild_badges =  await self.config.guild(guild).badges()
+        msg = ", ".join(badge["badge_name"] for badge in global_badges)
+        em = discord.Embed()
+        #for badge in await self.config.badges():
+        em.add_field(name="Global Badges", value=msg)
+        if guild_badges != []:
+            em.add_field(name="Global Badges", value=", ".join(badge["badge_name"] for badge in guild_badges))
+        await ctx.send(embed=em)
+    
+    
