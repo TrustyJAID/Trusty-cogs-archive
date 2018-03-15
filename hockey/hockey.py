@@ -162,7 +162,7 @@ class Hockey:
                         games.remove(link)
                     except:
                         pass
-                await asyncio.sleep(120)
+                await asyncio.sleep(60)
             print("Games Done Playing")
             if not posted_standings:
                 await self.post_automatic_standings()
@@ -374,6 +374,14 @@ class Hockey:
                 except Exception as e:
                     print("something wrong with {} {}: {}".format(team, goal, e))
                     pass
+            try:
+                team_list.remove(team_data)
+                del team_data["goal_id"][goal]
+                team_list.append(team_data)
+                await self.config.teams.set(team_list)
+            except Exception as e:
+                print(e)
+                return
         return
                     
 
