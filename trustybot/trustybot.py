@@ -4,7 +4,8 @@ import aiohttp
 import discord
 import asyncio
 from discord.ext import commands
-from redbot.core import checks
+from redbot.core import checks, bank
+from redbot.core.utils.chat_formatting import pagify, box
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.data_manager import cog_data_path
 from .data import links, messages
@@ -50,6 +51,19 @@ class TrustyBot:
         await ctx.message.delete()
         await ctx.send(embed=em)
 
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def checkcheater(self, ctx, user_id):
+        is_cheater = False
+        for guild in self.bot.guilds:
+            print(guild.owner.id)
+            if guild.owner.id == user_id:
+                is_cheater = True
+                await ctx.send("<@{}> is guild owner of {}".format(user_id, guild.name))
+        if not is_cheater:
+            await ctx.send("Not a cheater")
+
+
 
     async def on_message(self, message):
         if len(message.content) < 2:
@@ -58,7 +72,7 @@ class TrustyBot:
         msg = message.content
         channel = message.channel
         guild = message.guild
-        if "fuck" in msg:
+        if "fuck" in msg.lower():
             if guild is not None:
                 if guild.id in [321105104931389440, 402161292644712468]:
                     async with channel.typing():
@@ -107,6 +121,58 @@ class TrustyBot:
         print(ctx.message.content)
         await ctx.send(msg)
 
+    @commands.command(aliases=["sl"])
+    async def serverleaderboard(self, ctx: commands.Context, top: int = 10):
+        """Prints out the leaderboard
+        Defaults to top 10"""
+        # Originally coded by Airenkun - edited by irdumb, rewritten by Palm__ for v3
+        guild = ctx.guild
+        if top < 1:
+            top = 10
+        if await bank.is_global():
+            bank_list = [x for x in await bank.get_global_accounts() if guild.get_member_named(x.name) is not None]
+            bank_sorted = sorted(bank_list,
+                                 key=lambda x: x.balance, reverse=True)
+        else:
+            bank_sorted = sorted(await bank.get_guild_accounts(guild),
+                                 key=lambda x: x.balance, reverse=True)
+        if len(bank_sorted) < top:
+            top = len(bank_sorted)
+        topten = bank_sorted[:top]
+        highscore = ""
+        place = 1
+        for acc in topten:
+            dname = str(acc.name)
+            if len(dname) >= 23 - len(str(acc.balance)):
+                dname = dname[:(23 - len(str(acc.balance))) - 3]
+                dname += "... "
+            highscore += str(place).ljust(len(str(top)) + 1)
+            highscore += dname.ljust(23 - len(str(acc.balance)))
+            highscore += str(acc.balance) + "\n"
+            place += 1
+        if highscore != "":
+            for page in pagify(highscore, shorten_by=12):
+                await ctx.send(box(page, lang="py"))
+        else:
+            await ctx.send(_("There are no accounts in the bank."))
+
+    @commands.command()
+    async def oof(self, ctx):
+        emojis = ["🅾", "🇴", "🇫"]
+        channel = ctx.message.channel
+        guild = ctx.message.guild
+        if not channel.permissions_for(guild.me).manage_messages:
+            async for message in channel.history(limit=2):
+                msg = message
+            for emoji in emojis:
+                await message.add_reaction(emoji)
+        else:
+            await ctx.message.delete()
+            async for message in channel.history(limit=1):
+                msg = message
+            for emoji in emojis:
+                await message.add_reaction(emoji)
+
 
     @commands.command()
     async def pingtime(self, ctx):
@@ -143,28 +209,15 @@ class TrustyBot:
 
     @commands.command(pass_context=True)
     @checks.is_owner()
-    async def testcu(self, ctx):
+    async def testcu(self, ctx, *, category):
         guild = ctx.message.guild
-        for chn in guild.channels:
+        for cat in guild.categories:
+            if category.lower() == cat.name.lower():
+                category = cat
+                break
+        channel = await guild.create_text_channel("test", category=category)
+        print(channel.id)
 
-            # await self.bot.send_message(channel, "backing up {}".format(chn.name))
-            try:
-                async for message in self.bot.logs_from(chn, limit=10000000):
-                    if message.content.startswith(">"):
-                        try:
-                            print(message.content)
-                            await self.bot.delete_message(message)
-                        except:
-                            print("can't delete message")
-                    if not message.author.bot and message.embeds != []:
-                        try:
-                            await self.bot.delete_message(message)
-                        except:
-                            print("can't delete message")
-            except Exception as e:
-                print("{} | {}".format(chn.name, e))
-        
-        
 
     @commands.command(pass_context=True)
     async def avatar(self, ctx, member:discord.Member=None):
@@ -533,7 +586,7 @@ class TrustyBot:
             await ctx.send(choice(self.donotdo))
 
     @commands.command(hidden=False)
-    async def halp(self, user=None):
+    async def halp(self,ctx, user=None):
         """How to ask for help!"""
         msg = "{} please type `;help` to be PM'd all my commands! :smile: or type `;guildhelp` to get an invite and I can help you personally."
         if user is None:
