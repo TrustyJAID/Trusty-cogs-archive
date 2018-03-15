@@ -155,6 +155,7 @@ class Badges:
         temp = BytesIO()
         template.save(temp, format="PNG")
         temp.name = "temp.gif"
+        return temp
 
     async def create_badge(self, user, badge):
         task = functools.partial(self.make_template, user=user, badge=badge)
