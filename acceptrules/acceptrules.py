@@ -70,16 +70,17 @@ class AcceptRules:
         if server.id not in self.settings:
             return
         channel = discord.Object(id=self.settings[server.id]["channel"])
-        await self.bot.send_message(channel, member.mention)
-        message = await self.bot.send_message(channel, self.settings[server.id]["rules"])
+        message = await self.bot.send_message(channel, "{} {}".format(member.mention, self.settings[server.id]["rules"]))
         role = self.settings[server.id]["role"]
         await self.bot.add_reaction(message, "🇾")
         await self.bot.add_reaction(message, "🇳")
         answer = await self.bot.wait_for_reaction(emoji=["🇾", "🇳"], user=member, message=message)
         if answer.reaction.emoji == "🇾":
             await self.bot.add_roles(member, self.getroles(server.roles, role))
+            await self.bot.delete_message(message)
         if answer.reaction.emoji == "🇳":
             await self.bot.kick(member)
+            await self.bot.delete_message(message)
             
 def check_folder():
     if not os.path.exists("data/acceptrules"):
