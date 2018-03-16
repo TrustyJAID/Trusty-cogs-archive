@@ -9,23 +9,23 @@ from random import choice
 import time
 
 
-class TarotReading:
+class Tarot:
     """It's time to get your fortune!!!"""
 
     def __init__(self, bot):
         self.bot = bot
-        self.tarot = dataIO.load_json("data/tarot/tarot.json")
+        self.tarot_cards = dataIO.load_json("data/tarot/tarot.json")
 
     def get_colour(self):
         colour =''.join([choice('0123456789ABCDEF')for x in range(6)])
         return int(colour, 16)
 
     @commands.group(pass_context=True)
-    async def tarots(self, ctx):
+    async def tarot(self, ctx):
         if ctx.invoked_subcommand is None:
             await send_cmd_help(ctx)
     
-    @tarots.command(name="life", pass_context=True)
+    @tarot.command(name="life", pass_context=True)
     async def _life(self, ctx, user: discord.Member=None):
         card_meaning = ["Past", "Present", "Future", "Potential", "Reason"]
         if user is None:
@@ -40,12 +40,12 @@ class TarotReading:
                               colour=discord.Colour(value=self.get_colour()))
         number = 0
         for card in cards:
-            embed.add_field(name="{0}: {1}".format(card_meaning[number], self.tarot[str(card)]["card_name"]),
-                            value=self.tarot[str(card)]["card_meaning"])
+            embed.add_field(name="{0}: {1}".format(card_meaning[number], self.tarot_cards[str(card)]["card_name"]),
+                            value=self.tarot_cards[str(card)]["card_meaning"])
             number += 1
         await self.bot.send_message(ctx.message.channel, embed=embed)
     
-    @tarots.command(name="reading", pass_context=True)
+    @tarot.command(name="reading", pass_context=True)
     async def _reading(self, ctx, user: discord.Member=None):
         card_meaning = ["Past", "Present", "Future", "Potential", "Reason"]
         if user is None:
@@ -58,28 +58,28 @@ class TarotReading:
                               colour=discord.Colour(value=self.get_colour()))
         number = 0
         for card in cards:
-            embed.add_field(name="{0}: {1}".format(card_meaning[number], self.tarot[str(card)]["card_name"]),
-                            value=self.tarot[str(card)]["card_meaning"])
+            embed.add_field(name="{0}: {1}".format(card_meaning[number], self.tarot_cards[str(card)]["card_name"]),
+                            value=self.tarot_cards[str(card)]["card_meaning"])
             number += 1
         await self.bot.send_message(ctx.message.channel, embed=embed)
 
 
-    @tarots.command(name="card", pass_context=True)
+    @tarot.command(name="card", pass_context=True)
     async def _card(self, ctx, *, msg=None):
         user = ctx.message.author.id
         # msg = message.content
         card = None
 
         if msg is None:
-            card = self.tarot[str(random.randint(1, 78))]
+            card = self.tarot_cards[str(random.randint(1, 78))]
 
         elif msg.isdigit() and int(msg) > 0 and int(msg) < 79:
-            card = self.tarot[str(msg)]
+            card = self.tarot_cards[str(msg)]
         
         elif not msg.isdigit():
-            for cards in self.tarot:
-                if msg.lower() in self.tarot[cards]["card_name"].lower():
-                    card = self.tarot[cards]
+            for cards in self.tarot_cards:
+                if msg.lower() in self.tarot_cards[cards]["card_name"].lower():
+                    card = self.tarot_cards[cards]
             if card is None:
                 await self.bot.say("That card does not exist!")
                 return
@@ -93,4 +93,4 @@ class TarotReading:
 
 
 def setup(bot):
-    bot.add_cog(TarotReading(bot))
+    bot.add_cog(Tarot(bot))
