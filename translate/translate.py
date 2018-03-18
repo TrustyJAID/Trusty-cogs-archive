@@ -39,7 +39,7 @@ class Translate:
     @commands.command(pass_context=True)
     async def translate(self, ctx, to_language, *, message):
         if await self.config.api_key() is None:
-            await self.bot.say("The bot owner needs to set an api key first!")
+            await ctx.send("The bot owner needs to set an api key first!")
             return
         if to_language in self.flags:
             language_code = self.flags[to_language]["code"]
@@ -47,7 +47,7 @@ class Translate:
             try:
                 language_code = [self.flags[lang]["code"] for lang in self.flags if (self.flags[lang]["name"].lower() in to_language.lower()) or (self.flags[lang]["country"].lower() in to_language.lower())][0]
             except IndexError:
-                await self.bot.say("{} is not an available language!".format(to_language))
+                await ctx.send("{} is not an available language!".format(to_language))
                 return
         
         from_lang = await self.detect_language(message)
