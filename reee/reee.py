@@ -3,6 +3,7 @@ from discord.ext import commands
 from redbot.core import Config
 from redbot.core import checks
 from redbot.core.data_manager import bundled_data_path
+import aiohttp
 import io
 from PIL import Image
 
@@ -18,6 +19,10 @@ class Reee:
         self.config = Config.get_conf(self, 1545234853)
         default_guild = {"zio":False, "reee":False, "tank":False}
         self.config.register_guild(**default_guild)
+        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+
+    def __unload(self):
+        self.session.close()
     
     async def on_message(self, message):
         if message.guild is None:
@@ -46,7 +51,7 @@ class Reee:
             for word in msg.split(" "):
                 if "taaa" in word:
                     await channel.trigger_typing()
-                    file = await self.change_size_tank(len(word)-3)
+                    file = await self.change_size_tank(len(word)-3, guild)
                     await message.channel.send(file=file)
             
     async def change_size_reee(self, size):
@@ -66,9 +71,16 @@ class Reee:
         im.save(byte_array, format="PNG")
         return discord.File(byte_array.getvalue(), filename="zio.png")
 
-    async def change_size_tank(self, size):
+    async def change_size_tank(self, size, guild):
+        async with self.session.get(guild.icon_url_as(format="png", size=128)) as resp:
+            test = await resp.read()
+        icon = Image.open(io.BytesIO(test))
+        icon.convert("RGBA")
+        # icon.thumbnail((190, 190), Image.ANTIALIAS)
         length, width = self.smallest
         im = Image.open(str(bundled_data_path(self)) + "/tank.png")
+        im.convert("RGBA")
+        im.paste(icon, (1000,480))
         im.thumbnail((length*size, width*size), Image.ANTIALIAS)
         byte_array = io.BytesIO()
         im.save(byte_array, format="PNG")
