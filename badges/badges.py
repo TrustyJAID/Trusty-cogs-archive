@@ -65,20 +65,24 @@ class Badges:
             return BytesIO(test)
 
     def make_template(self, user, badge):
-        username = user.display_name
-        userid = user.id
-        department = "GENERAL SUPPORT" if user.top_role.name == "@everyone" else user.top_role.name.upper()
-        status = user.status
-        if str(user.status) == "online":
+        if user is discord.Member:
+            department = "GENERAL SUPPORT" if user.top_role.name == "@everyone" else user.top_role.name.upper()
+            status = user.status
+            level = str(len(user.roles))
+        else:
+            department = "GENERAL SUPPORT"
+            status = "online"
+            level = "1"
+        if str(status) == "online":
             status = "ACTIVE"
-        if str(user.status) == "offline":
+        if str(status) == "offline":
             status = "COMPLETING TASK"
-        if str(user.status) == "idle":
+        if str(status) == "idle":
             status = "AWAITING INSTRUCTIONS"
-        if str(user.status) == "dnd":
+        if str(status) == "dnd":
             status = "MIA"
         barcode = BytesIO()
-        temp_barcode = generate("code39", str(userid), writer=ImageWriter(), output=barcode)
+        temp_barcode = generate("code39", str(user.id), writer=ImageWriter(), output=barcode)
         barcode = Image.open(barcode)
         barcode = self.remove_white_barcode(barcode)
         fill = (0, 0, 0) # text colour fill
@@ -103,19 +107,19 @@ class Badges:
         
         draw = ImageDraw.Draw(template)
         # adds username
-        draw.text((225, 330), str(username), fill=fill, font=font1)
+        draw.text((225, 330), str(user.display_name), fill=fill, font=font1)
         # adds ID Class
         draw.text((225, 400), badge.code + "-" + str(user).split("#")[1], fill=fill, font=font1)
         # adds user id
-        draw.text((250, 115), str(userid), fill=fill, font=font2)
+        draw.text((250, 115), str(user.id), fill=fill, font=font2)
         # adds user status
         draw.text((250, 175), status, fill=fill, font=font2)
         # adds department from top role
         draw.text((250, 235), department, fill=fill, font=font2)
         # adds user level
-        draw.text((420, 475), "LEVEL " + str(len(user.roles)), fill="red", font=font1)
+        draw.text((420, 475), "LEVEL " + level, fill="red", font=font1)
         # adds user level
-        if badge.badge_name != "discord":
+        if badge.badge_name != "discord" and user is discord.Member:
           draw.text((60, 585), str(user.joined_at), fill=fill, font=font2)
         else:
           draw.text((60, 585), str(user.created_at), fill=fill, font=font2)
