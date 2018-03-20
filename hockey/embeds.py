@@ -4,6 +4,7 @@ import aiohttp
 from datetime import datetime
 from redbot.core.context import RedContext
 from .teams import teams
+from .game import Game
         
 
 async def division_standing_embed(post_list, page=0):
@@ -257,49 +258,46 @@ async def roster_embed(post_list, page):
         em.add_field(name="Goals Against Average", value=goals_against_average)
     return em
 
+async def make_game_obj(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://statsapi.web.nhl.com" + url) as resp:
+            game_data = await resp.json()
+    data = await Game.from_json(game_data)
+    return data
+
+
 async def game_embed(post_list, page):
     game = post_list[page]
-    print("https://statsapi.web.nhl.com" + game["link"])
-    async with aiohttp.ClientSession() as session:
-        async with session.get("https://statsapi.web.nhl.com" + game["link"]) as resp:
-            game_data = await resp.json()
-    home_team = game_data["liveData"]["linescore"]["teams"]["home"]["team"]["name"]
-    home_shots = game_data["liveData"]["linescore"]["teams"]["home"]["shotsOnGoal"]
-    home_score = game_data["liveData"]["linescore"]["teams"]["home"]["goals"]
-    away_team = game_data["liveData"]["linescore"]["teams"]["away"]["team"]["name"]
-    away_shots = game_data["liveData"]["linescore"]["teams"]["away"]["shotsOnGoal"]
-    away_score = game_data["liveData"]["linescore"]["teams"]["away"]["goals"]
-    home_logo = teams[home_team]["logo"]
-    away_logo = teams[away_team]["logo"]
-    team_url = teams[home_team]["team_url"]
-    game_time = game["gameDate"]
-    timestamp = datetime.strptime(game_time, "%Y-%m-%dT%H:%M:%SZ")
-    game_state = game_data["gameData"]["status"]["abstractGameState"]
-    h_emoji = "<:{}>".format(teams[home_team]["emoji"])
-    a_emoji = "<:{}>".format(teams[away_team]["emoji"])
-    title = "{away} @ {home} {state}".format(away=away_team, home=home_team, state=game_state)
-    colour = int(teams[home_team]["home"].replace("#", ""), 16)
+    
+    if type(game) is dict:
+        data = await make_game_obj(game["link"])
+        print("https://statsapi.web.nhl.com" + game["link"])
+    else:
+        data = game
+    team_url = teams[data.home_team]["team_url"]
+    timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+    title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
+    colour = int(teams[data.home_team]["home"].replace("#", ""), 16)
+
     em = discord.Embed(timestamp=timestamp, colour=colour)
-    em.set_author(name=title, url=team_url, icon_url=home_logo)
-    em.set_thumbnail(url=home_logo)
-    em.set_footer(text="Game start ", icon_url=away_logo)
-    if game_state == "Preview":
-        em.add_field(name="Home Team", value="{} {}".format(h_emoji, home_team))
-        em.add_field(name="Away Team", value="{} {}".format(a_emoji, away_team))
-    if game_state != "Preview":
-        event = game_data["liveData"]["plays"]["allPlays"]
-        goals = [goal for goal in event if goal["result"]["eventTypeId"] == "GOAL"]
-        home_msg = "Goals: **{}** \nShots: **{}**".format(home_score, home_shots)
-        away_msg = "Goals: **{}** \nShots: **{}**".format(away_score, away_shots)
-        em.add_field(name="{} {} {}".format(h_emoji, home_team, h_emoji), value=home_msg)
-        em.add_field(name="{} {} {}".format(a_emoji, away_team, a_emoji), value=away_msg)
-        if goals != []:
+    em.set_author(name=title, url=team_url, icon_url=data.home_logo)
+    em.set_thumbnail(url=data.home_logo)
+    em.set_footer(text="Game start ", icon_url=data.away_logo)
+    if data.game_state == "Preview":
+        em.add_field(name="Home Team", value="{} {}".format(data.home_emoji, data.home_team))
+        em.add_field(name="Away Team", value="{} {}".format(data.away_emoji, data.away_team))
+    if data.game_state != "Preview":
+        home_msg = "Goals: **{}** \nShots: **{}**".format(data.home_score, data.home_shots)
+        away_msg = "Goals: **{}** \nShots: **{}**".format(data.away_score, data.away_shots)
+        em.add_field(name="{} {} {}".format(data.home_emoji, data.home_team, data.home_emoji), value=home_msg)
+        em.add_field(name="{} {} {}".format(data.away_emoji, data.away_team, data.away_emoji), value=away_msg)
+        if data.goals != []:
             goal_msg = ""
-            first_goals = [goal for goal in goals if goal["about"]["ordinalNum"] == "1st"]
-            second_goals = [goal for goal in goals if goal["about"]["ordinalNum"] == "2nd"]
-            third_goals = [goal for goal in goals if goal["about"]["ordinalNum"] == "3rd"]
-            ot_goals = [goal for goal in goals if goal["about"]["ordinalNum"] == "OT"]
-            so_goals = [goal for goal in goals if goal["about"]["ordinalNum"] == "SO"]
+            first_goals = [goal for goal in data.goals if goal["about"]["ordinalNum"] == "1st"]
+            second_goals = [goal for goal in data.goals if goal["about"]["ordinalNum"] == "2nd"]
+            third_goals = [goal for goal in data.goals if goal["about"]["ordinalNum"] == "3rd"]
+            ot_goals = [goal for goal in data.goals if goal["about"]["ordinalNum"] == "OT"]
+            so_goals = [goal for goal in data.goals if goal["about"]["ordinalNum"] == "SO"]
             list_goals = {"1st":first_goals, "2nd":second_goals, "3rd":third_goals, "OT":ot_goals, "SO":so_goals}
             for goals in list_goals:
                 ordinal = goals
@@ -308,13 +306,12 @@ async def game_embed(post_list, page):
                     goal_msg += "{} Goal By {}\n\n".format(goal["team"]["name"], goal["result"]["description"])
                 if goal_msg != "":
                     em.add_field(name="{} Period Goals".format(ordinal), value=goal_msg)
-        if game_state == "Live":
-            period_time_left = game_data["liveData"]["linescore"]["currentPeriodTimeRemaining"]
-            em.description = event[-1]["result"]["description"]
-            period = game_data["liveData"]["linescore"]["currentPeriodOrdinal"]
-            if period_time_left[0].isdigit():
-                msg = "{} Left in the {} period".format(period_time_left, period)
+        if data.game_state == "Live":
+            em.description = data.plays[-1]["result"]["description"]
+            period = data.period_ord
+            if data.period_time_left[0].isdigit():
+                msg = "{} Left in the {} period".format(data.period_time_left, period)
             else:
-                msg = "{} of the {} period".format(period_time_left, period)
+                msg = "{} of the {} period".format(data.period_time_left, period)
             em.add_field(name="Period", value=msg)
     return em
