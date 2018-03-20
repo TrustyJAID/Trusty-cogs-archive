@@ -7,7 +7,7 @@ default_team = {"channel":[], "created_channel":[], "goal_id":{}, "game_state":"
 class Game:
     def __init__(self, game_state:str, home_team: str, away_team:str, period:int,
                  home_shots:int, away_shots:int, home_score:int, away_score:int, game_start:str, goals:list,
-                 home_goals:list, away_goals:list, home_abr:str, away_abr:str, period_ord:str):
+                 home_goals:list, away_goals:list, home_abr:str, away_abr:str, period_ord:str, period_time_left:str, plays:list):
         super().__init__()
         self.game_state = game_state
         self.home_team = home_team
@@ -23,6 +23,8 @@ class Game:
         self.away_abr = away_abr
         self.period = period
         self.period_ord = period_ord
+        self.period_time_left = period_time_left
+        self.plays = plays
         self.game_start = game_start
         self.home_logo = teams[home_team]["logo"]
         self.away_logo = teams[away_team]["logo"]
@@ -45,6 +47,8 @@ class Game:
             "away_abr" : self.away_abr,
             "period" : self.period,
             "period_ord" : self.period_ord,
+            "period_time_left" : self.period_time_left,
+            "plays" : self.plays,
             "game_start" : self.game_start,
             "home_logo" : self.home_logo,
             "away_logo" : self.away_logo,
@@ -64,8 +68,12 @@ class Game:
 
         if "currentPeriodOrdinal" in data["liveData"]["linescore"]:
             period_ord = data["liveData"]["linescore"]["currentPeriodOrdinal"]
+            period_time_left = data["liveData"]["linescore"]["currentPeriodTimeRemaining"]
+            events = data["liveData"]["plays"]["allPlays"]
         else:
             period_ord = "0"
+            period_time_left = "0"
+            events = ["."]
         return cls(data["gameData"]["status"]["abstractGameState"],
                    data["gameData"]["teams"]["home"]["name"],
                    data["gameData"]["teams"]["away"]["name"],
@@ -80,5 +88,7 @@ class Game:
                    [goal for goal in goals if away_team in goal["team"]["name"]],
                    data["gameData"]["teams"]["away"]["abbreviation"],
                    data["gameData"]["teams"]["home"]["abbreviation"],
-                   period_ord
+                   period_ord,
+                   period_time_left,
+                   events
                    )
