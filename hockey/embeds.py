@@ -69,7 +69,7 @@ async def get_shootout_display(goals):
     for goal in goals:
         if goal["result"]["eventTypeId"] in ["SHOT", "MISSED_SHOT"] and goal["about"]["ordinalNum"] == "SO":
             msg += miss
-        else:
+        if goal["about"]["ordinalNum"] == "SO":
             msg += score
     return msg
 
