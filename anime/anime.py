@@ -31,7 +31,7 @@ class Anime:
 
     def __unload(self):
         self.session.close()
-        # self.loop.cancel()
+        self.loop.cancel()
 
     @commands.group()
     async def anime(self, ctx):
@@ -248,7 +248,7 @@ class Anime:
                         if datetime.utcfromtimestamp(time) > time_now:
                             episode_data[ep] = time
                 except Exception as e:
-                    print("failed")
+                    print(e)
                     pass
             if episode_data != {}:
                 data[data.index(anime)]["episodes"] = episode_data
