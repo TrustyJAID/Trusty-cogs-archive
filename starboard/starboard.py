@@ -262,7 +262,7 @@ class Starboard:
             if "thumbnail" in embed:
                 em.set_thumbnail(url=embed["thumbnail"]["url"])
             if "description" in embed:
-                em.description = msg.clean_content + embed["description"]
+                em.description = "{} {}".format(msg.clean_content, embed["description"])
             if "description" not in embed:
                 em.description = msg.clean_content
             if "url" in embed:
