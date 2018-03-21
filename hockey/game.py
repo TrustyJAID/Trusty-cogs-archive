@@ -86,8 +86,8 @@ class Game:
                    goals,
                    [goal for goal in goals if home_team in goal["team"]["name"]],
                    [goal for goal in goals if away_team in goal["team"]["name"]],
-                   data["gameData"]["teams"]["away"]["abbreviation"],
                    data["gameData"]["teams"]["home"]["abbreviation"],
+                   data["gameData"]["teams"]["away"]["abbreviation"],
                    period_ord,
                    period_time_left,
                    events
