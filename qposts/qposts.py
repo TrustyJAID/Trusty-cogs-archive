@@ -103,8 +103,8 @@ class QPosts:
                 try:
                     async with self.session.get("{}/{}/catalog.json".format(self.url, board)) as resp:
                         data = await resp.json()
-                except:
-                    print("error grabbing board catalog {}".format(board))
+                except Exception as e:
+                    print("error grabbing board catalog {} {}".format(board, e))
                     continue
                 Q_posts = []
                 if board not in board_posts:
@@ -142,7 +142,7 @@ class QPosts:
                             await self.postq(post, "/{}/ {}".format(board, "EDIT"))
             await self.config.boards.set(board_posts)
             print("checking Q...")
-            asyncio.sleep(60)
+            await asyncio.sleep(60)
 
     async def get_quoted_post(self, qpost):
         html = qpost["com"]
