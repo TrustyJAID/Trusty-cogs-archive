@@ -79,7 +79,7 @@ class QPosts:
                         posts = await resp.json()
                     for post in posts["posts"]:
                         if "trip" in post:
-                            if post["trip"] in ["!UW.yye1fxo", "!ITPb.qbhqo"]:
+                            if post["trip"] in ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ"]:
                                 Q_posts.append(post)
             board_posts[board] = Q_posts
         await self.config.boards.set(board_posts)
@@ -120,7 +120,7 @@ class QPosts:
                             continue
                         for post in posts["posts"]:
                             if "trip" in post:
-                                if post["trip"] in ["!UW.yye1fxo"]:
+                                if post["trip"] in ["!UW.yye1fxo", "!xowAT4Z3VQ"]:
                                     Q_posts.append(post)
                 old_posts = [post_no["no"] for post_no in board_posts[board]]
 
