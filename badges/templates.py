@@ -1,5 +1,6 @@
 blank_template = [
              {"badge_name":"cia","code":"CIA", "file_name":"cia-template.png", "is_inverted":False}, 
+             {"badge_name":"Meme Warfare","code":"MW", "file_name":"meme-warfare-template.png", "is_inverted":False},
              {"badge_name":"discord","code":"DISCORD", "file_name":"discord-template.png", "is_inverted":False},
              {"badge_name":"nypd","code":"NYPD", "file_name":"nypd-template.png", "is_inverted":False},
              {"badge_name":"cicada","code":"CICADA", "file_name":"cicada-template.png", "is_inverted":False},
