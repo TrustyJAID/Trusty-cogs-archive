@@ -2,6 +2,8 @@ from discord.ext import commands
 from .teams import teams
 import asyncio
 from datetime import datetime, timezone
+import aiohttp
+from .standings import Standings
 
         
 async def get_team_role(guild, home_team, away_team):
@@ -22,6 +24,45 @@ async def get_team_role(guild, home_team, away_team):
     if away_role is None:
         away_role = away_team
     return home_role, away_role
+
+async def get_team_standings(style):
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
+            data = await resp.json()
+    conference = ["eastern", "western", "conference"]
+    division = ["metropolitan", "atlantic", "pacific", "central", "division"]
+    if style.lower() in conference:
+        e = [await Standings.from_json(team, record["division"]["name"], record["conference"]["name"])\
+                   for record in data["records"] for team in record["teamRecords"] \
+                   if record["conference"]["name"] =="Eastern"]
+        w = [await Standings.from_json(team, record["division"]["name"], record["conference"]["name"])\
+                   for record in data["records"] for team in record["teamRecords"] \
+                   if record["conference"]["name"] =="Western"]
+
+        index = 0
+        for div in [e, w]:
+            print(div[0].conference)
+            if div[0].conference.lower() == style and style != "conference":
+                index = [e, w].index(div)
+        return [e, w], index
+    if style.lower() in division:
+        new_list = []
+        for record in data["records"]:
+            new_list.append([await Standings.from_json(team, record["division"]["name"],\
+            record["conference"]["name"]) for team in record["teamRecords"]])
+        index = 0
+        for div in new_list:
+            if div[0].division.lower() == style and style != "division":
+                index = new_list.index(div)
+        return new_list, index
+    else:
+        all_teams =  [await Standings.from_json(team, record["division"]["name"], record["conference"]["name"])\
+                      for record in data["records"] for team in record["teamRecords"]]
+        index = 0
+        for team in all_teams:
+            if team.name.lower() == style:
+                index = all_teams.index(team)
+        return all_teams, index
 
 async def pick_team(ctx, team_list):
     """
@@ -53,14 +94,20 @@ async def pick_team(ctx, team_list):
                     return_team = team
             return return_team
 
-async def check_valid_team(team_name):
+async def check_valid_team(team_name, standings=False):
     """
         Checks if this is a valid team name or all teams
         useful for game day channel creation should impliment elsewhere
     """
     is_team = []
+    conference = ["eastern", "western", "conference"]
+    division = ["metropolitan", "atlantic", "pacific", "central", "division"]
     if team_name.lower() == "all":
         return ["all"]
+    if team_name in conference and standings:
+        return [team_name]
+    if team_name.lower() in division and standings:
+        return [team_name]
     for team in teams:
         if team_name.lower() in team.lower():
             is_team.append(team)

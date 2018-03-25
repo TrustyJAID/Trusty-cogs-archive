@@ -12,6 +12,7 @@ from .menu import hockey_menu
 from .embeds import *
 from .helper import *
 from .game import Game
+from.standings import Standings
 
 
 try:
@@ -175,7 +176,10 @@ class Hockey:
             if home["game_state"] != data.game_state:
                 
                 if not await self.config.created_gdc():
-                    await self.post_automatic_standings()
+                    try:
+                        await self.post_automatic_standings()
+                    except Exception as e:
+                        print(e)
                     await self.check_new_gdc()
                     await self.config.created_gdc.set(True)
                 await self.post_game_state(data)
@@ -387,9 +391,14 @@ class Hockey:
         return
 
     async def check_new_gdc(self):
+        print("Checking GDC")
         game_list = await self.get_day_games()
+        # print(game_list)
         for guilds in await self.config.all_guilds():
+            # print(guilds)
             guild = self.bot.get_guild(guilds)
+            if guild is None:
+                continue
             if not await self.config.guild(guild).create_channels():
                 continue
             team = await self.config.guild(guild).gdc_team()
@@ -402,11 +411,14 @@ class Hockey:
                     cur_channel = self.bot.get_channel(cur_channels[0])
                 except Exception as e:
                     print(e)
-                    cur_channels = None
-                print(cur_channel.name)
-                if cur_channel.name != chn_name.lower():
+                    cur_channel = None
+                # print(cur_channel.name)
+                if cur_channel is None:
+                    await self.create_gdc(guild)
+                elif cur_channel.name != chn_name.lower():
                     await self.delete_gdc(guild)
                     await self.create_gdc(guild)
+                
             else:
                 await self.delete_gdc(guild)
                 for game in game_list:
@@ -418,6 +430,7 @@ class Hockey:
             if no game object is passed it looks for the set team for the guild
             returns None if not setup
         """
+        print("making Game Day channels")
         category = self.bot.get_channel(await self.config.guild(guild).category())
         if category is None:
             # Return none if there's no category to create the channel
@@ -447,10 +460,16 @@ class Hockey:
                                                    next_game.home_team, next_game.home_emoji,\
                                                    timestamp.year, timestamp.month, timestamp.day)
         await new_chn.edit(topic=game_msg)
-        em = await game_embed([next_game], 0)
+        em = await game_state_embed(next_game, team)
         preview_msg = await new_chn.send(embed=em)
         if new_chn.permissions_for(guild.me).manage_messages:
             await preview_msg.pin()
+        if new_chn.permissions_for(guild.me).add_reactions:
+            try:
+                await preview_msg.add_reaction(self.teams[next_game.home_team]["emoji"])
+                await preview_msg.add_reaction(self.teams[next_game.away_team]["emoji"])
+            except Exception as e:
+                print(e)
 
     async def delete_gdc(self, guild):
         """
@@ -520,47 +539,36 @@ class Hockey:
             run when new games for the day is updated
         """
         print("Updating Standings.")
-        async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
-            data = await resp.json()
-        conference = ["eastern", "western"]
-        division = ["metropolitan", "atlantic", "pacific", "central"]
-        division_data = []
-        conference_data = []
-        eastern = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Eastern"]
-        western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
-        conference_data.append(eastern)
-        conference_data.append(western)
-        division_data = [record for record in data["records"]]
         all_guilds = await self.config.all_guilds()
         # print(all_guilds)
         for guilds in all_guilds:
-            # print(guilds)
-            guild = self.bot.get_guild(guilds)
+            try:
+                guild = self.bot.get_guild(guilds)
+                print(guild.name)
+            except:
+                continue
             if await self.config.guild(guild).post_standings():
                 # print("hi there")
-                try:
 
-                    search = await self.config.guild(guild).standings_type()
-                    channel = self.bot.get_channel(await self.config.guild(guild).standings_channel())
-                    message = await channel.get_message(await self.config.guild(guild).standings_msg())
-                    # print("{}-{}-{}".format(search, channel.id, message.id))
-                except Exception as e:
-                    print(e)
+                search = await self.config.guild(guild).standings_type()
+                if search is None:
                     continue
-                if search.lower() in division:
-                    division_search = None
-                    for record in division_data:
-                        if search.lower() == record["division"]["name"].lower():
-                            division_search = record
-                    index = division_data.index(division_search)
-                    em = await division_standing_embed(division_data, index)
-                elif search.lower() in conference:
-                    if search.lower() == "eastern":
-                        em = await conference_standing_embed(conference_data, 0)
-                    else:
-                        em = await conference_standing_embed(conference_data, 1)
-                elif search.lower() == "all":
-                    em = await all_standing_embed(division_data)
+                standings_channel = await self.config.guild(guild).standings_channel()
+                if standings_channel is None:
+                    continue
+                channel = self.bot.get_channel(standings_channel)
+                if channel is None:
+                    continue
+                standings_msg = await self.config.guild(guild).standings_msg()
+                if standings_msg is None:
+                    continue
+                message = await channel.get_message(standings_msg)
+
+                standings, page = await get_team_standings(search)
+                if search != "all":
+                    em = await build_standing_embed(await get_team_standings(search))
+                else:
+                    em = await all_standing_embed(await get_team_standings(search))
                 if message is not None:
                     await message.edit(embed=em)
 
@@ -597,13 +605,23 @@ class Hockey:
             if create_channels is None:
                 return
             team = await self.config.guild(guild).gdc_team()
+            if team is None:
+                team = "None"
             channels = await self.config.guild(guild).gdc()
             category = self.bot.get_channel(await self.config.guild(guild).category())
             delete_gdc = await self.config.guild(guild).delete_gdc()
             if category is not None:
                 category = category.name
             if channels is not None:
-                created_channels = ", ".join(self.bot.get_channel(channel).mention for channel in channels)
+                created_channels = ""
+                for channel in channels:
+                    chn = self.bot.get_channel(channel)
+                    if chn is not None:
+                        created_channels += chn.mention
+                    else:
+                        created_channels += "<#{}>\n".format(channel)
+                if len(channels) == 0:
+                    created_channels = "None"
             else:
                 created_channels = "None"
 
@@ -633,6 +651,17 @@ class Hockey:
             all_teams.append(team)
 
         await self.config.teams.set(all_teams)
+        await ctx.send("Done.")
+
+    @hockey_commands.command(hidden=True)
+    @checks.is_owner()
+    async def remove_broken_guild(self, ctx):
+        all_guilds = await self.config.all_guilds()
+        for guilds in await self.config.all_guilds():
+            guild = self.bot.get_guild(guilds)
+            if guild is None:
+                await self.config._clear_scope(Config.GUILD, str(guilds))
+
         await ctx.send("Done.")
 
 
@@ -887,75 +916,47 @@ class Hockey:
             except:
                 await ctx.message.channel.send("{} is not an available role!".format(team))
 
-
     @hockey_commands.command(pass_context=True)
     async def standings(self, ctx, *, search=None):
         """Displays current standings for each division"""
-        async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
-            data = await resp.json()
-        conference = ["eastern", "western", "conference"]
-        division = ["metropolitan", "atlantic", "pacific", "central", "division"]
-        try:
-            team = [team_name for team_name in self.teams if search.lower() in team_name.lower()][0]
-        except:
-            team = None
-        division_data = []
-        conference_data = []
-        team_data = []
-        eastern = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Eastern"]
-        western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
-        all_teams = [team for record in data["records"] for team in record["teamRecords"]]
-        conference_data.append(eastern)
-        conference_data.append(western)
-        all_teams = sorted(all_teams, key=lambda k: int(k["leagueRank"]))
-        division_data = [record for record in data["records"]]
-        if search is None or search.lower() in division:
-            division_search = None
-            if search is not None:
-                for record in division_data:
-                    if search.lower() in record["division"]["name"].lower():
-                        division_search = record
-            if division_search is not None:
-                index = division_data.index(division_search)
-                await hockey_menu(ctx, "division", division_data, None, index)
-            else:
-                await hockey_menu(ctx, "division", division_data)
-        elif search.lower() in conference:
-            if search.lower() == "eastern":
-                await hockey_menu(ctx, "conference", conference_data, None, 0)
-            else:
-                await hockey_menu(ctx, "conference", conference_data, None, 1)
-        elif search.lower() == "all":
-            await hockey_menu(ctx, "all", division_data)
-        elif team is not None or "team" in search.lower():
-            if team is None:
-                await hockey_menu(ctx, all_teams, "teams")
-            else:
-                team_data = None
-                for teams in all_teams:
-                    if teams["team"]["name"] == team:
-                        team_data = teams
-                index = all_teams.index(team_data)
-                await hockey_menu(ctx, "teams", all_teams, None, index)
+        if search is None:
+            standings, page = await get_team_standings("division")
+            await hockey_menu(ctx, "standings", standings)
+            return
+        search_r = await check_valid_team(search, True)
+        if search_r == []:
+            await ctx.message.channel.send( "{} Does not appear to be a valid standing type!".format(search))
+            return
+        if len(search_r) > 1:
+            search_r = await pick_team(ctx, search)
+        else:
+            search_r = search_r[0]
+
+        print(search_r)
+        standings, page = await get_team_standings(search_r.lower())
+        if search != "all":
+            await hockey_menu(ctx, "standings", standings, None, page)
+        else:
+            await hockey_menu(ctx, "all", standings, None, page)
 
     @hockey_commands.command(pass_context=True, aliases=["score"])
     async def games(self, ctx, *, team=None):
         """Gets all NHL games this season or selected team"""
         games_list = []
         page_num = 0
-        today = datetime.now()
+        today = datetime.utcnow()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
               .format(base=self.url, year=YEAR_START, year2=YEAR_FINISH)
         
         if team is not None:
-            team = await check_valid_team(team)
-            if team == []:
+            team_search = await check_valid_team(team)
+            if team_search == []:
                 await ctx.message.channel.send( "{} Does not appear to be an NHL team!".format(team))
                 return
-            if len(team) > 1:
-                team = await pick_team(ctx, team)
+            if len(team_search) > 1:
+                team = await pick_team(ctx, team_search)
             else:
-                team = team[0]
+                team = team_search[0]
             url += "&teamId={}".format(self.teams[team]["id"])
         async with self.session.get(url) as resp:
             data = await resp.json()

@@ -15,11 +15,12 @@ async def hockey_menu(ctx:RedContext, display_type:str, post_list: list,
                          page=0, timeout: int=30):
         """menu control logic for this taken from
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
-
+        if display_type == "standings":
+            em = await build_standing_embed(post_list, page)
         if display_type == "division":
             em = await division_standing_embed(post_list, page)
         if display_type == "conference":
-            em = await conference_standing_embed(post_list, page)
+            em = await conference_standing_embed_test(post_list, page)
         if display_type == "teams":
             em = await team_standing_embed(post_list, page)
         if display_type == "all":
