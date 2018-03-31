@@ -379,9 +379,14 @@ class Hockey:
                     continue
                 message = await channel.get_message(message_id)
                 guild = message.guild
+                game_day_channels = await self.config.guild(guild).gdc()
                 for roles in guild.roles:
                     if roles.name == goal["team"]["name"] + " GOAL":
                         role = roles
+                if game_day_channels is not None:
+                        # We don't want to ping people in the game day channels twice
+                        if channel.id in game_day_channels:
+                            role = None
                 if role is None or "missed" in event.lower():
                     await message.edit(embed=em)
                 else:  
@@ -653,17 +658,6 @@ class Hockey:
         await self.config.teams.set(all_teams)
         await ctx.send("Done.")
 
-    @hockey_commands.command(hidden=True)
-    @checks.is_owner()
-    async def remove_broken_guild(self, ctx):
-        all_guilds = await self.config.all_guilds()
-        for guilds in await self.config.all_guilds():
-            guild = self.bot.get_guild(guilds)
-            if guild is None:
-                await self.config._clear_scope(Config.GUILD, str(guilds))
-
-        await ctx.send("Done.")
-
 
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
@@ -691,6 +685,21 @@ class Hockey:
             chn = await self.config.channel(channel).team()
             print(chn)
 
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def cleargdc(self, ctx):
+        guild = ctx.message.guild
+        good_channels = []
+        for channels in await self.config.guild(guild).gdc():
+            channel = self.bot.get_channel(channels)
+            if channel is None:
+                await self.config._clear_scope(Config.CHANNEL, str(channels))
+                print(channels)
+                continue
+            else:
+                good_channels.append(channel.id)
+        await self.config.guild(guild).gdc.set(good_channels)
+
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
     async def clear_broken_channels(self, ctx):
@@ -700,9 +709,45 @@ class Hockey:
                 await self.config._clear_scope(Config.CHANNEL, str(channels))
                 print(channels)
                 continue
-            if await self.config.channel(channel).to_delete():
-                await self.config._clear_scope(Config.CHANNEL, str(channels))
+            # if await self.config.channel(channel).to_delete():
+                # await self.config._clear_scope(Config.CHANNEL, str(channels))
         await ctx.send("done")
+
+    @hockey_commands.command(hidden=True)
+    @checks.is_owner()
+    async def remove_broken_guild(self, ctx):
+        all_guilds = await self.config.all_guilds()
+        for guilds in await self.config.all_guilds():
+            guild = self.bot.get_guild(guilds)
+            if guild is None:
+                await self.config._clear_scope(Config.GUILD, str(guilds))
+            else:
+                if not await self.config.guild(guild).create_channels():
+                    await self.config.guild(guild).gdc.set([])
+
+        await ctx.send("Done.")
+
+    @hockey_commands.command(hidden=True)
+    @checks.is_owner()
+    async def stats(self, ctx):
+        all_channels = await self.config.all_channels()
+        all_guilds = await self.config.all_guilds()
+        guild_list = {}
+        for channels in all_channels.keys():
+            channel = self.bot.get_channel(channels)
+            if channel is None:
+                print(channels)
+                continue
+            if channel.guild.name not in guild_list:
+                guild_list[channel.guild.name] = 1
+            else:
+                guild_list[channel.guild.name] += 1
+        print(guild_list)
+        print(len(all_channels))
+        print(len(all_guilds))
+
+
+        await ctx.send("Done.")
 
 
     @gdc.command(name="delete")
@@ -715,6 +760,18 @@ class Hockey:
 
         if await self.config.guild(guild_id).create_channels():
             await self.delete_gdc(guild_id)
+        await ctx.send("Done.")
+
+    @gdc.command(name="create")
+    async def gdc_create(self, ctx, guild_id:discord.Guild=None):
+        """
+            Creates the next gdc for the server
+        """
+        if guild_id is None:
+            guild_id = ctx.message.guild
+
+        if await self.config.guild(guild_id).create_channels():
+            await self.create_gdc(guild_id)
         await ctx.send("Done.")
 
     @gdc.command(name="toggle")
@@ -944,7 +1001,7 @@ class Hockey:
         """Gets all NHL games this season or selected team"""
         games_list = []
         page_num = 0
-        today = datetime.utcnow()
+        today = datetime.now()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
               .format(base=self.url, year=YEAR_START, year2=YEAR_FINISH)
         

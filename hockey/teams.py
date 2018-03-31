@@ -117,7 +117,7 @@ teams={
         "home" : "#FF4C00",
         "id" : 22,
         "logo" : "https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png",
-        "team_url" : "http://www.edmontonoilers.com"
+        "team_url" : "https://youtu.be/xXwkD8N8TjY?t=1m3s"
     },
     "Florida Panthers" : {
         "away" : "#041E42",
