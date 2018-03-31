@@ -244,7 +244,7 @@ class AddImage:
                 break
 
             else:
-                seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+                seed = ''.join(random.sample(string.ascii_uppercase + string.digits, k=5))
                 filename = "{}-{}".format(seed, msg.attachments[0].filename[-5:])
                 
                 directory = cog_data_path(self) /str(guild.id)
@@ -294,7 +294,7 @@ class AddImage:
                 break
 
             else:
-                seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+                seed = ''.join(random.sample(string.ascii_uppercase + string.digits, k=5))
                 filename = "{}-{}".format(seed, msg.attachments[0].filename[-5:])
                 
                 directory = cog_data_path(self) /"global"
