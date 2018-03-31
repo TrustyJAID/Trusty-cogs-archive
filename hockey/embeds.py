@@ -37,14 +37,14 @@ async def game_state_embed(data, state):
 async def get_stats_msg(data):
     stats, home_i = await get_team_standings(data.home_team)
     msg = "GP:**{gp}** W:**{wins}** L:**{losses}\n**OT:**{ot}** PTS:**{pts}** S:**{streak}**\n"
+    streak_types = {"wins":"W", "losses":"L", "ot":"OT"}
     for team in stats:
         if team.name == data.away_team:
-            streak_types = {"wins":"W", "losses":"L", "ot":"OT"}
-            streak = "{} {}".format(team.streak, team.streak_type[0].upper())
+            streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
             away_str = msg.format(wins=team.wins, losses=team.losses,\
                          ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
         if team.name == data.home_team:
-            streak = "{}{}".format(team.streak, team.streak_type[0].upper())
+            streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
             home_str = msg.format(wins=team.wins, losses=team.losses,\
                          ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
     return home_str, away_str
