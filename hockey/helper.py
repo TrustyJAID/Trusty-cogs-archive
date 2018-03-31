@@ -113,6 +113,9 @@ async def check_valid_team(team_name, standings=False):
             is_team.append(team)
     return is_team
 
+def utc_to_local(utc_dt):
+    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
 async def get_chn_name(game):
     """
         Creates game day channel name
