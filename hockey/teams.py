@@ -84,7 +84,7 @@ teams={
         "conference" : "Eastern",
         "division" : "Metropolitan",
         "emoji" : "ColumbusBlueJackets:381568942839300107",
-        "home" : "#002654",
+        "home" : "#041E42",
         "id" : 29,
         "logo" : "https://nhl.bamcontent.com/images/photos/281726518/256x256/cut.png",
         "team_url" : "http://www.bluejackets.com"
@@ -104,7 +104,7 @@ teams={
         "conference" : "Eastern",
         "division" : "Atlantic",
         "emoji" : "DetroitRedWings:381568943162130442",
-        "home" : "#CE1126",
+        "home" : "#C8102E",
         "id" : 17,
         "logo" : "https://nhl.bamcontent.com/images/photos/281723286/256x256/cut.png",
         "team_url" : "http://www.detroitredwings.com"
@@ -164,7 +164,7 @@ teams={
         "conference" : "Western",
         "division" : "Central",
         "emoji" : "NashvillePredators:381568942944157706",
-        "home" : "#CE1126",
+        "home" : "#FFB81C",
         "id" : 18,
         "logo" : "https://nhl.bamcontent.com/images/photos/281721070/256x256/cut.png",
         "team_url" : "http://www.nashvillepredators.com"
@@ -190,7 +190,7 @@ teams={
         "team_url" : "http://www.newyorkislanders.com"
     },
     "New York Rangers" : {
-        "away" : "#CE1126",
+        "away" : "#C8102E",
         "conference" : "Eastern",
         "division" : "Metropolitan",
         "emoji" : "NewYorkRangers:381568942898151435",
