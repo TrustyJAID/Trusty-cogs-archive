@@ -2,11 +2,6 @@ from PIL import Image
 from PIL import ImageColor
 from PIL import ImageSequence
 import numpy as np
-import glob
-import os
-import json
-import numpy as np
-import os
 import aiohttp
 import discord
 from discord.ext import commands
@@ -21,7 +16,6 @@ class ImageMaker:
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-        self.files = "data/feels/"
 
     def __unload(self):
         self.session.close()
@@ -57,7 +51,7 @@ class ImageMaker:
             # ext = await self.make_feels(user)
             await ctx.send(file=file)
 
-    def make_animated_gif_beautiful(self, colour, avatar):
+    def make_beautiful_gif(self, avatar):
         gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
         img_list = []
         num = 0
@@ -80,7 +74,7 @@ class ImageMaker:
                 break
         return temp
 
-    def make_beautiful_img_beautiful(self, colour, avatar):
+    def make_beautiful_img(self, avatar):
         template = Image.open(str(bundled_data_path(self)) + "/beautiful.png")
         # print(template.info)
         template = template.convert("RGBA") 
@@ -92,7 +86,24 @@ class ImageMaker:
         temp.name = "beautiful.png"
         return temp
 
-    def make_animated_gif_feels(self, colour, avatar):
+    async def make_beautiful(self, user):
+
+        if user.is_avatar_animated():
+            avatar = Image.open(await self.dl_image(user.avatar_url_as(format="gif", size=128)))
+            task = functools.partial(self.make_beautiful_gif, avatar=avatar)
+            
+        else:
+            avatar = Image.open(await self.dl_image(user.avatar_url_as(format="png", size=128)))
+            task = functools.partial(self.make_beautiful_img, avatar=avatar)
+        task = self.bot.loop.run_in_executor(None, task)
+        try:
+            temp = await asyncio.wait_for(task, timeout=60)
+        except asyncio.TimeoutError:
+            return
+        temp.seek(0)
+        return temp
+
+    def make_feels_gif(self, colour, avatar):
         gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
         img_list = []
         num = 0
@@ -120,7 +131,7 @@ class ImageMaker:
                 break
         return temp
 
-    def make_feels_img_feels(self, colour, avatar):
+    def make_feels_img(self, colour, avatar):
         template = Image.open(str(bundled_data_path(self)) + "/pepetemplate.png")
         # print(template.info)
         template = template.convert("RGBA")
@@ -142,61 +153,22 @@ class ImageMaker:
         temp.name = "feels.png"
         return temp
 
-    async def make_beautiful(self, user):
-
-        if user.is_avatar_animated():
-            avatar = Image.open(await self.dl_image(user.avatar_url_as(format="gif", size=128)))
-            try:
-                colour = user.top_role.colour.to_rgb()
-            except:
-                colour = (255, 255, 255)
-            task = functools.partial(self.make_animated_gif_beautiful, colour=colour, avatar=avatar)
-            task = self.bot.loop.run_in_executor(None, task)
-            try:
-                temp = await asyncio.wait_for(task, timeout=60)
-            except asyncio.TimeoutError:
-                return
-        else:
-            avatar = Image.open(await self.dl_image(user.avatar_url_as(format="png", size=128)))
-            try:
-                colour = user.top_role.colour.to_rgb()
-            except:
-                colour = (0, 0, 0)
-            task = functools.partial(self.make_beautiful_img_beautiful, colour=colour, avatar=avatar)
-            task = self.bot.loop.run_in_executor(None, task)
-            try:
-                temp = await asyncio.wait_for(task, timeout=60)
-            except asyncio.TimeoutError:
-                return
-        temp.seek(0)
-        return temp
-
-
     async def make_feels(self, user):
+        try:
+            colour = user.top_role.colour.to_rgb()
+        except:
+            colour = (255, 255, 255)
 
         if user.is_avatar_animated():
             avatar = Image.open(await self.dl_image(user.avatar_url_as(format="gif", size=64)))
-            try:
-                colour = user.top_role.colour.to_rgb()
-            except:
-                colour = (255, 255, 255)
-            task = functools.partial(self.make_animated_gif_feels, colour=colour, avatar=avatar)
-            task = self.bot.loop.run_in_executor(None, task)
-            try:
-                temp = await asyncio.wait_for(task, timeout=60)
-            except asyncio.TimeoutError:
-                return
+            task = functools.partial(self.make_feels_gif, colour=colour, avatar=avatar)
         else:
             avatar = Image.open(await self.dl_image(user.avatar_url_as(format="png", size=64)))
-            try:
-                colour = user.top_role.colour.to_rgb()
-            except:
-                colour = (0, 0, 0)
-            task = functools.partial(self.make_feels_img_feels, colour=colour, avatar=avatar)
-            task = self.bot.loop.run_in_executor(None, task)
-            try:
-                temp = await asyncio.wait_for(task, timeout=60)
-            except asyncio.TimeoutError:
-                return
+            task = functools.partial(self.make_feels_img, colour=colour, avatar=avatar)
+        task = self.bot.loop.run_in_executor(None, task)
+        try:
+            temp = await asyncio.wait_for(task, timeout=60)
+        except asyncio.TimeoutError:
+            return
         temp.seek(0)
         return temp
