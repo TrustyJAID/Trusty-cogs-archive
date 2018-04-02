@@ -91,9 +91,9 @@ class Translate:
     async def on_raw_reaction_add(self,emoji, message_id, channel_id, user_id):
         """Translates the message based off the flag added"""
         channel = self.bot.get_channel(id=channel_id)
-        message = await channel.get_message(id=message_id)
         try:
             guild = channel.guild
+            message = await channel.get_message(id=message_id)
         except:
             return
         if await self.config.api_key() is None:
