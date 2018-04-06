@@ -40,11 +40,14 @@ class Starboard:
         return guild_emoji
 
     @commands.command()
-    async def star(self, ctx, msg_id):
-        channel = ctx.message.channel
-        try:
-            guild = channel.guild
-        except:
+    async def star(self, ctx, msg_id, channel_id=None):
+        if channel_id is None:
+            channel = ctx.message.channel
+        else:
+            channel = self.bot.get_channel(channel_id)
+        guild = channel.guild
+        if guild is None:
+            await ctx.send("This command can work in guilds only.")
             return
         try:
             msg = await channel.get_message(id=msg_id)
@@ -59,13 +62,6 @@ class Starboard:
             return
         if not await self.check_roles(user, msg.author, guild):
             return
-        if user.bot:
-            return
-        threshold = await self.config.guild(guild).threshold()
-        try:
-            count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
-        except IndexError:
-            count = 1
         emoji = await self.config.guild(guild).emoji()
         if await self.check_is_posted(guild, msg):
             channel = self.bot.get_channel(await self.config.guild(guild).channel())
