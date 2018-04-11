@@ -6,5 +6,5 @@
     "NAME" : "Chatterbot",
     "TAGS" : ["general"],
     "INSTALL_MSG" : "Talk to your bot and have it learn how to talk in conversations! Recommended you unload the cleverbot cog before running.",
-    "requirements": "chatterbot"
+    "REQUIREMENTS": ["chatterbot"]
 }
