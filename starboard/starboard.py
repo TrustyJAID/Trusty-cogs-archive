@@ -303,17 +303,17 @@ class Starboard:
         return em
 
   
-    async def on_raw_reaction_add(self, emoji, message_id, channel_id, user_id):
-        channel = self.bot.get_channel(id=channel_id)
+    async def on_raw_reaction_add(self, payload):
+        channel = self.bot.get_channel(id=payload.channel_id)
         try:
             guild = channel.guild
         except:
             return
         try:
-            msg = await channel.get_message(id=message_id)
+            msg = await channel.get_message(id=payload.message_id)
         except:
             return
-        user = guild.get_member(user_id)
+        user = guild.get_member(payload.user_id)
         if msg.channel.id in await self.config.guild(guild).ignore():
             return
         if msg.channel.id == await self.config.guild(guild).channel():
@@ -325,10 +325,10 @@ class Starboard:
         if user.bot:
             return
         react = await self.config.guild(guild).emoji()
-        if str(react) == str(emoji):
+        if str(react) == str(payload.emoji):
             threshold = await self.config.guild(guild).threshold()
             try:
-                count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(emoji)][0]
+                count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(payload.emoji)][0]
             except IndexError:
                 count = 0
             if await self.check_is_posted(guild, msg):
@@ -346,10 +346,7 @@ class Starboard:
                     return
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
             em = await self.build_embed(guild, msg)
-            post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
+            post_msg = await channel2.send("{} **#{}**".format(payload.emoji, count), embed=em)
             past_message_list = await self.config.guild(guild).messages()
             past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
             await self.config.guild(guild).messages.set(past_message_list)
-
-        else:
-            return
