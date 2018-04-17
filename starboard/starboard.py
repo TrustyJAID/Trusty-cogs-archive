@@ -336,7 +336,7 @@ class Starboard:
                 msg_id, count2 = await self.get_posted_message(guild, msg)
                 if msg_id is not None:
                     msg_edit = await channel.get_message(msg_id)
-                    await msg_edit.edit(content="{} **#{}**".format(emoji, count))
+                    await msg_edit.edit(content="{} **#{}**".format(payload.emoji, count))
                     return
 
             if count < threshold:
