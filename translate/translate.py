@@ -88,18 +88,18 @@ class Translate:
             await self.config.guild(guild).enabled.set(False)
             await ctx.send("{} has been removed from translated responses!".format(guild.name))
 
-    async def on_raw_reaction_add(self,emoji, message_id, channel_id, user_id):
+    async def on_raw_reaction_add(self, payload):
         """Translates the message based off the flag added"""
-        channel = self.bot.get_channel(id=channel_id)
+        channel = self.bot.get_channel(id=payload.channel_id)
         try:
             guild = channel.guild
-            message = await channel.get_message(id=message_id)
+            message = await channel.get_message(id=payload.message_id)
         except:
             return
         if await self.config.api_key() is None:
             return
         # check_emoji = lambda emoji: emoji in self.flags
-        if str(emoji) not in self.flags:
+        if str(payload.emoji) not in self.flags:
             return
         if not await self.config.guild(guild).enabled():
             return
@@ -109,11 +109,11 @@ class Translate:
             to_translate = message.clean_content
         num_emojis = 0
         for reaction in message.reactions:
-            if reaction.emoji == str(emoji):
+            if reaction.emoji == str(payload.emoji):
                 num_emojis = reaction.count
         if num_emojis > 1:
             return
-        target = self.flags[str(emoji)]["code"]
+        target = self.flags[str(payload.emoji)]["code"]
         from_lang = await self.detect_language(to_translate)
         translated_text = await self.translate_text(from_lang[0][0]["language"], target, to_translate)
         author = message.author
