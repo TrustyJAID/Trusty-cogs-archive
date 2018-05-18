@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Hockey commands",
+    "DESCRIPTION" : "Gather hockey information from nhl.com and display in discord.",
+    "DISABLED" : false,
+    "NAME" : "Hockey",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "User [p]hockey to see what commands are available."
+}

@@ -11,9 +11,9 @@ from pathlib import Path
 import os
 import string
 from .imageentry import ImageEntry
-from redbot.core.i18n import CogI18n
+from redbot.core.i18n import Translator
 
-_ = CogI18n("Alias", __file__)
+_ = Translator("Alias", __file__)
 
 class AddImage:
     def __init__(self, bot):
@@ -212,14 +212,7 @@ class AddImage:
         await self.config.images.set(all_imgs)
         await ctx.send("{} has been deleted globally!".format(cmd))
 
-
-    @commands.group(pass_context=True, no_pm=True, invoke_without_command=True)
-    async def addimage(self, ctx, cmd):
-        """Add images for the bot to upload per guild"""
-        if ctx.invoked_subcommand is None:
-            await ctx.invoke(self.add_image_guild, cmd=cmd)
-
-    @addimage.command(pass_context=True, name="guild")
+    @commands.command(pass_context=True, name="addimage")
     async def add_image_guild(self, ctx, cmd):
         """Add an image to direct upload."""
         author = ctx.message.author
@@ -269,7 +262,7 @@ class AddImage:
                 break
 
     @checks.is_owner()
-    @addimage.command(hidden=True, pass_context=True, name="global")
+    @commands.command(hidden=True, pass_context=True, name="addglobal")
     async def add_image_global(self, ctx, cmd):
         """Add an image to direct upload."""
         author = ctx.message.author
@@ -300,17 +293,17 @@ class AddImage:
                 directory = cog_data_path(self) /"global"
                 await self.make_guild_folder(directory)
                 cmd = cmd.lower()
-                guild_imgs = await self.config.images()
+                global_imgs = await self.config.images()
                 file_path = "{}/{}".format(str(directory), filename)
 
                 new_entry = ImageEntry(cmd, 0, file_path, author.id)
 
-                guild_imgs.append(new_entry.to_json())
+                global_imgs.append(new_entry.to_json())
                 async with self.session.get(msg.attachments[0].url) as resp:
                     test = await resp.read()
                     with open(file_path, "wb") as f:
                         f.write(test)
-                await self.config.images.set(guild_imgs)
+                await self.config.images.set(global_imgs)
                 await ctx.send("{} has been added to my files!"
                                             .format(cmd))
                 break

@@ -14,9 +14,10 @@ import os
 import string
 import time
 import io
-from redbot.core.i18n import CogI18n
+from redbot.core.i18n import Translator
+from redbot.core.utils.chat_formatting import pagify, box
 
-_ = CogI18n("TrustyBot", __file__)
+_ = Translator("TrustyBot", __file__)
 
 numbs = {
     "next": "➡",
@@ -53,6 +54,106 @@ class TrustyBot:
 
     @commands.command(hidden=True)
     @checks.is_owner()
+    async def oilersrules(self, ctx):
+        rules = """1. Don't be a *complete* jerk - We're here to have fun and discuss the <@&381573564408791040> and their Triumphs and Defeats!\n
+2. No sharing of personal or confidential information of others - This is a [discord Terms of Service](https://discordapp.com/terms) violation and can result in immediate ban.\n
+3. Anything deemed NSFW by a <@&381578067304251404> can and will be deleted as per discords [Community Guidelines](https://discordapp.com/guidelines).\n
+4. Do not harass or threaten other memebers, this extends to other discord servers - This is another [discord TOS](https://discordapp.com/terms) violation.\n
+5. <@&381578067304251404> action is at the discretion of a <@&381578067304251404> and changes may be made without warning to your privliges. Don't get any penalty's.\n
+***Any violation of the [discord TOS](https://discordapp.com/terms) or [Community Guidelines](https://discordapp.com/guidelines) will result in immediate banning and possible report to discord.***\n
+"""
+        roles = """Type `;hockey role <teamname, division, or conference>` in <#381582160710205441> to get the specified team role and colour and access to live goal update channels\n
+Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on team goals
+"""
+        em = discord.Embed(colour=int("FF4C00", 16))
+        em.add_field(name="__RULES__", value=rules)
+        em.add_field(name="__Teams/Roles__", value=roles)
+        # em.set_image(url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
+        em.set_thumbnail(url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
+        em.set_author(name=ctx.guild.name, icon_url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
+        await ctx.message.delete()
+        await ctx.send(embed=em)
+
+    @commands.command(hidden=True)
+    async def warfarerules(self, ctx):
+        rules = """1. **Meme Warfare** is your "*File Cabinet*" for members to *deposit* and *withdraw* memes. If you would like to post memes, ask an <@&402164942192640001> for the *Poster* role.\n
+2. The meme channels are ***ONLY*** for Memes. We would like to keep the channels free from conversations as we need to grab the memes and "go fast".\n
+3. Wanna be extra-comfy? Click on the subject/category headers to collapse them. Right Click -> Mark as Read -> Collapse Channels is another way to accomplish this.\n
+4. Right Click -> Mute channels that don't interest you so that you won't keep receiving notifications.\n
+5. <#407705381922537483>/<#424742925474332683> chat is available for striking up conversations about current events and various non-Q-related topics.\n
+6. No sharing of personal or confidential information of others - This is a [discord Terms of Service](https://discordapp.com/terms) violation and can result in immediate ban.\n
+7. Do not harass or threaten other members, this extends to other discord servers - This is another [discord TOS](https://discordapp.com/terms) violation.\n
+8. <@&402164942192640001> action is at the discretion of an <@&402164942192640001> and changes may be made without warning to your privileges.\n
+***Any violation of the [discord TOS](https://discordapp.com/terms) or [Community Guidelines](https://discordapp.com/guidelines) will result in immediate banning and possible report to Discord.***\n
+"""
+        roles = """**Q-RESEARCH**: Q-related research goes in this channel. Remember to always provide "links/sauce" for your research. Images drops must include an article reference.\n
+**TRAINING-HOW-TO-MEME**: Teach people how to create memes and instruct others on the purpose of a meme.\n
+"""
+        rules_3 = """**HIGHEST PRIORITY**: Hottest memes in rotation.\n
+**MEMEWORTHY**: Memes that are very relevant. These could move to *HIGHEST PRIORITY* or *DUSTY MEMES*\n
+**HOLLYWOOD**: Memes about the corruption in the entertainment industry.\n
+**OPERATION MOCKINGBIRD**: Memes about *Fake News* and the *Shadow Government* pushing the narrative.\n
+**POLITICS**: Memes about politicians by name.\n
+**DUSTY MEMES**: Memes that have lost relevance with current events. These could still return to *HIGHEST PRIORITY* or *MEMEWORTHY*.\n
+**OPERATION REDPILL**: How to redpill individuals in real life.\n
+        """
+        em = discord.Embed(colour=int("1975e1", 16))
+        em.title = "__**BASIC OPERATIONS**__"
+        em.description = rules
+        # em.add_field(name="__**BASIC OPERATIONS**__", value=rules)
+        em.add_field(name="__**TOP CATEGORIES**__", value=roles)
+        em.add_field(name="__**MEME CATEGORIES**__", value=rules_3)
+        # em.set_image(url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
+        em.set_thumbnail(url=ctx.message.guild.icon_url)
+        em.set_author(name=ctx.guild.name, icon_url=ctx.message.guild.icon_url)
+        await ctx.message.delete()
+        if ctx.message.guild.id == 402161292644712468:
+            await ctx.send(embed=em)
+
+    @commands.command()
+    @checks.is_owner()
+    async def botinfo(self, ctx):
+        """Prints nice bot info command"""
+
+    async def on_guild_join(self, guild):
+        channel = self.bot.get_channel(366758942212358145)
+        online = len([m.status for m in guild.members
+                      if m.status == discord.Status.online or
+                      m.status == discord.Status.idle])
+        total_users = len(guild.members)
+        text_channels = len([x for x in guild.text_channels])
+        voice_channels = len([x for x in guild.voice_channels])
+        passed = (datetime.datetime.utcnow() - guild.created_at).days
+        created_at = ("TrustyBot is on {} servers now! \nServer created {}. That's over {} days ago!"
+                      "".format(len(self.bot.guilds), guild.created_at.strftime("%d %b %Y %H:%M"),
+                                passed))
+
+        colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
+        colour = int(colour, 16)
+
+        em = discord.Embed(
+            description=created_at,
+            colour=discord.Colour(value=colour),
+            timestamp=guild.created_at)
+        em.add_field(name="Region", value=str(guild.region))
+        em.add_field(name="Users", value="{}/{}".format(online, total_users))
+        em.add_field(name="Text Channels", value=text_channels)
+        em.add_field(name="Voice Channels", value=voice_channels)
+        em.add_field(name="Roles", value=len(guild.roles))
+        em.add_field(name="Owner", value="{} | {}".format(str(guild.owner), guild.owner.mention))
+        if guild.features != []:
+            em.add_field(name="Guild Features", value=", ".join(feature for feature in guild.features))
+        em.set_footer(text="guild ID: {}".format(guild.id))
+
+        if guild.icon_url:
+            em.set_author(name=guild.name, icon_url=guild.icon_url)
+            em.set_thumbnail(url=guild.icon_url)
+        else:
+            em.set_author(name=guild.name) 
+        await channel.send(embed=em)
+
+    @commands.command(hidden=True)
+    @checks.is_owner()
     async def checkcheater(self, ctx, user_id):
         is_cheater = False
         for guild in self.bot.guilds:
@@ -63,6 +164,55 @@ class TrustyBot:
         if not is_cheater:
             await ctx.send("Not a cheater")
 
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def msg(self, ctx, *, msg):
+        print(msg)
+
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def whois(self, ctx, member:discord.User):
+        guild_list = []
+        for guild in self.bot.guilds:
+            members = [member.id for member in guild.members]
+            if member.id in members:
+                guild_list.append(guild)
+        if guild_list != []:
+            msg = "{} ({}) is on:\n".format(member.name, member.id)
+            for guild in guild_list:
+                msg += "{} ({})\n".format(guild.name, guild.id)
+            for page in pagify(msg, ["\n"]):
+                await ctx.send(page)
+        else:
+            await ctx.send("Not in any shared servers!")
+
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def topservers(self, ctx):
+        """Lists and allows to leave servers"""
+        owner = ctx.author
+        guilds = sorted(list(self.bot.guilds),
+                        key=lambda s: len(s.members), reverse=True)
+        msg = ""
+        for i, server in enumerate(guilds):
+            msg += "{}: {}\n".format(server.name, len(server.members))
+
+        for page in pagify(msg, ['\n']):
+            await ctx.send(page)
+
+    @commands.command(hidden=True)
+    @checks.is_owner()
+    async def newservers(self, ctx):
+        """Lists and allows to leave servers"""
+        owner = ctx.author
+        guilds = sorted(list(self.bot.guilds),
+                        key=lambda s: s.me.joined_at)
+        msg = ""
+        for i, server in enumerate(guilds):
+            msg += "{}: {} ({})\n".format(i, server.name, server.id)
+
+        for page in pagify(msg, ['\n']):
+            await ctx.send(page)
 
 
     async def on_message(self, message):
@@ -121,41 +271,6 @@ class TrustyBot:
         print(ctx.message.content)
         await ctx.send(msg)
 
-    @commands.command(aliases=["sl"])
-    async def serverleaderboard(self, ctx: commands.Context, top: int = 10):
-        """Prints out the leaderboard
-        Defaults to top 10"""
-        # Originally coded by Airenkun - edited by irdumb, rewritten by Palm__ for v3
-        guild = ctx.guild
-        if top < 1:
-            top = 10
-        if await bank.is_global():
-            bank_list = [x for x in await bank.get_global_accounts() if guild.get_member_named(x.name) is not None]
-            bank_sorted = sorted(bank_list,
-                                 key=lambda x: x.balance, reverse=True)
-        else:
-            bank_sorted = sorted(await bank.get_guild_accounts(guild),
-                                 key=lambda x: x.balance, reverse=True)
-        if len(bank_sorted) < top:
-            top = len(bank_sorted)
-        topten = bank_sorted[:top]
-        highscore = ""
-        place = 1
-        for acc in topten:
-            dname = str(acc.name)
-            if len(dname) >= 23 - len(str(acc.balance)):
-                dname = dname[:(23 - len(str(acc.balance))) - 3]
-                dname += "... "
-            highscore += str(place).ljust(len(str(top)) + 1)
-            highscore += dname.ljust(23 - len(str(acc.balance)))
-            highscore += str(acc.balance) + "\n"
-            place += 1
-        if highscore != "":
-            for page in pagify(highscore, shorten_by=12):
-                await ctx.send(box(page, lang="py"))
-        else:
-            await ctx.send(_("There are no accounts in the bank."))
-
     @commands.command()
     async def oof(self, ctx):
         emojis = ["🅾", "🇴", "🇫"]
@@ -183,28 +298,31 @@ class TrustyBot:
 
     @commands.command(pass_context=True)
     async def emoji(self, ctx, emoji):
-        async with ctx.channel.typing():
         # print(emoji)
-            if emoji is discord.Emoji:
-                emoji_name = emoji.name
-                ext = emoji.url.split(".")[-1]
-                async with self.session.get(emoji.url) as resp:
+        if emoji is discord.Emoji:
+            await ctx.channel.trigger_typing()
+            emoji_name = emoji.name
+            ext = emoji.url.split(".")[-1]
+            async with self.session.get(emoji.url) as resp:
+                data = await resp.read()
+            file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
+            await ctx.send(file=file)
+            # await self.bot.say(emoji.url)
+        else:
+            emoji_id = emoji.split(":")[-1].replace(">", "")
+            if not emoji_id.isdigit():
+                return
+            await ctx.channel.trigger_typing()
+            # print(emoji_id)
+            if emoji.startswith("<a"):
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
                     data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
-                await ctx.send(file=file)
-                # await self.bot.say(emoji.url)
+                file = discord.File(io.BytesIO(data),filename="{}.gif".format(emoji_id))
             else:
-                emoji_id = emoji.split(":")[-1].replace(">", "")
-                # print(emoji_id)
-                if emoji.startswith("<a"):
-                    async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
-                        data = await resp.read()
-                    file = discord.File(io.BytesIO(data),filename="{}.gif".format(emoji_id))
-                else:
-                    async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
-                        data = await resp.read()
-                    file = discord.File(io.BytesIO(data),filename="{}.png".format(emoji_id))
-                await ctx.send(file=file)
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
+                    data = await resp.read()
+                file = discord.File(io.BytesIO(data),filename="{}.png".format(emoji_id))
+            await ctx.send(file=file)
 
 
     @commands.command(pass_context=True)
@@ -363,9 +481,15 @@ class TrustyBot:
 
     @commands.command(pass_context=True)
     @checks.is_owner()
-    async def getguild(self, ctx):
+    async def getguild(self, ctx, guild_name=None):
         guilds = [guild for guild in self.bot.guilds]
-        await self.guild_menu(ctx, guilds)
+        if guild_name is not None:
+            if guild_name.isdigit():
+                page = [guild for guild in self.bot.guilds if int(guild_name) == guild.id][0]
+                page = guilds.index(page)
+        else:
+            page = 0
+        await self.guild_menu(ctx, guilds, None, page)
 
     
     @commands.command(pass_context=True)
@@ -378,16 +502,21 @@ class TrustyBot:
 
     @commands.command(pass_context=True)
     @checks.is_owner()
-    async def makeinvite(self, ctx, guild_id):
+    async def makeinvite(self, ctx, guild_id:int):
         guild = self.bot.get_guild(id=guild_id)
-        invites = []
-        for channel in guild.channels:
+        invites = None
+        for channel in guild.text_channels:
+            if invites is not None:
+                break
             try:
                 invite = await self.bot.create_invite(channel)
-                invites.append(invite.url)
+                invites = invite.url
             except:
                 pass
-        await ctx.send(invites)
+        if invites is not None:
+            await ctx.send(invites)
+        else:
+            await ctx.send("Can't make any invites")
 
     @commands.command(pass_context=True)
     @checks.is_owner()
@@ -528,7 +657,7 @@ class TrustyBot:
 
     @commands.command()
     async def beemovie(self, ctx):
-        msg = "<a:beemovie1_1:394355466022551552><a:beemovie1_2:394355486625103872><a:beemovie1_3:394355526496026624><a:beemovie1_4:394355551859113985><a:beemovie1_5:394355549581606912><a:beemovie1_6:394355542849617943><a:beemovie1_7:394355537925373952><a:beemovie1_8:394355511912300554>\n<a:beemovie2_1:394355541616361475><a:beemovie2_2:394355559719239690><a:beemovie2_3:394355587409772545><a:beemovie2_4:394355593567272960><a:beemovie2_5:394355578337624064><a:beemovie2_6:394355586067726336><a:beemovie2_7:394355558104432661><a:beemovie2_8:394355539716472832>\n<a:beemovie3_1:394355552626409473><a:beemovie3_2:394355572381843459><a:beemovie3_3:394355594955456532><a:beemovie3_4:394355578253737984><a:beemovie3_5:394355579096793098><a:beemovie3_6:394355586411528192><a:beemovie3_7:394355565788397568><a:beemovie3_8:394355551556861993>\n<a:beemovie4_1:394355538181488640><a:beemovie4_2:394355548944072705><a:beemovie4_3:394355568669884426><a:beemovie4_4:394355564504809485><a:beemovie4_5:394355567843606528><a:beemovie4_6:394355577758679040><a:beemovie4_7:394355552655900672><a:beemovie4_8:394355527867564032>"
+        msg = "<a:bm1_1:394355466022551552><a:bm1_2:394355486625103872><a:bm1_3:394355526496026624><a:bm1_4:394355551859113985><a:bm1_5:394355549581606912><a:bm1_6:394355542849617943><a:bm1_7:394355537925373952><a:bm1_8:394355511912300554>\n<a:bm2_1:394355541616361475><a:bm2_2:394355559719239690><a:bm2_3:394355587409772545><a:bm2_4:394355593567272960><a:bm2_5:394355578337624064><a:bm2_6:394355586067726336><a:bm2_7:394355558104432661><a:bm2_8:394355539716472832>\n<a:bm3_1:394355552626409473><a:bm3_2:394355572381843459><a:bm3_3:394355594955456532><a:bm3_4:394355578253737984><a:bm3_5:394355579096793098><a:bm3_6:394355586411528192><a:bm3_7:394355565788397568><a:bm3_8:394355551556861993>\n<a:bm4_1:394355538181488640><a:bm4_2:394355548944072705><a:bm4_3:394355568669884426><a:bm4_4:394355564504809485><a:bm4_5:394355567843606528><a:bm4_6:394355577758679040><a:bm4_7:394355552655900672><a:bm4_8:394355527867564032>"
         em = discord.Embed(title="The Entire Bee Movie", description=msg)
         await ctx.send(embed=em)
 
