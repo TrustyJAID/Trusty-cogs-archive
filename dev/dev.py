@@ -9,7 +9,7 @@ from copy import copy
 import discord
 from discord.ext import commands
 from redbot.core import checks
-from redbot.core.i18n import CogI18n
+from redbot.core.i18n import Translator
 from redbot.core.utils.chat_formatting import box, pagify
 """
 Notice:
@@ -17,7 +17,7 @@ Notice:
 https://github.com/Rapptz/RoboDanny/blob/master/cogs/repl.py
 """
 
-_ = CogI18n("Dev", __file__)
+_ = Translator("Dev", __file__)
 
 
 class Dev:
