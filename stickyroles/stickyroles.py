@@ -67,7 +67,7 @@ class StickyRoles:
     async def _list(self, ctx):
         """Lists sticky roles"""
         guild = ctx.message.guild
-        roles = self.db[guild.id].get("sticky_roles", [])
+        roles = await self.config.guild(guild).sticky_roles()
         roles = [discord.utils.get(guild.roles, id=r) for r in await self.config.guild(guild).sticky_roles()]
         roles = [r.name for r in roles if r is not None]
         if roles:
