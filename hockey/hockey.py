@@ -180,7 +180,7 @@ class Hockey:
                         await self.post_automatic_standings()
                     except Exception as e:
                         print(e)
-                    await self.check_new_gdc()
+                    # await self.check_new_gdc()
                     await self.config.created_gdc.set(True)
                 await self.post_game_state(data)
                 await self.save_game_state(data)
@@ -485,6 +485,10 @@ class Hockey:
             chn = self.bot.get_channel(channel)
             print(chn)
             if chn is None:
+                try:
+                    await self.config._clear_scope(Config.CHANNEL, str(chn))
+                except:
+                    pass
                 continue
             if not await self.config.channel(chn).to_delete():
                 continue
