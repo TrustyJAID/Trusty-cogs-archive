@@ -32,7 +32,7 @@ class Weather:
     async def weather_set(self, ctx):
         """Set user or guild default units"""
         if ctx.invoked_subcommand is None:
-            await ctxsend_help()
+            await ctx.send_help()
 
     @weather_set.command(pass_context=True, name="guild")
     async def set_guild(self, ctx, units):
