@@ -32,6 +32,8 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 
 >Tweets - A modified version of Palm's twitter cog utilising twitter streams to setup a twitter channel to post user tweets.
 
+>dev - A copy of the developer commands in redbot with `sudo` replacing `mock` like V2.
+
 **Special cogs**
 
 >Blockchain - a cog to download and the bitcoin blockchain for hidden files and data. Requires bitcoin RPC connection and complicated setup **don't use** unless you know what you're doing.
