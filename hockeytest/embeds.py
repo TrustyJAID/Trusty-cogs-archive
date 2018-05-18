@@ -2,11 +2,37 @@ import asyncio
 import discord
 import aiohttp
 from datetime import datetime
-from redbot.core.commands import Context
+from redbot.core.context import RedContext
 from .teams import teams
 from .game import Game
-from .helper import *
         
+
+async def division_standing_embed(post_list, page=0):
+    em = discord.Embed()
+    standing_list = post_list[page]
+    conference = standing_list["conference"]["name"]
+    division = standing_list["division"]["name"]
+    for team in standing_list["teamRecords"]:
+        team_name = team["team"]["name"]
+        emoji = "<:" + teams[team_name]["emoji"] + ">"
+        wins = team["leagueRecord"]["wins"]
+        losses = team["leagueRecord"]["losses"]
+        ot = team["leagueRecord"]["ot"]
+        gp = team["gamesPlayed"]
+        pts = team["points"]
+        pl = team["divisionRank"]
+        division_logo = teams["Team {}".format(division)]["logo"]
+        msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**"\
+              .format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
+        timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+        em.add_field(name="{pl}. {emoji} __{team_name}__ {emoji}"\
+                          .format(pl=pl,emoji=emoji,team_name=team_name), value=msg, inline=False)
+        em.timestamp = timestamp
+        em.set_footer(text="Stats last Updated", icon_url=division_logo)
+        em.set_thumbnail(url=division_logo)
+        em.colour = int(teams["Team {}".format(division)]["home"].replace("#", ""), 16)
+        em.set_author(name=division + " Division", url="https://www.nhl.com/standings", icon_url=division_logo)
+    return em
 
 async def game_state_embed(data, state):
     post_state = ["all", data.home_team, data.away_team]
@@ -20,7 +46,8 @@ async def game_state_embed(data, state):
         home_str = "Goals: **{}** \nShots: **{}**".format(data.home_score, data.home_shots)
         away_str = "Goals: **{}** \nShots: **{}**".format(data.away_score, data.away_shots)
     else:
-        home_str, away_str = await get_stats_msg(data)
+        home_str = "Home"
+        away_str = "Away"
     em.add_field(name=home_field, value=home_str, inline=True)
     em.add_field(name=away_field, value=away_str, inline=True)
     team = state if state != "all" else data.home_team
@@ -34,20 +61,6 @@ async def game_state_embed(data, state):
     em.set_footer(text="Game start ", icon_url=alt_logo)
     return em
 
-async def get_stats_msg(data):
-    stats, home_i = await get_team_standings(data.home_team)
-    msg = "GP:**{gp}** W:**{wins}** L:**{losses}\n**OT:**{ot}** PTS:**{pts}** S:**{streak}**\n"
-    streak_types = {"wins":"W", "losses":"L", "ot":"OT"}
-    for team in stats:
-        if team.name == data.away_team:
-            streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
-            away_str = msg.format(wins=team.wins, losses=team.losses,\
-                         ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
-        if team.name == data.home_team:
-            streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
-            home_str = msg.format(wins=team.wins, losses=team.losses,\
-                         ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
-    return home_str, away_str
 
 async def get_shootout_display(goals):
     msg = ""
@@ -112,76 +125,97 @@ async def goal_post_embed(goal, game_data):
         em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
     return em
 
-async def build_standing_embed(post_list, page=0):
-    _teams = post_list[page]
+async def conference_standing_embed(post_list, page=0):
     em = discord.Embed()
-    if type(_teams) is not list:
-        em.set_author(name="# {} {}".format(_teams.league_rank, _teams.name), url="https://www.nhl.com/standings", icon_url=teams[_teams.name]["logo"])
-        em.colour = int(teams[_teams.name]["home"].replace("#", ""), 16)
-        em.set_thumbnail(url=teams[_teams.name]["logo"])
-        em.add_field(name="Division", value="# " + _teams.division_rank)
-        em.add_field(name="Conference", value="# " + _teams.conference_rank)
-        em.add_field(name="Wins", value=_teams.wins)
-        em.add_field(name="Losses", value=_teams.losses)
-        em.add_field(name="OT", value=_teams.ot)
-        em.add_field(name="Points", value=_teams.pts)
-        em.add_field(name="Games Played", value=_teams.gp)
-        em.add_field(name="Goals Scored", value=_teams.goals)
-        em.add_field(name="Goals Against", value=_teams.gaa)
-        em.add_field(name="Current Streak", value="{} {}".format(_teams.streak, _teams.streak_type))
-        timestamp = datetime.strptime(_teams.last_updated, "%Y-%m-%dT%H:%M:%SZ")
+    standing_list = post_list[page]
+    conference = "Eastern" if page == 0 else "Western"
+    new_list = sorted(standing_list, key=lambda k: int(k["conferenceRank"]))
+    for team in new_list:
+        team_name = team["team"]["name"]
+        emoji = "<:" + teams[team_name]["emoji"] + ">"
+        wins = team["leagueRecord"]["wins"]
+        losses = team["leagueRecord"]["losses"]
+        ot = team["leagueRecord"]["ot"]
+        gp = team["gamesPlayed"]
+        pts = team["points"]
+        pl = team["conferenceRank"]
+        msg = "GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**"\
+              .format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp)
+        timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+        em.add_field(name="{pl}. {emoji} __{team_name}__ {emoji}".format(pl=pl,emoji=emoji,team_name=team_name), value=msg, inline=False)
         em.timestamp = timestamp
-        em.set_footer(text="Stats last Updated", icon_url=teams[_teams.name]["logo"])
-        return em
+        em.set_footer(text="Stats last Updated")
+    if conference == "Eastern":
+        em.colour = int("c41230", 16)
+        logo = "https://upload.wikimedia.org/wikipedia/en/thumb/1/16/NHL_Eastern_Conference.svg/1280px-NHL_Eastern_Conference.svg.png"
+        em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url=logo)
+        em.set_thumbnail(url=logo)
+    if conference == "Western":
+        em.colour = int("003e7e", 16)
+        logo = "https://upload.wikimedia.org/wikipedia/en/thumb/6/65/NHL_Western_Conference.svg/1280px-NHL_Western_Conference.svg.png"
+        em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url=logo)
+        em.set_thumbnail(url=logo)
+    return em
 
-    msg = ""
-    timestamp = datetime.strptime(_teams[0].last_updated, "%Y-%m-%dT%H:%M:%SZ")
+async def team_standing_embed(post_list, page=0):
+    em = discord.Embed()
+    standing_list = post_list[page]
+    team = standing_list
+    team_name = team["team"]["name"]
+    league_rank = team["leagueRank"]
+    division_rank = team["divisionRank"]
+    conference_rank = team["conferenceRank"]
+    emoji = "<:" + teams[team_name]["emoji"] + ">"
+    wins = team["leagueRecord"]["wins"]
+    losses = team["leagueRecord"]["losses"]
+    ot = team["leagueRecord"]["ot"]
+    gp = team["gamesPlayed"]
+    pts = team["points"]
+    streak = "{} {}".format(team["streak"]["streakNumber"], team["streak"]["streakType"])
+    goals = team["goalsScored"]
+    goals_against = team["goalsAgainst"]
+    timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+    em.set_author(name="# {} {}".format(league_rank, team_name), url="https://www.nhl.com/standings", icon_url=teams[team_name]["logo"])
+    em.colour = int(teams[team_name]["home"].replace("#", ""), 16)
+    em.set_thumbnail(url=teams[team_name]["logo"])
+    em.add_field(name="Division", value="# " + division_rank)
+    em.add_field(name="Conference", value="# " + conference_rank)
+    em.add_field(name="Wins", value=wins)
+    em.add_field(name="Losses", value=losses)
+    em.add_field(name="OT", value=ot)
+    em.add_field(name="Points", value=pts)
+    em.add_field(name="Games Played", value=gp)
+    em.add_field(name="Goals Scored", value=goals)
+    em.add_field(name="Goals Against", value=goals_against)
+    em.add_field(name="Current Streak", value=streak)
     em.timestamp = timestamp
-
-    if len(_teams) <= 8:
-        for team in _teams:
-            msg += "{rank}. <:{emoji}> GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**\n"\
-                    .format(rank=team.division_rank, wins=team.wins, losses=team.losses, ot=team.ot,\
-                    pts=team.pts, gp=team.gp, emoji=teams[team.name]["emoji"])
-        em.description = msg
-        division = _teams[0].division
-        division_logo = teams["Team {}".format(division)]["logo"]
-        em.colour = int(teams["Team {}".format(division)]["home"].replace("#", ""), 16)
-        em.set_author(name=division + " Division", url="https://www.nhl.com/standings", icon_url=division_logo)
-        em.set_footer(text="Stats last Updated", icon_url=division_logo)
-        em.set_thumbnail(url=division_logo)
-        return em
-    if len(_teams) > 8 and len(_teams) <= 15:
-        new_teams = sorted(_teams, key=lambda k: int(k.conference_rank))
-        for team in new_teams:
-            msg += "{rank}. <:{emoji}> GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**\n"\
-                    .format(rank=team.conference_rank, wins=team.wins, losses=team.losses, ot=team.ot,\
-                    pts=team.pts, gp=team.gp, emoji=teams[team.name]["emoji"])
-        em.description = msg
-        conference = _teams[0].conference
-        em.colour = int("c41230", 16) if conference == "Eastern" else int("003e7e", 16)
-        logo = {"Eastern":"https://upload.wikimedia.org/wikipedia/en/thumb/1/16/NHL_Eastern_Conference.svg/1280px-NHL_Eastern_Conference.svg.png",
-                "Western":"https://upload.wikimedia.org/wikipedia/en/thumb/6/65/NHL_Western_Conference.svg/1280px-NHL_Western_Conference.svg.png"}
-        em.set_author(name=conference + " Conference", url="https://www.nhl.com/standings", icon_url=logo[conference])
-        em.set_thumbnail(url=logo[conference])
-        em.set_footer(text="Stats last Updated", icon_url=logo[conference])
-        return em
-
+    em.set_footer(text="Stats last Updated", icon_url=teams[team_name]["logo"])
+    return em
 
 async def all_standing_embed(post_standings, page=0):
     em = discord.Embed()
-    new_dict = {}
-    for team in post_standings:
-        if team.division not in new_dict:
-            new_dict[team.division] = ""
-        new_dict[team.division] += "{rank}. <:{emoji}> GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**\n"\
-                .format(rank=team.division_rank, wins=team.wins, losses=team.losses, ot=team.ot,\
-                pts=team.pts, gp=team.gp, emoji=teams[team.name]["emoji"])
-    for div in new_dict:
-        em.add_field(name="{} Division".format(div), value=new_dict[div])
     em.set_author(name="NHL Standings", url="https://www.nhl.com/standings/2017/wildcard", icon_url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
     em.set_thumbnail(url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
-    em.timestamp = datetime.strptime(post_standings[0].last_updated, "%Y-%m-%dT%H:%M:%SZ")
+    # standing_list = post_list[page]
+    for division in post_standings:
+        msg = "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n"  
+        division_name = division["division"]["name"]
+        for team in division["teamRecords"]:
+            team_name = team["team"]["name"]
+            emoji = "<:" + teams[team_name]["emoji"] + ">"
+            wins = team["leagueRecord"]["wins"]
+            losses = team["leagueRecord"]["losses"]
+            ot = team["leagueRecord"]["ot"]
+            gp = team["gamesPlayed"]
+            pts = team["points"]
+            pl = team["divisionRank"]
+            # division_logo = teams["Team {}".format(division)]["logo"]
+            msg += "{rank}. <:{team}> GP: **{gp}** W: **{wins}** L: **{losses}** OT: **{ot}** PTS: **{pts}**\n".format(pl=pl,emoji=emoji, wins=wins, losses=losses, ot=ot, pts=pts, gp=gp, rank=pl, team=teams[team_name]["emoji"])
+            timestamp = datetime.strptime(team["lastUpdated"], "%Y-%m-%dT%H:%M:%SZ")
+        msg += "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+        em.add_field(name=division_name, value=msg, inline=True)
+        # em.add_field(name="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
+    em.timestamp = timestamp
     em.set_footer(text="Stats Last Updated", icon_url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
     return em
 
@@ -250,9 +284,8 @@ async def game_embed(post_list, page):
     em.set_thumbnail(url=data.home_logo)
     em.set_footer(text="Game start ", icon_url=data.away_logo)
     if data.game_state == "Preview":
-        home_str, away_str = await get_stats_msg(data)
-        em.add_field(name="{} {} {}".format(data.home_emoji, data.home_team, data.home_emoji), value=home_str)
-        em.add_field(name="{} {} {}".format(data.away_emoji, data.away_team, data.away_emoji), value=away_str)
+        em.add_field(name="Home Team", value="{} {}".format(data.home_emoji, data.home_team))
+        em.add_field(name="Away Team", value="{} {}".format(data.away_emoji, data.away_team))
     if data.game_state != "Preview":
         home_msg = "Goals: **{}** \nShots: **{}**".format(data.home_score, data.home_shots)
         away_msg = "Goals: **{}** \nShots: **{}**".format(data.away_score, data.away_shots)

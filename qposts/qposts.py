@@ -79,7 +79,7 @@ class QPosts:
                         posts = await resp.json()
                     for post in posts["posts"]:
                         if "trip" in post:
-                            if post["trip"] in ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ"]:
+                            if post["trip"] in ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE"]:
                                 Q_posts.append(post)
             board_posts[board] = Q_posts
         await self.config.boards.set(board_posts)
@@ -171,20 +171,20 @@ class QPosts:
         reference = await self.get_quoted_post(qpost)
         if qpost["com"] != "<p class=\"body-line empty \"></p>":
             for p in soup.find_all("p"):
-                if p.string is None:
+                if p.get_text is None:
                     text += "."
                 else:
-                    text += p.string + "\n"
+                    text += p.get_text + "\n"
         if reference != []:
             for post in reference:
                 # print(post)
                 ref_html = post["com"]
                 soup_ref = BeautifulSoup(ref_html, "html.parser")
                 for p in soup_ref.find_all("p"):
-                    if p.string is None:
+                    if p.get_text() is None:
                         ref_text += "."
                     else:
-                        ref_text += p.string + "\n"
+                        ref_text += p.get_text() + "\n"
             if "tim" in reference[0] and "tim" not in qpost:
                 file_id = reference[0]["tim"]
                 file_ext = reference[0]["ext"]
@@ -262,10 +262,10 @@ class QPosts:
         soup = BeautifulSoup(html, "html.parser")
         text = ""
         for p in soup.find_all("p"):
-            if p.string is None:
+            if p.get_text() is None:
                 text += "."
             else:
-                text += p.string + "\n"
+                text += p.get_text() + "\n"
         em.description = "```{}```".format(text[:1800])
         reference = await self.get_quoted_post(qpost)
         if reference != []:
@@ -275,10 +275,10 @@ class QPosts:
                 soup_ref = BeautifulSoup(ref_html, "html.parser")
                 ref_text = ""
                 for p in soup_ref.find_all("p"):
-                    if p.string is None:
+                    if p.get_text() is None:
                         ref_text += "."
                     else:
-                        ref_text += p.string + "\n"
+                        ref_text += p.get_text() + "\n"
                 em.add_field(name=str(post["no"]), value="```{}```".format(ref_text[:1000]))
             if "tim" in post and "tim" not in qpost:
                 file_id = post["tim"]

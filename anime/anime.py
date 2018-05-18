@@ -7,6 +7,7 @@ from datetime import datetime
 from discord.ext import commands
 from redbot.core import checks
 from redbot.core import Config
+from redbot.core.utils.chat_formatting import pagify, box
 from random import choice as randchoice
 
 numbs = {
@@ -68,7 +69,8 @@ class Anime:
         animes=""
         for anime in await self.config.airing():
             animes += "{},".format(anime["title_english"])
-        await ctx.send(animes[:-2])
+        for page in pagify(animes, [","]):
+            await ctx.send(page)
 
     async def remove_posted_shows(self):
         time_now = datetime.utcnow()
@@ -86,8 +88,11 @@ class Anime:
                     except Exception as e:
                         print(e)
         for show_id, episode in to_delete.items():
-            anime = [show for show in await self.config.airing() if show["id"] == show_id][0]
-            del airing_list[airing_list.index(anime)]["episodes"][episode]
+            try:
+                anime = [show for show in await self.config.airing() if show["id"] == show_id][0]
+                del airing_list[airing_list.index(anime)]["episodes"][episode]
+            except Exception as e:
+                print(e)
         await self.config.airing.set(airing_list)
 
     async def check_last_posted(self):
@@ -222,7 +227,7 @@ class Anime:
         else:
             await ctx.send("{} was not found or credentials were not set!".format(search))
 
-    @commands.command(pass_context=True)
+    @commands.command(hidden=True)
     async def forceairing(self, ctx):
         await self.get_currently_airing()
         await ctx.send("Done.")
