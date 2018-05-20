@@ -341,7 +341,7 @@ class QPosts:
                 return await message.delete()
 
     @commands.command(pass_context=True, aliases=["postq"])
-    async def qpost(self, ctx, board="greatawakening"):
+    async def qpost(self, ctx, board="patriotsfight"):
         if board not in await self.config.boards():
             await ctx.send("{} is not an available board!")
             return
