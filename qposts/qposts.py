@@ -35,7 +35,7 @@ class QPosts:
         # self.settings = dataIO.load_json("data/qposts/settings.json")
         # self.qposts = dataIO.load_json("data/qposts/qposts.json")
         self.url = "https://8ch.net"
-        self.boards = ["greatawakening", "qresearch"]
+        self.boards = ["greatawakening", "qresearch", "patriotsfight"]
         self.trips = ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE", "!CbboFOtcZs"]
         self.loop = bot.loop.create_task(self.get_q_posts())
 
