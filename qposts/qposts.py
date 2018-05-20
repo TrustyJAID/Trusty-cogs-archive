@@ -172,10 +172,10 @@ class QPosts:
         reference = await self.get_quoted_post(qpost)
         if qpost["com"] != "<p class=\"body-line empty \"></p>":
             for p in soup.find_all("p"):
-                if p.get_text is None:
+                if p.get_text() is None:
                     text += "."
                 else:
-                    text += p.get_text + "\n"
+                    text += p.get_text() + "\n"
         if reference != []:
             for post in reference:
                 # print(post)
