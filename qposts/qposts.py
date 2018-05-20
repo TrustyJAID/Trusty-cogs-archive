@@ -36,6 +36,7 @@ class QPosts:
         # self.qposts = dataIO.load_json("data/qposts/qposts.json")
         self.url = "https://8ch.net"
         self.boards = ["greatawakening", "qresearch"]
+        self.trips = ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE", "!CbboFOtcZs"]
         self.loop = bot.loop.create_task(self.get_q_posts())
 
     def __unload(self):
@@ -79,7 +80,7 @@ class QPosts:
                         posts = await resp.json()
                     for post in posts["posts"]:
                         if "trip" in post:
-                            if post["trip"] in ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE"]:
+                            if post["trip"] in self.trips:
                                 Q_posts.append(post)
             board_posts[board] = Q_posts
         await self.config.boards.set(board_posts)
@@ -120,7 +121,7 @@ class QPosts:
                             continue
                         for post in posts["posts"]:
                             if "trip" in post:
-                                if post["trip"] in ["!UW.yye1fxo", "!xowAT4Z3VQ"]:
+                                if post["trip"] in self.trips:
                                     Q_posts.append(post)
                 old_posts = [post_no["no"] for post_no in board_posts[board]]
 

@@ -4,46 +4,6 @@
 		"selected_items":
 		[
 			[
-				"p",
-				"p\tTag"
-			],
-			[
-				"last",
-				"last_author"
-			],
-			[
-				"defu",
-				"default_guild"
-			],
-			[
-				"add",
-				"add_field"
-			],
-			[
-				"cons",
-				"cons_key"
-			],
-			[
-				"defau",
-				"default_global"
-			],
-			[
-				"ignore",
-				"ignore_list"
-			],
-			[
-				"past",
-				"past_message_list"
-			],
-			[
-				"Star",
-				"StarboardMessage"
-			],
-			[
-				"check",
-				"check_past_messages"
-			],
-			[
 				"scissors",
 				"scissors"
 			],
@@ -56,62 +16,30 @@
 				"settings_file"
 			],
 			[
+				"last",
+				"last_message"
+			],
+			[
 				"server",
 				"server_roles"
+			],
+			[
+				"check",
+				"check_gab_usernames"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     ab309ec Update badges for V3\n\n\nUntracked files:\n\temojireact/__init__.py\n\nChanges:\n\tModified   emojireact/emojireact.py\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     f013d44 Test commit\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 991,
+				"buffer_size": 937,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
 				"scratch": true
-			}
-		},
-		{
-			"file": "badges/badges.py",
-			"settings":
-			{
-				"buffer_size": 6196,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "pillconvert/pillconvert.py",
-			"settings":
-			{
-				"buffer_size": 2853,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"contents": "import contextlib\nimport pkgutil\nfrom importlib import import_module, invalidate_caches\nfrom importlib.machinery import ModuleSpec\nfrom pathlib import Path\nfrom typing import Tuple, Union, List, overload\n\nimport redbot.cogs\n\nfrom . import checks\nfrom .config import Config\nfrom .i18n import CogI18n\nfrom .data_manager import cog_data_path\nfrom discord.ext import commands\n\nfrom .utils.chat_formatting import box, pagify\n\n__all__ = [\"CogManager\"]\n\n\nclass CogManager:\n    \"\"\"Directory manager for Red's cogs.\n\n    This module allows you to load cogs from multiple directories and even from\n    outside the bot directory. You may also set a directory for downloader to\n    install new cogs to, the default being the :code:`cogs/` folder in the root\n    bot directory.\n    \"\"\"\n    def __init__(self, paths: Tuple[str]=()):\n        self.conf = Config.get_conf(self, 2938473984732, True)\n        tmp_cog_install_path = cog_data_path(self) / \"cogs\"\n        tmp_cog_install_path.mkdir(parents=True, exist_ok=True)\n        self.conf.register_global(\n            paths=(),\n            install_path=str(tmp_cog_install_path)\n        )\n\n        self._paths = list(paths)\n\n    async def paths(self) -> Tuple[Path, ...]:\n        \"\"\"Get all currently valid path directories.\n\n        Returns\n        -------\n        `tuple` of `pathlib.Path`\n            All valid cog paths.\n\n        \"\"\"\n        conf_paths = await self.conf.paths()\n        other_paths = self._paths\n        core_paths = await self.core_paths()\n\n        all_paths = set(list(conf_paths) + list(other_paths) + core_paths)\n\n        paths = [Path(p) for p in all_paths]\n        if self.install_path not in paths:\n            paths.insert(0, await self.install_path())\n        return tuple(p.resolve() for p in paths if p.is_dir())\n\n    async def core_paths(self) -> List[Path]:\n        core_paths = [Path(p) for p in redbot.cogs.__path__]\n        return core_paths\n\n    async def install_path(self) -> Path:\n        \"\"\"Get the install path for 3rd party cogs.\n\n        Returns\n        -------\n        pathlib.Path\n            The path to the directory where 3rd party cogs are stored.\n\n        \"\"\"\n        p = Path(await self.conf.install_path())\n        return p.resolve()\n\n    async def set_install_path(self, path: Path) -> Path:\n        \"\"\"Set the install path for 3rd party cogs.\n\n        Note\n        ----\n        The bot will not remember your old cog install path which means\n        that **all previously installed cogs** will no longer be found.\n\n        Parameters\n        ----------\n        path : pathlib.Path\n            The new directory for cog installs.\n\n        Returns\n        -------\n        pathlib.Path\n            Absolute path to the new install directory.\n\n        Raises\n        ------\n        ValueError\n            If :code:`path` is not an existing directory.\n\n        \"\"\"\n        if not path.is_dir():\n            raise ValueError(\"The install path must be an existing directory.\")\n        resolved = path.resolve()\n        await self.conf.install_path.set(str(resolved))\n        return resolved\n\n    @staticmethod\n    def _ensure_path_obj(path: Union[Path, str]) -> Path:\n        \"\"\"Guarantee an object will be a path object.\n\n        Parameters\n        ----------\n        path : `pathlib.Path` or `str`\n\n        Returns\n        -------\n        pathlib.Path\n\n        \"\"\"\n        try:\n            path.exists()\n        except AttributeError:\n            path = Path(path)\n        return path\n\n    async def add_path(self, path: Union[Path, str]):\n        \"\"\"Add a cog path to current list.\n\n        This will ignore duplicates. Does have a side effect of removing all\n        invalid paths from the saved path list.\n\n        Parameters\n        ----------\n        path : `pathlib.Path` or `str`\n            Path to add.\n\n        Raises\n        ------\n        ValueError\n            If :code:`path` does not resolve to an existing directory.\n\n        \"\"\"\n        path = self._ensure_path_obj(path)\n\n        # This makes the path absolute, will break if a bot install\n        # changes OS/Computer?\n        path = path.resolve()\n\n        if not path.is_dir():\n            raise ValueError(\"'{}' is not a valid directory.\".format(path))\n\n        if path == await self.install_path():\n            raise ValueError(\"Cannot add the install path as an additional path.\")\n\n        all_paths = set(await self.paths() + (path, ))\n        # noinspection PyTypeChecker\n        await self.set_paths(all_paths)\n\n    async def remove_path(self, path: Union[Path, str]) -> Tuple[Path, ...]:\n        \"\"\"Remove a path from the current paths list.\n\n        Parameters\n        ----------\n        path : `pathlib.Path` or `str`\n            Path to remove.\n\n        Returns\n        -------\n        `tuple` of `pathlib.Path`\n            Tuple of new valid paths.\n\n        \"\"\"\n        path = self._ensure_path_obj(path)\n        all_paths = list(await self.paths())\n        if path in all_paths:\n            all_paths.remove(path)  # Modifies in place\n            await self.set_paths(all_paths)\n        return tuple(all_paths)\n\n    async def set_paths(self, paths_: List[Path]):\n        \"\"\"Set the current paths list.\n\n        Parameters\n        ----------\n        paths_ : `list` of `pathlib.Path`\n            List of paths to set.\n\n        \"\"\"\n        str_paths = [str(p) for p in paths_]\n        await self.conf.paths.set(str_paths)\n\n    async def _find_ext_cog(self, name: str) -> ModuleSpec:\n        \"\"\"\n        Attempts to find a spec for a third party installed cog.\n\n        Parameters\n        ----------\n        name : str\n            Name of the cog package to look for.\n\n        Returns\n        -------\n        importlib.machinery.ModuleSpec\n            Module spec to be used for cog loading.\n\n        Raises\n        ------\n        RuntimeError\n            When no matching spec can be found.\n        \"\"\"\n        resolved_paths = [str(p.resolve()) for p in await self.paths()]\n        for finder, module_name, _ in pkgutil.iter_modules(resolved_paths):\n            if name == module_name:\n                spec = finder.find_spec(name)\n                if spec:\n                    return spec\n\n        raise RuntimeError(\"No 3rd party module by the name of '{}' was found\"\n                           \" in any available path.\".format(name))\n\n    async def _find_core_cog(self, name: str) -> ModuleSpec:\n        \"\"\"\n        Attempts to find a spec for a core cog.\n\n        Parameters\n        ----------\n        name : str\n\n        Returns\n        -------\n        importlib.machinery.ModuleSpec\n\n        Raises\n        ------\n        RuntimeError\n            When no matching spec can be found.\n        \"\"\"\n        real_name = \".{}\".format(name)\n        try:\n            mod = import_module(real_name, package='redbot.cogs')\n        except ImportError as e:\n            raise RuntimeError(\"No core cog by the name of '{}' could\"\n                               \"be found.\".format(name)) from e\n        return mod.__spec__\n\n    # noinspection PyUnreachableCode\n    async def find_cog(self, name: str) -> ModuleSpec:\n        \"\"\"Find a cog in the list of available paths.\n\n        Parameters\n        ----------\n        name : str\n            Name of the cog to find.\n\n        Returns\n        -------\n        importlib.machinery.ModuleSpec\n            A module spec to be used for specialized cog loading.\n\n        Raises\n        ------\n        RuntimeError\n            If there is no cog with the given name.\n\n        \"\"\"\n        with contextlib.suppress(RuntimeError):\n            return await self._find_ext_cog(name)\n\n        with contextlib.suppress(RuntimeError):\n            return await self._find_core_cog(name)\n\n        raise RuntimeError(\"No cog with that name could be found.\")\n\n    async def available_modules(self) -> List[str]:\n        \"\"\"Finds the names of all available modules to load.\n        \"\"\"\n        paths = (await self.install_path(), ) + await self.paths()\n        paths = [str(p) for p in paths]\n\n        ret = []\n        for finder, module_name, _ in pkgutil.iter_modules(paths):\n            ret.append(module_name)\n        return ret\n\n    @staticmethod\n    def invalidate_caches():\n        \"\"\"Re-evaluate modules in the py cache.\n\n        This is an alias for an importlib internal and should be called\n        any time that a new module has been installed to a cog directory.\n        \"\"\"\n        invalidate_caches()\n\n\n_ = CogI18n(\"CogManagerUI\", __file__)\n\n\nclass CogManagerUI:\n    @commands.command()\n    @checks.is_owner()\n    async def paths(self, ctx: commands.Context):\n        \"\"\"\n        Lists current cog paths in order of priority.\n        \"\"\"\n        install_path = await ctx.bot.cog_mgr.install_path()\n        cog_paths = await ctx.bot.cog_mgr.paths()\n        cog_paths = [p for p in cog_paths if p != install_path]\n\n        msg = _(\"Install Path: {}\\n\\n\").format(install_path)\n\n        partial = []\n        for i, p in enumerate(cog_paths, start=1):\n            partial.append(\"{}. {}\".format(i, p))\n\n        msg += \"\\n\".join(partial)\n        await ctx.send(box(msg))\n\n    @commands.command()\n    @checks.is_owner()\n    async def addpath(self, ctx: commands.Context, path: Path):\n        \"\"\"\n        Add a path to the list of available cog paths.\n        \"\"\"\n        if not path.is_dir():\n            await ctx.send(_(\"That path is does not exist or does not\"\n                             \" point to a valid directory.\"))\n            return\n\n        try:\n            await ctx.bot.cog_mgr.add_path(path)\n        except ValueError as e:\n            await ctx.send(str(e))\n        else:\n            await ctx.send(_(\"Path successfully added.\"))\n\n    @commands.command()\n    @checks.is_owner()\n    async def removepath(self, ctx: commands.Context, path_number: int):\n        \"\"\"\n        Removes a path from the available cog paths given the path_number\n            from !paths\n        \"\"\"\n        cog_paths = await ctx.bot.cog_mgr.paths()\n        try:\n            to_remove = cog_paths[path_number]\n        except IndexError:\n            await ctx.send(_(\"That is an invalid path number.\"))\n            return\n\n        await ctx.bot.cog_mgr.remove_path(to_remove)\n        await ctx.send(_(\"Path successfully removed.\"))\n\n    @commands.command()\n    @checks.is_owner()\n    async def reorderpath(self, ctx: commands.Context, from_: int, to: int):\n        \"\"\"\n        Reorders paths internally to allow discovery of different cogs.\n        \"\"\"\n        # Doing this because in the paths command they're 1 indexed\n        from_ -= 1\n        to -= 1\n\n        all_paths = list(await ctx.bot.cog_mgr.paths())\n        try:\n            to_move = all_paths.pop(from_)\n        except IndexError:\n            await ctx.send(_(\"Invalid 'from' index.\"))\n            return\n\n        try:\n            all_paths.insert(to, to_move)\n        except IndexError:\n            await ctx.send(_(\"Invalid 'to' index.\"))\n            return\n\n        await ctx.bot.cog_mgr.set_paths(all_paths)\n        await ctx.send(_(\"Paths reordered.\"))\n\n    @commands.command()\n    @checks.is_owner()\n    async def installpath(self, ctx: commands.Context, path: Path=None):\n        \"\"\"\n        Returns the current install path or sets it if one is provided.\n            The provided path must be absolute or relative to the bot's\n            directory and it must already exist.\n\n        No installed cogs will be transferred in the process.\n        \"\"\"\n        if path:\n            if not path.is_absolute():\n                path = (ctx.bot.main_dir / path).resolve()\n            try:\n                await ctx.bot.cog_mgr.set_install_path(path)\n            except ValueError:\n                await ctx.send(_(\"That path does not exist.\"))\n                return\n\n        install_path = await ctx.bot.cog_mgr.install_path()\n        await ctx.send(_(\"The bot will install new cogs to the `{}`\"\n                         \" directory.\").format(install_path))\n\n    @commands.command()\n    @checks.is_owner()\n    async def cogs(self, ctx: commands.Context):\n        \"\"\"\n        Lists all loaded and available cogs.\n        \"\"\"\n        loaded = set(ctx.bot.extensions.keys())\n\n        all = set(await ctx.bot.cog_mgr.available_modules())\n\n        unloaded = all - loaded\n\n        msg = (\"+ Loaded\\n\"\n               \"{}\\n\\n\"\n               \"- Unloaded\\n\"\n               \"{}\"\n               \"\".format(\", \".join(sorted(loaded)),\n                         \", \".join(sorted(unloaded)))\n               )\n        for page in pagify(msg, [\" \"], shorten_by=18):\n            await ctx.send(box(page.lstrip(\" \"), lang=\"diff\"))\n\n",
-			"file": "/C/Program Files/Python36/Lib/site-packages/redbot/core/cog_manager.py",
-			"file_size": 12986,
-			"file_write_time": 131548506850000000,
-			"settings":
-			{
-				"buffer_size": 12564,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"contents": "import asyncio\nimport os\nfrom collections import Counter\nfrom enum import Enum\nfrom importlib.machinery import ModuleSpec\nfrom pathlib import Path\n\nimport discord\nfrom discord.ext.commands.bot import BotBase\nfrom discord.ext.commands import GroupMixin\n\nfrom .cog_manager import CogManager\nfrom . import (\n    Config,\n    i18n,\n    RedContext,\n    rpc\n)\n\nfrom typing import TYPE_CHECKING\n\nif TYPE_CHECKING:\n    from aiohttp_json_rpc import JsonRpc\n\n\n# noinspection PyUnresolvedReferences\nclass RpcMethodMixin:\n    async def rpc__cogs(self, request):\n        return list(self.cogs.keys())\n\n    async def rpc__extensions(self, request):\n        return list(self.extensions.keys())\n\n\nclass RedBase(BotBase, RpcMethodMixin):\n    \"\"\"Mixin for the main bot class.\n\n    This exists because `Red` inherits from `discord.AutoShardedClient`, which\n    is something other bot classes (namely selfbots) may not want to have as\n    a parent class.\n    \n    Selfbots should inherit from this mixin along with `discord.Client`.\n    \"\"\"\n    def __init__(self, cli_flags, bot_dir: Path=Path.cwd(), **kwargs):\n        self._shutdown_mode = ExitCodes.CRITICAL\n        self.db = Config.get_core_conf(force_registration=True)\n        self._co_owners = cli_flags.co_owner\n        self.rpc_enabled = cli_flags.rpc\n\n        self.db.register_global(\n            token=None,\n            prefix=[],\n            packages=[],\n            owner=None,\n            whitelist=[],\n            blacklist=[],\n            enable_sentry=None,\n            locale='en'\n        )\n\n        self.db.register_guild(\n            prefix=[],\n            whitelist=[],\n            blacklist=[],\n            admin_role=None,\n            mod_role=None\n        )\n\n        async def prefix_manager(bot, message):\n            if not cli_flags.prefix:\n                global_prefix = await bot.db.prefix()\n            else:\n                global_prefix = cli_flags.prefix\n            if message.guild is None:\n                return global_prefix\n            server_prefix = await bot.db.guild(message.guild).prefix()\n            return server_prefix if server_prefix else global_prefix\n\n        if \"command_prefix\" not in kwargs:\n            kwargs[\"command_prefix\"] = prefix_manager\n\n        if cli_flags.owner and \"owner_id\" not in kwargs:\n            kwargs[\"owner_id\"] = cli_flags.owner\n\n        if \"owner_id\" not in kwargs:\n            loop = asyncio.get_event_loop()\n            loop.run_until_complete(self._dict_abuse(kwargs))\n\n        self.counter = Counter()\n        self.uptime = None\n\n        self.main_dir = bot_dir\n\n        self.cog_mgr = CogManager(paths=(str(self.main_dir / 'cogs'),))\n\n        self.register_rpc_methods()\n\n        super().__init__(**kwargs)\n\n    async def _dict_abuse(self, indict):\n        \"\"\"\n        Please blame <@269933075037814786> for this.\n\n        :param indict:\n        :return:\n        \"\"\"\n\n        indict['owner_id'] = await self.db.owner()\n        i18n.set_locale(await self.db.locale())\n\n    async def is_owner(self, user):\n        if user.id in self._co_owners:\n            return True\n        return await super().is_owner(user)\n\n    async def is_admin(self, member: discord.Member):\n        \"\"\"Checks if a member is an admin of their guild.\"\"\"\n        admin_role = await self.db.guild(member.guild).admin_role()\n        return (not admin_role or\n                any(role.id == admin_role for role in member.roles))\n\n    async def is_mod(self, member: discord.Member):\n        \"\"\"Checks if a member is a mod or admin of their guild.\"\"\"\n        mod_role = await self.db.guild(member.guild).mod_role()\n        admin_role = await self.db.guild(member.guild).admin_role()\n        return (not (admin_role or mod_role) or\n                any(role.id in (mod_role, admin_role) for role in member.roles))\n\n    async def get_context(self, message, *, cls=RedContext):\n        return await super().get_context(message, cls=cls)\n\n    def list_packages(self):\n        \"\"\"Lists packages present in the cogs the folder\"\"\"\n        return os.listdir(\"cogs\")\n\n    async def save_packages_status(self, packages):\n        await self.db.packages.set(packages)\n\n    async def add_loaded_package(self, pkg_name: str):\n        curr_pkgs = await self.db.packages()\n        if pkg_name not in curr_pkgs:\n            curr_pkgs.append(pkg_name)\n            await self.save_packages_status(curr_pkgs)\n\n    async def remove_loaded_package(self, pkg_name: str):\n        curr_pkgs = await self.db.packages()\n        if pkg_name in curr_pkgs:\n            await self.save_packages_status([p for p in curr_pkgs if p != pkg_name])\n\n    def load_extension(self, spec: ModuleSpec):\n        name = spec.name.split('.')[-1]\n        if name in self.extensions:\n            return\n\n        lib = spec.loader.load_module()\n        if not hasattr(lib, 'setup'):\n            del lib\n            raise discord.ClientException('extension does not have a setup function')\n\n        lib.setup(self)\n        self.extensions[name] = lib\n\n    def unload_extension(self, name):\n        lib = self.extensions.get(name)\n        if lib is None:\n            return\n\n        lib_name = lib.__name__  # Thank you\n\n        # find all references to the module\n\n        # remove the cogs registered from the module\n        for cogname, cog in self.cogs.copy().items():\n            if cog.__module__.startswith(lib_name):\n                self.remove_cog(cogname)\n\n        # first remove all the commands from the module\n        for cmd in self.all_commands.copy().values():\n            if cmd.module.startswith(lib_name):\n                if isinstance(cmd, GroupMixin):\n                    cmd.recursively_remove_all_commands()\n                self.remove_command(cmd.name)\n\n        # then remove all the listeners from the module\n        for event_list in self.extra_events.copy().values():\n            remove = []\n            for index, event in enumerate(event_list):\n                if event.__module__.startswith(lib_name):\n                    remove.append(index)\n\n            for index in reversed(remove):\n                del event_list[index]\n\n        try:\n            func = getattr(lib, 'teardown')\n        except AttributeError:\n            pass\n        else:\n            try:\n                func(self)\n            except:\n                pass\n        finally:\n            # finally remove the import..\n            del lib\n            del self.extensions[name]\n            # del sys.modules[name]\n\n    def register_rpc_methods(self):\n        rpc.add_method('bot', self.rpc__cogs)\n        rpc.add_method('bot', self.rpc__extensions)\n\n\nclass Red(RedBase, discord.AutoShardedClient):\n    \"\"\"\n    You're welcome Caleb.\n    \"\"\"\n    async def shutdown(self, *, restart: bool=False):\n        \"\"\"Gracefully quit Red.\n        \n        The program will exit with code :code:`0` by default.\n\n        Parameters\n        ----------\n        restart : bool\n            If :code:`True`, the program will exit with code :code:`26`. If the\n            launcher sees this, it will attempt to restart the bot.\n\n        \"\"\"\n        if not restart:\n            self._shutdown_mode = ExitCodes.SHUTDOWN\n        else:\n            self._shutdown_mode = ExitCodes.RESTART\n\n        await self.logout()\n\n\nclass ExitCodes(Enum):\n    CRITICAL = 1\n    SHUTDOWN = 0\n    RESTART  = 26\n",
-			"file": "/C/Program Files/Python36/Lib/site-packages/redbot/core/bot.py",
-			"file_size": 7540,
-			"file_write_time": 131548506850000000,
-			"settings":
-			{
-				"buffer_size": 7299,
-				"line_ending": "Windows"
 			}
 		}
 	],
@@ -123,24 +51,52 @@
 	"command_palette":
 	{
 		"height": 170.0,
-		"last_filter": "git push",
+		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"package control remove",
+				"Package Control: Remove Package"
+			],
 			[
 				"git push",
 				"Git: Push"
 			],
 			[
-				"git",
-				"Git: Push"
+				"git status",
+				"Git: Status"
 			],
 			[
-				"switch",
-				"Git: Switch Repo"
+				"package control",
+				"Package Control: Install Package"
+			],
+			[
+				"package control install",
+				"Package Control: Install Package"
+			],
+			[
+				"package control: remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"git",
+				"Git: Reset (hard) HEAD"
+			],
+			[
+				"git:",
+				"Git: Status"
+			],
+			[
+				"package",
+				"Package Control: Upgrade/Overwrite All Packages"
 			],
 			[
 				"git pull",
-				"Git: Pull"
+				"Git: Pull Current Branch"
+			],
+			[
+				"git bra",
+				"Git: Change Branch"
 			],
 			[
 				"git stat",
@@ -167,102 +123,23 @@
 	},
 	"expanded_folders":
 	[
-		"/E/github/Trusty-cogs",
-		"/E/github/Trusty-cogs/badges",
-		"/E/github/Trusty-cogs/pillconvert",
-		"/E/github/Trusty-cogs/pillconvert/data",
-		"/E/github/Trusty-cogs/tarot",
-		"/E/github/Trusty-cogs/tarot/__pycache__"
+		"/E/github/Trusty-cogs"
 	],
 	"file_history":
 	[
-		"/D/dameznet-158219/www/index.html",
-		"/D/dameznet-158219/www/Footer.html",
-		"/C/Users/Damez/AppData/Roaming/Electrum/blockchain_headers",
-		"/C/Users/Damez/AppData/Roaming/Electrum/config",
-		"/C/Users/Damez/AppData/Roaming/Electrum/wallets/default_wallet",
-		"/C/Users/Damez/AppData/Roaming/Electrum/wallets/backup",
-		"/E/github/Trusty-cogs/badges/__init__.py",
-		"/E/github/Trusty-cogs/badges/info.json",
-		"/C/Users/Damez/AppData/Local/Red-DiscordBot/Red-DiscordBot/cogs/CogManager/cogs/pillconvert/pillconvert.py",
-		"/C/Program Files/Python36/Lib/site-packages/redbot/core/data_manager.py",
-		"/C/Users/Damez/AppData/Local/Red-DiscordBot/Red-DiscordBot/cogs/Downloader/settings.json",
-		"/C/Users/Damez/AppData/Local/Red-DiscordBot/Red-DiscordBot/cogs/CogManager/settings.json",
-		"/C/Users/Damez/AppData/Local/Red-DiscordBot/Red-DiscordBot/cogs/RepoManager/repos/trusty/pillconvert/__init__.py",
-		"/C/Users/Damez/AppData/Local/Red-DiscordBot/Red-DiscordBot/cogs/RepoManager/repos/trusty/pillconvert/pillconvert.py",
-		"/E/github/Trusty-cogs/pillconvert/pillconvert.py",
-		"/E/github/Trusty-cogs/emojireact/__init__.py",
-		"/E/github/Trusty-cogs/emojireact/emojireact.py",
-		"/E/github/Trusty-cogs/chatter/chatter.py",
-		"/E/github/Trusty-cogs/chatter/__init__.py",
-		"/E/github/Trusty-cogs/discordchatterbot/discordchatterbot.py",
-		"/E/github/Trusty-cogs/discordchatterbot/__init__.py",
-		"/E/github/Trusty-cogs/chatterbot/__init__.py",
-		"/E/github/Trusty-cogs/chatterbot/info.json",
-		"/E/github/Trusty-cogs/tweets/tweets.py",
-		"/E/github/Trusty-cogs/conversions/__init__.py",
-		"/E/github/Trusty-cogs/conversions/conversions.py",
-		"/E/github/Trusty-cogs/faces/faces.py",
-		"/E/github/Trusty-cogs/faces/__init__.py",
-		"/E/github/Trusty-cogs/faces/data/faces.py",
-		"/E/github/Trusty-cogs/imgflip/imgflip.py",
-		"/E/github/Trusty-cogs/tarot/tarotreading.py",
-		"/E/github/TrustyTest/redbot/core/data_manager.py",
-		"/E/github/TrustyTest/redbot/core/cog_manager.py",
-		"/E/github/Trusty-cogs/imgflip/__init__.py",
-		"/E/github/Trusty-cogs/star/star.py",
-		"/D/WikiLeaks/WLBitcoin/DiscordPGP/mods.txt",
-		"/D/ftwtech.txt",
-		"/D/fakekey.txt",
-		"/D/wikileakspgp.txt",
-		"/E/github/TrustyTest/redbot/core/core_commands.py",
-		"/E/github/TrustyTest/redbot/core/cli.py",
-		"/E/github/TrustyTest/redbot/core/context.py",
-		"/E/github/TrustyTest/redbot/core/events.py",
-		"/E/github/TrustyTest/data/cogs/Rainbow/settings.json",
-		"/E/github/Trusty-cogs/rainbow/__init__.py",
-		"/E/github/TrustyTest/redbot/core/config.py",
-		"/E/github/TrustyTest/redbot/core/dev_commands.py",
-		"/E/github/Trusty-cogs/pillconvert/__init__.py",
-		"/E/github/Trusty-cogs/rainbow/rainbow.py",
-		"/E/github/Trusty-cogs/rekt/rekt.py",
-		"/E/github/Trusty-cogs/rekt/__init__.py",
-		"/E/github/Trusty-cogs/star/message_entry.py",
-		"/E/github/TrustyTest/data/cogs/Star/settings.json",
-		"/E/github/Trusty-cogs/tweets/tweet_entry.py",
-		"/E/github/Trusty-cogs/star/__init__.py",
-		"/E/github/Discord-Selfbot/loopself.py",
-		"/E/github/Discord-Selfbot/settings/config.json",
-		"/E/github/Discord-Selfbot/settings/fc.json",
-		"/E/github/Discord-Selfbot/appuselfbot.py",
-		"/E/github/TrustyTest/redbot/cogs/testingcog/testingcog.py",
-		"/E/github/TrustyTest/redbot/core/checks.py",
-		"/E/github/TrustyTest/data/core/settings.json",
-		"/E/github/Trusty-cogs/.gitignore",
-		"/E/github/Trusty-cogs/tarot/__init__.py",
-		"/E/github/Trusty-cogs/tarot/tarot_cards.py",
-		"/E/github/Trusty-cogs/weather/__init__.py",
-		"/E/github/Trusty-cogs/tweets/tarot_cards.py",
-		"/E/github/Trusty-cogs/weather/weather.py",
-		"/E/github/TrustyTest/data/cogs/CogManager/settings.json",
-		"/C/Program Files/Python36/Lib/site-packages/redbot/__main__.py",
-		"/D/dameznet-158219/www/css/style.css",
-		"/C/Users/Damez/Desktop/primes.py",
-		"/C/Users/Damez/Google Drive/ASMinfo.txt",
-		"/C/Users/Damez/Google Drive/www/index.html",
-		"/D/dameznet-158219/www/manifest.json",
-		"/C/Users/Damez/app.yaml",
-		"/E/github/Trusty-Bot/data/blockchain/sdata.txt",
-		"/E/github/Trusty-Bot/data/blockchain/originaldata.txt",
-		"/E/github/Trusty-Bot/data/blockchain/idata.txt",
-		"/E/github/Trusty-cogs/juche/juche.py",
-		"/E/github/Trusty-cogs/tweets/__init__.py",
-		"/E/github/Trusty-cogs/juche/__init__.py",
+		"/C/Users/Damez/Downloads/shitpost.py",
+		"/C/Users/Damez/Downloads/shitpost/__init__.py",
+		"/C/Users/Damez/Downloads/shitpost/shitpost.py",
 		"/E/github/Trusty-cogs/README.md",
-		"/E/github/Trusty-cogs/blockchain/blockchain.py",
+		"/E/github/Trusty-cogs/hockey/hockey.py",
+		"/E/github/Trusty-cogs/tweets/tweets.py",
+		"/E/github/Trusty-cogs/backup/info.json",
+		"/E/github/Trusty-cogs/backup/backup.py",
+		"/E/github/Trusty-cogs/hockey/__init__.py",
+		"/E/github/Trusty-cogs/badges/badges.py",
+		"/E/github/Trusty-cogs/hockey/teams.py",
 		"/E/github/Trusty-cogs/activity/activity.py",
 		"/E/github/Trusty-cogs/chatterbot/chatterbot.py",
-		"/E/github/Trusty-cogs/badges/badges.py",
 		"/E/github/Trusty-cogs/halo/halo.py",
 		"/C/Users/Damez/Desktop/printbox.py",
 		"/C/Users/Damez/Desktop/rps.py",
@@ -294,11 +171,11 @@
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 27.0
 	},
 	"find_in_files":
 	{
-		"height": 105.0,
+		"height": 0.0,
 		"where_history":
 		[
 		]
@@ -308,67 +185,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"0301",
-			"1801",
-			"db8",
-			"np",
-			"pass_context=True, ",
-			"self.settings",
-			"server",
-			"self.bot.send_message(channel,",
-			"self.settings",
-			"coin",
-			"json",
-			"time",
-			"datetime",
-			"enum",
-			"random",
-			"codecs",
-			"btcurl",
-			"with session",
-			"self.bot.say",
-			"print",
-			"pass_context=True",
-			"pass_context=True, ",
-			"prefix",
-			"server",
-			"self.settings",
-			"box",
-			"cog_data_path",
-			"pass_context=True,",
-			"self.bot.say",
+			"self.config[team][\"goals",
 			"server",
 			"self.settings",
 			"server",
-			"self.rektlist",
-			"guild",
-			"self.config",
-			"asyncio",
-			"server",
-			"discord.Channel",
 			"self.settings",
-			"re",
-			"self.tarot",
-			"tarots",
-			"damez",
-			"Background",
-			"background",
-			"damez",
-			"welcome",
-			"Header",
-			"time",
-			"datetime",
-			"hashlib",
-			"json",
-			"randint",
-			"choice",
-			"random",
-			"hexlify",
-			"enum",
-			"server",
-			"re",
-			"string",
-			"server",
 			"raw_input"
 		],
 		"highlight": true,
@@ -377,30 +198,11 @@
 		"regex": false,
 		"replace_history":
 		[
-			"",
-			"self.config",
-			"guild",
-			"ctx.send(",
-			"self.config",
-			"with self.session",
-			"ctx.send",
-			"",
-			"guild",
-			"self.config",
-			"",
-			"ctx.send",
 			"guild",
 			"self.config",
 			"guild",
-			"rektlist",
-			"server",
-			"self.settings",
-			"guild",
-			"discord.TextChannel",
 			"self.config",
-			"self.tarot_cards",
-			"tarot",
-			"guild"
+			""
 		],
 		"reverse": false,
 		"show_context": true,
@@ -419,15 +221,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 991,
+						"buffer_size": 937,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								182,
-								182
+								239,
+								239
 							]
 						],
 						"settings":
@@ -446,126 +248,6 @@
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "badges/badges.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 6196,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5512,
-								5512
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1254.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "pillconvert/pillconvert.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2853,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								717,
-								759
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 285.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "/C/Program Files/Python36/Lib/site-packages/redbot/core/cog_manager.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 12564,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 4864.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "/C/Program Files/Python36/Lib/site-packages/redbot/core/bot.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 7299,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2590,
-								2597
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1037.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
 					"type": "text"
 				}
 			]
@@ -606,6 +288,10 @@
 	{
 		"height": 0.0
 	},
+	"output.git":
+	{
+		"height": 127.0
+	},
 	"output.git-commit":
 	{
 		"height": 121.0
@@ -622,7 +308,7 @@
 	"project": "trusty-cogs.sublime-project",
 	"replace":
 	{
-		"height": 73.0
+		"height": 50.0
 	},
 	"save_all_on_build": true,
 	"select_file":
