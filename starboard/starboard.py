@@ -68,9 +68,9 @@ class Starboard:
             msg_id, count2 = await self.get_posted_message(guild, msg)
             if msg_id is not None:
                 msg_edit = await channel.get_message(msg_id)
-                await msg_edit.edit(content="{} **#{}**".format(emoji, count))
+                await msg_edit.edit(content="{} **#{}**".format(emoji, count2))
                 return
-        
+        count = 1
         channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
         em = await self.build_embed(guild, msg)
         post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
