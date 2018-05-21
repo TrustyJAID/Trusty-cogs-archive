@@ -41,6 +41,8 @@ class Starboard:
 
     @commands.command()
     async def star(self, ctx, msg_id, channel_id=None):
+        """Manually star a message
+           Do `[p]star <msg_id> <channel_id>` Deaults to the current channel if not provided"""
         if channel_id is None:
             channel = ctx.message.channel
         else:
