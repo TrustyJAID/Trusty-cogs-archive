@@ -32,14 +32,23 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     f013d44 Test commit\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     c6842f0 [Starboard] Add help documentation to star command\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 937,
+				"buffer_size": 976,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
 				"scratch": true
+			}
+		},
+		{
+			"file": "starboard/starboard.py",
+			"settings":
+			{
+				"buffer_size": 15999,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		}
 	],
@@ -55,16 +64,16 @@
 		"selected_items":
 		[
 			[
-				"package control remove",
-				"Package Control: Remove Package"
-			],
-			[
 				"git push",
 				"Git: Push"
 			],
 			[
 				"git status",
 				"Git: Status"
+			],
+			[
+				"package control remove",
+				"Package Control: Remove Package"
 			],
 			[
 				"package control",
@@ -123,10 +132,18 @@
 	},
 	"expanded_folders":
 	[
-		"/E/github/Trusty-cogs"
+		"/E/github/Trusty-cogs",
+		"/E/github/Trusty-cogs/addimage",
+		"/E/github/Trusty-cogs/imagemaker",
+		"/E/github/Trusty-cogs/imgflip",
+		"/E/github/Trusty-cogs/qposts",
+		"/E/github/Trusty-cogs/starboard"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/qposts/qposts.py",
+		"/E/github/Trusty-cogs/addimage/addimage.py",
+		"/E/github/Trusty-cogs/imgflip/imgflip.py",
 		"/C/Users/Damez/Downloads/shitpost.py",
 		"/C/Users/Damez/Downloads/shitpost/__init__.py",
 		"/C/Users/Damez/Downloads/shitpost/shitpost.py",
@@ -171,7 +188,7 @@
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 41.0
 	},
 	"find_in_files":
 	{
@@ -185,6 +202,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"choices",
+			"get_text",
+			"trips",
+			"greatawakening",
 			"self.config[team][\"goals",
 			"server",
 			"self.settings",
@@ -198,6 +219,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"get_text()",
 			"guild",
 			"self.config",
 			"guild",
@@ -221,15 +243,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 937,
+						"buffer_size": 976,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								239,
-								239
+								171,
+								171
 							]
 						],
 						"settings":
@@ -248,6 +270,36 @@
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "starboard/starboard.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15999,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1667,
+								1667
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 99.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
