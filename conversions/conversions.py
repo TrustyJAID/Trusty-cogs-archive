@@ -64,12 +64,12 @@ class Conversions:
         await ctx.send(embed=embed)
     
     async def checkcoins(self, base):
-        link = "https://api.coinmarketcap.com/v1/ticker/"
+        link = "https://api.coinmarketcap.com/v2/ticker/"
         async with self.session.get(link) as resp:
             data = await resp.json()
-        for coin in data:
-            if base.upper() == coin["symbol"].upper() or base.lower() == coin["name"].lower():
-                return coin 
+        for coin in data["data"]:
+            if base.upper() == data["data"][coin]["symbol"].upper() or base.lower() == data["data"][coin]["name"].lower():
+                return data["data"][coin] 
         return None
 
     @commands.command(pass_context=True)
@@ -77,10 +77,10 @@ class Conversions:
         """Gets the current USD for a list of coins seperated by ;"""
         coin_list = []
         if coins is None:
-            async with self.session.get("https://api.coinmarketcap.com/v1/ticker/") as resp:
+            async with self.session.get("https://api.coinmarketcap.com/v2/ticker/") as resp:
                 data = await resp.json()
             for i in range(25):
-                coin_list.append(data[i])
+                coin_list.append(data["data"][i])
         else:
             coins = re.split("\W+", coins)
             for coin in coins:
@@ -88,7 +88,7 @@ class Conversions:
         embed = discord.Embed(title="Crypto coin comparison")
         for coin in coin_list:
             if coin is not None:
-                msg = "1 {0} is {1:.2f} USD".format(coin["symbol"], float(coin["price_usd"]))
+                msg = "1 {0} is {1:.2f} USD".format(coin["symbol"], float(coin["quotes"]["USD"]["price"]))
                 embed.add_field(name=coin["name"], value=msg)
         await ctx.send(embed=embed)
 
@@ -106,10 +106,10 @@ class Conversions:
         if coin_data is None:
             await ctx.send("{} is not in my list of currencies!".format(coin))
             return      
-        price = float(coin_data["price_usd"]) * ammount
-        market_cap = float(coin_data["market_cap_usd"])
-        volume_24h = float(coin_data["24h_volume_usd"])
-        coin_image = "https://files.coinmarketcap.com/static/img/coins/128x128/{}.png".format(coin_data["id"])
+        price = float(coin_data["quotes"]["USD"]["price"]) * ammount
+        market_cap = float(coin_data["quotes"]["USD"]["market_cap"])
+        volume_24h = float(coin_data["quotes"]["USD"]["volume_24h"])
+        coin_image = "https://s2.coinmarketcap.com/static/img/coins/128x128/{}.png".format(coin_data["id"])
         coin_url = "https://coinmarketcap.com/currencies/{}".format(coin_data["id"])
         if currency.upper() != "USD":
             conversionrate = await self.conversionrate("USD", currency.upper())
@@ -128,9 +128,9 @@ class Conversions:
             embed.add_field(name="Available Supply", value=coin_data["available_supply"], inline=True)
             embed.add_field(name="Max Supply", value=coin_data["max_supply"], inline=True)
             embed.add_field(name="Total Supply", value=coin_data["total_supply"], inline=True)
-            embed.add_field(name="Change 1 hour", value="{}%".format(coin_data["percent_change_1h"]), inline=True)
-            embed.add_field(name="Change 24 hours", value="{}%".format(coin_data["percent_change_24h"]), inline=True)
-            embed.add_field(name="Change 7 days", value="{}%".format(coin_data["percent_change_7d"]), inline=True)
+            embed.add_field(name="Change 1 hour", value="{}%".format(coin_data["quotes"]["USD"]["percent_change_1h"]), inline=True)
+            embed.add_field(name="Change 24 hours", value="{}%".format(coin_data["quotes"]["USD"]["percent_change_24h"]), inline=True)
+            embed.add_field(name="Change 7 days", value="{}%".format(coin_data["quotes"]["USD"]["percent_change_7d"]), inline=True)
         return embed
 
     @commands.command(pass_context=True, aliases=["au", "AU", "Au", "GOLD"])
