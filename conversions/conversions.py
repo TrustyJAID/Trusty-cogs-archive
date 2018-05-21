@@ -125,7 +125,7 @@ class Conversions:
             embed.set_thumbnail(url=coin_image)
             embed.add_field(name="Market Cap", value="{} {}".format(market_cap, currency.upper()), inline=True)
             embed.add_field(name="24 Hour Volue", value="{} {}".format(volume_24h, currency.upper()))
-            embed.add_field(name="Available Supply", value=coin_data["available_supply"], inline=True)
+            embed.add_field(name="Available Supply", value=coin_data["circulating_supply"], inline=True)
             embed.add_field(name="Max Supply", value=coin_data["max_supply"], inline=True)
             embed.add_field(name="Total Supply", value=coin_data["total_supply"], inline=True)
             embed.add_field(name="Change 1 hour", value="{}%".format(coin_data["quotes"]["USD"]["percent_change_1h"]), inline=True)
