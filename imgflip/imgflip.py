@@ -58,6 +58,9 @@ class Imgflip:
             meme, text1, text2 = msg[0], msg[1], " "
         if len(msg) == 3:
             meme, text1, text2 = msg[0], msg[1], msg[2]
+        else:
+            await ctx.send("Too many text entries! Imgflip allows a maximum of 2 text fields in their API.")
+            return
 
         text_lines = len(msg) - 1
         meme = msg.pop(0)
