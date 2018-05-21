@@ -189,7 +189,7 @@ class AddImage:
                 if cmd is None:
                     cmd = filename.split(".")[0]
                 cmd = cmd.lower()
-                seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+                seed = ''.join(random.sample(string.ascii_uppercase + string.digits, k=5))
                 directory = "data/addimage/{}/{}-{}".format(server.id, seed, filename)
                 self.images["server"][server.id][cmd] = directory
                 dataIO.save_json("data/addimage/settings.json", self.images)
@@ -233,7 +233,7 @@ class AddImage:
                 if cmd is None:
                     cmd = filename.split(".")[0]
                 cmd = cmd.lower()
-                seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+                seed = ''.join(random.sample(string.ascii_uppercase + string.digits, k=5))
                 directory = "data/addimage/{}/{}-{}".format(server.id, seed, filename)
                 self.images["global"][cmd] = directory
                 dataIO.save_json("data/addimage/settings.json", self.images)
