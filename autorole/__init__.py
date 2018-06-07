@@ -1,4 +1,4 @@
-from.autorole import Autorole
+from .autorole import Autorole
 
 def setup(bot):
     n = Autorole(bot)
