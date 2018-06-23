@@ -18,59 +18,35 @@ class EmojiReactions:
 
     @emojireact.group(name="unicode")
     async def _unicode(self, ctx):
-        """Add or remove unicode emoji reactions"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        """Toggle unicode emoji reactions"""
+        if await self.config.guild(ctx.guild).unicode():
+            await self.config.guild(ctx.guild).unicode.set(False)
+            await ctx.send("Okay, I will not react to messages containing unicode emojis!")
+        if not await self.config.guild(ctx.guild).unicode():
+            await self.config.guild(ctx.guild).unicode.set(True)
+            await ctx.send("Okay, I will react to messages containing unicode emojis!")
 
     @emojireact.group(name="guild")
     async def _guild(self, ctx):
-        """Add or remove guild emoji reactions"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        """Toggle guild emoji reactions"""
+        if await self.config.guild(ctx.guild).guild():
+            await self.config.guild(ctx.guild).guild.set(False)
+            await ctx.send("Okay, I will not react to messages containing server emojis!")
+        if not await self.config.guild(ctx.guild).guild():
+            await self.config.guild(ctx.guild).guild.set(True)
+            await ctx.send("Okay, I will react to messages containing server emojis!")
 
     @emojireact.group(name="all")
     async def _all(self, ctx):
-        """Add or remove all emoji reactions"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
-
-    @_all.command(name="add", aliases=["on"])        
-    async def add_all(self,ctx):
-        """Adds all emoji reactions to the guild"""
-        await self.config.guild(ctx.guild).unicode.set(True)
-        await self.config.guild(ctx.guild).guild.set(True)
-        await ctx.send("Okay, I will react to messages containing emojis!")
-
-    @_all.command(name="remove", aliases=["off"])        
-    async def rem_all(self,ctx):
-        """Removes all emoji reactions to the guild"""
-        await self.config.guild(ctx.guild).unicode.set(False)
-        await self.config.guild(ctx.guild).guild.set(False)
-        await ctx.send("Okay, I will not react to messages containing emojis!")
-
-    @_unicode.command(name="add", aliases=["on"])        
-    async def add_unicode(self,ctx):
-        """Adds unicode emoji reactions to the guild"""
-        await self.config.guild(ctx.guild).unicode.set(True)
-        await ctx.send("Okay, I will react to messages containing unicode emojis!")
-
-    @_unicode.command(name="remove", aliases=["off"])        
-    async def rem_unicode(self,ctx):
-        """Removes unicode emoji reactions to the guild"""
-        await self.config.guild(ctx.guild).unicode.set(False)
-        await ctx.send("Okay, I will not react to messages containing unicode emojis!")
-
-    @_guild.command(name="add", aliases=["on"])        
-    async def add_guild(self,ctx):
-        """Adds guild emoji reactions to the guild"""
-        await self.config.guild(ctx.guild).guild.set(True)
-        await ctx.send("Okay, I will react to messages containing guild emojis!")
-
-    @_guild.command(name="remove", aliases=["off"])        
-    async def rem_guild(self,ctx):
-        """Removes guild emoji reactions to the guild"""
-        await self.config.guild(ctx.guild).guild.set(False)
-        await ctx.send("Okay, I will not react to messages containing guild emojis!")
+        """Toggle all emoji reactions"""
+        if await self.config.guild(ctx.guild).guild() or await self.config.guild(ctx.guild).unicode():
+            await self.config.guild(ctx.guild).guild.set(False)
+            await self.config.guild(ctx.guild).unicode.set(False)
+            await ctx.send("Okay, I will not react to messages containing all emojis!")
+        if not await self.config.guild(ctx.guild).guild() or not await self.config.guild(ctx.guild).unicode():
+            await self.config.guild(ctx.guild).guild.set(True)
+            await self.config.guild(ctx.guild).guild.set(True)
+            await ctx.send("Okay, I will react to messages containing all emojis!")
 
     async def on_message(self, message):
         channel = message.channel
