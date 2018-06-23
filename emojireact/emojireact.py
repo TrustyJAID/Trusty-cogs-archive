@@ -14,14 +14,15 @@ class EmojiReactions:
     @commands.group()
     async def emojireact(self, ctx):
         if ctx.invoked_subcommand is None:
-             await ctx.send_help()
-             em = discord.Embed()
-             try:
+            await ctx.send_help()
+            em = discord.Embed()
+            try:
                 em.add_field(name="Server", value=await self.config.guild(guild).guild())
                 em.add_field(name="Unicode", value=await self.config.guild(guild).unicode())
                 await ctx.send(embed=em)
             except:
                 pass
+
 
     @emojireact.group(name="unicode")
     async def _unicode(self, ctx):
