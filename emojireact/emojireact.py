@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from redbot.core import Config
-from emoji import UNICODE_EMOJI
+from .unicode_codes import UNICODE_EMOJI
 
 class EmojiReactions:
     
