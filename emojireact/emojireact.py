@@ -15,10 +15,12 @@ class EmojiReactions:
     async def emojireact(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
-            em = discord.Embed()
+            
             try:
-                em.add_field(name="Server", value=await self.config.guild(guild).guild())
-                em.add_field(name="Unicode", value=await self.config.guild(guild).unicode())
+                guild = ctx.message.guild
+                em = discord.Embed(title="Emojireact settings for {}".format(guild.name), colour=discord.Colour.blue())
+                em.add_field(name="Server", value=str(await self.config.guild(guild).guild()))
+                em.add_field(name="Unicode", value=str(await self.config.guild(guild).unicode()))
                 await ctx.send(embed=em)
             except:
                 pass
