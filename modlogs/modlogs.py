@@ -273,7 +273,7 @@ class ModLogs:
     async def on_member_join(self, member):
         guild = member.guild
         
-        if await self.config.guild(guild).toggljoin() == False:
+        if await self.config.guild(guild).togglejoin() == False:
             return
         channel = await self.config.guild(guild).Channel()
         if channel is None:
