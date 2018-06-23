@@ -22,7 +22,7 @@ class EmojiReactions:
         if await self.config.guild(ctx.guild).unicode():
             await self.config.guild(ctx.guild).unicode.set(False)
             await ctx.send("Okay, I will not react to messages containing unicode emojis!")
-        if not await self.config.guild(ctx.guild).unicode():
+        else:
             await self.config.guild(ctx.guild).unicode.set(True)
             await ctx.send("Okay, I will react to messages containing unicode emojis!")
 
@@ -32,7 +32,7 @@ class EmojiReactions:
         if await self.config.guild(ctx.guild).guild():
             await self.config.guild(ctx.guild).guild.set(False)
             await ctx.send("Okay, I will not react to messages containing server emojis!")
-        if not await self.config.guild(ctx.guild).guild():
+        else:
             await self.config.guild(ctx.guild).guild.set(True)
             await ctx.send("Okay, I will react to messages containing server emojis!")
 
@@ -43,7 +43,7 @@ class EmojiReactions:
             await self.config.guild(ctx.guild).guild.set(False)
             await self.config.guild(ctx.guild).unicode.set(False)
             await ctx.send("Okay, I will not react to messages containing all emojis!")
-        if not await self.config.guild(ctx.guild).guild() or not await self.config.guild(ctx.guild).unicode():
+        else:
             await self.config.guild(ctx.guild).guild.set(True)
             await self.config.guild(ctx.guild).guild.set(True)
             await ctx.send("Okay, I will react to messages containing all emojis!")
