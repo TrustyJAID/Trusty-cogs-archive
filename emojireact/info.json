@@ -5,6 +5,5 @@
     "DISABLED" : false,
     "NAME" : "EmojiReact",
     "TAGS" : ["general"],
-    "REQUIREMENTS" : ["emoji"],
     "INSTALL_MSG" : "React to message emojis automatically!"
 }
