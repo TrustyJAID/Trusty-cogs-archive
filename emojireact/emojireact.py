@@ -55,7 +55,7 @@ class EmojiReactions:
             await ctx.send("Okay, I will not react to messages containing all emojis!")
         else:
             await self.config.guild(ctx.guild).guild.set(True)
-            await self.config.guild(ctx.guild).guild.set(True)
+            await self.config.guild(ctx.guild).unicode.set(True)
             await ctx.send("Okay, I will react to messages containing all emojis!")
 
     async def on_message(self, message):
