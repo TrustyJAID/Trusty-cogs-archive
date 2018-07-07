@@ -243,7 +243,6 @@ class ActivityChecker():
             return
         if invite_link is None:
             await self.bot.say("You'll need to supply an invite link if you want one for members to rejoin")
-            invite_link = invite_link.url
         self.settings[server.id] = {"channel": channel.id,
                                     "check_roles": [role],
                                     "time": 604800,
