@@ -3,6 +3,7 @@ from discord.ext import commands
 from .utils.chat_formatting import box
 from .utils.dataIO import dataIO
 from .utils import checks
+import os
 
 class ServerWhitelist:
 
