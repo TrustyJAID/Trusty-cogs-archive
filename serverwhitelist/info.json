@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "ServerWhitelist",
+    "DESCRIPTION" : "Sets a whitelist for redbot to leave unapproved servers.",
+    "DISABLED" : false,
+    "NAME" : "ServerWhitelist",
+    "REQUIREMENTS" : [""],
+    "TAGS" : ["serverwhitelist"],
+    "INSTALL_MSG" : "Sets a whitelist for redbot to leave unapproved servers."
+}
