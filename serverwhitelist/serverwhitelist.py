@@ -10,7 +10,7 @@ class ServerWhitelist:
         default = {"whitelist":[]}
         self.config.register_global(**default)
 
-    @commands.group(name="serverwhitelist", aliases=["sw", "guildwhitelist"])
+    @commands.group(name="serverwhitelist", aliases=["guildwhitelist"])
     async def serverwhitelist(self, ctx):
         """Add or remove servers to the bots approved server list"""
         if ctx.invoked_subcommand is None:
