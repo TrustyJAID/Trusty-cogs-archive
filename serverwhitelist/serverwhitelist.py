@@ -24,7 +24,7 @@ class ServerWhitelist:
         if server_id in self.settings["whitelist"]:
             await self.bot.send_message(ctx.message.channel, "{} is already in the whitelist.".format(server_id))
             return
-        self.settings["whitelist"].append(server_id)
+        self.settings["whitelist"].append(str(server_id))
         dataIO.save_json(self.settings_file, self.settings)
         await self.bot.send_message(ctx.message.channel, "{} server has been added to the whitelist.".format(server_id))
 
@@ -35,7 +35,7 @@ class ServerWhitelist:
         if server_id not in self.settings["whitelist"]:
             await self.bot.send_message(ctx.message.channel, "{} is not in the whitelist.".format(server_id))
             return
-        self.settings["whitelist"].remove(server_id)
+        self.settings["whitelist"].remove(str(server_id))
         dataIO.save_json(self.settings_file, self.settings)
         await self.bot.send_message(ctx.message.channel, "{} server has been removed the whitelist.".format(server_id))
 
