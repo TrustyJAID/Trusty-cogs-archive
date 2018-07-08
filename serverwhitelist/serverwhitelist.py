@@ -17,7 +17,7 @@ class ServerWhitelist:
             await ctx.send_help()
 
     @serverwhitelist.command(aliases=["set"])
-    async def add(self, ctx, server_id):
+    async def add(self, ctx, server_id:int):
         """Add a server to the bots approved server list."""
         if not server_id.is_digit():
             await ctx.send("Server ID's must be numbers")
@@ -31,8 +31,8 @@ class ServerWhitelist:
         await ctx.send("{} server has been added to the whitelist.")
 
 
-    @runescape.command()
-    async def remove(self, ctx, server_id):
+    @serverwhitelist.command()
+    async def remove(self, ctx, server_id:int):
         """Removes a server from the bots approved server list."""
         if not server_id.is_digit():
             await ctx.send("Server ID's must be numbers")
