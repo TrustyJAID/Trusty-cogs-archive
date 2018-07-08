@@ -11,13 +11,13 @@ class ServerWhitelist:
         self.settings_file = "data/serverwhitelist/settings.json"
         self.settings = dataIO.load_json(self.settings_file)
 
-    @commands.group(name="serverwhitelist", aliases=["serverwhitelist"])
+    @commands.group(pass_context=True, name="serverwhitelist", aliases=["serverwhitelist"])
     async def serverwhitelist(self, ctx):
         """Add or remove servers to the bots approved server list"""
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
-    @serverwhitelist.command(aliases=["set"])
+    @serverwhitelist.command(pass_context=True, aliases=["set"])
     async def add(self, ctx, server_id:int):
         """Add a server to the bots approved server list."""
         if server_id in self.settings["whitelist"]:
@@ -29,7 +29,7 @@ class ServerWhitelist:
 
 
     @serverwhitelist.command()
-    async def remove(self, ctx, server_id:int):
+    async def remove(pass_context=True, self, ctx, server_id:int):
         """Removes a server from the bots approved server list."""
         if server_id not in self.settings["whitelist"]:
             await self.bot.send_message(ctx.message.channel, "{} is not in the whitelist.".format(server_id))
