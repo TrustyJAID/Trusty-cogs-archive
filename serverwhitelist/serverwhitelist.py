@@ -19,31 +19,25 @@ class ServerWhitelist:
     @serverwhitelist.command(aliases=["set"])
     async def add(self, ctx, server_id:int):
         """Add a server to the bots approved server list."""
-        if not server_id.is_digit():
-            await ctx.send("Server ID's must be numbers")
-            return
         cur_list = await self.config.whitelist()
         if server_id in cur_list:
-            await ctx.send("{} is already in the whitelist.")
+            await ctx.send("{} is already in the whitelist.".format(server_id))
             return
         cur_list.append(server_id)
         await self.config.whitelist.set(cur_list)
-        await ctx.send("{} server has been added to the whitelist.")
+        await ctx.send("{} server has been added to the whitelist.".format(server_id))
 
 
     @serverwhitelist.command()
     async def remove(self, ctx, server_id:int):
         """Removes a server from the bots approved server list."""
-        if not server_id.is_digit():
-            await ctx.send("Server ID's must be numbers")
-            return
         cur_list = await self.config.whitelist()
         if server_id not in cur_list:
-            await ctx.send("{} is not in the whitelist.")
+            await ctx.send("{} is not in the whitelist.".format(server_id))
             return
         cur_list.remove(server_id)
         await self.config.whitelist.set(cur_list)
-        await ctx.send("{} server has been removed the whitelist.")
+        await ctx.send("{} server has been removed the whitelist.".format(server_id))
 
     async def on_guild_join(self, guild):
         """Checks if a joined server is in the bots approved server list and leaves if it isn't."""
