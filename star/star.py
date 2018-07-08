@@ -92,7 +92,7 @@ class Star:
             return
         if msg.channel.id in self.settings[server.id]["ignore"]:
             return
-        if not await self.check_roles(user, msg.author, server):
+        if not await self.check_roles(ctx.message.author, msg.author, server):
             return
         if reaction.message.channel.id == self.settings[server.id]["channel"]:
             return
