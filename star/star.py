@@ -94,8 +94,6 @@ class Star:
             return
         if not await self.check_roles(ctx.message.author, msg.author, server):
             return
-        if reaction.message.channel.id == self.settings[server.id]["channel"]:
-            return
         emoji =self.settings[server.id]["emoji"]
         threshold = self.settings[server.id]["threshold"]
         count = await self.get_count(server, msg)
