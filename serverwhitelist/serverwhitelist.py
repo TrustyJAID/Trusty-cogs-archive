@@ -57,6 +57,8 @@ def check_file():
         dataIO.save_json(f, data)
 
 def setup(bot):
+    check_folder()
+    check_file()
     n = ServerWhitelist(bot)
     bot.add_cog(n)
 
