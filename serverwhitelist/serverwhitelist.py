@@ -11,12 +11,14 @@ class ServerWhitelist:
         self.config.register_global(**default)
 
     @commands.group(name="serverwhitelist", aliases=["guildwhitelist"])
+    @checks.is_owner()
     async def serverwhitelist(self, ctx):
         """Add or remove servers to the bots approved server list"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
     @serverwhitelist.command(aliases=["set"])
+    @checks.is_owner()
     async def add(self, ctx, server_id:int):
         """Add a server to the bots approved server list."""
         cur_list = await self.config.whitelist()
@@ -29,6 +31,7 @@ class ServerWhitelist:
 
 
     @serverwhitelist.command()
+    @checks.is_owner()
     async def remove(self, ctx, server_id:int):
         """Removes a server from the bots approved server list."""
         cur_list = await self.config.whitelist()
