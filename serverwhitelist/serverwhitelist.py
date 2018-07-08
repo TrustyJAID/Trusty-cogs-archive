@@ -28,8 +28,8 @@ class ServerWhitelist:
         await self.bot.send_message(ctx.message.channel, "{} server has been added to the whitelist.".format(server_id))
 
 
-    @serverwhitelist.command()
-    async def remove(pass_context=True, self, ctx, server_id:int):
+    @serverwhitelist.command(pass_context=True)
+    async def remove(self, ctx, server_id:int):
         """Removes a server from the bots approved server list."""
         if server_id not in self.settings["whitelist"]:
             await self.bot.send_message(ctx.message.channel, "{} is not in the whitelist.".format(server_id))
