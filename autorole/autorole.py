@@ -175,7 +175,7 @@ class Autorole:
         You can use this command multiple times to add multiple roles."""
         guild = ctx.message.guild
         roles = await self.config.guild(guild).ROLE()
-        if role in roles:
+        if role.id in roles:
             await ctx.send("{} is already in the autorole list.".format(role.name))
             return
         roles.append(role.id)
@@ -188,7 +188,7 @@ class Autorole:
         """Remove a role from the autorole."""
         guild = ctx.message.guild
         roles = await self.config.guild(guild).ROLE()
-        if role not in roles:
+        if role.id not in roles:
             await ctx.send("{} is not in the autorole list.".format(role.name))
             return
         roles.remove(role.id)
