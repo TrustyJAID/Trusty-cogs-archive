@@ -113,7 +113,9 @@ class QPosts:
                 for page in data:
                     for thread in page["threads"]:
                         # print(thread["no"])
-                        if thread["last_modified"] >= await self.config.last_checked():
+                        thread_time = datetime.utcfromtimestamp(thread["last_modified"])
+                        last_checked_time = datetime.utcfromtimestamp(await self.config.last_checked())
+                        if thread_time >= last_checked_time:
                             try:
                                 async with self.session.get("{}/{}/res/{}.json".format(self.url, board,thread["no"])) as resp:
                                     posts = await resp.json()
@@ -144,7 +146,8 @@ class QPosts:
                             await self.postq(post, "/{}/ {}".format(board, "EDIT"))
             await self.config.boards.set(board_posts)
             print("checking Q...")
-            await self.config.last_checked.set(datetime.utcnow())
+            cur_time = datetime.utcnow()
+            await self.config.last_checked.set(cur_time.timestamp())
             await asyncio.sleep(60)
 
     async def get_quoted_post(self, qpost):
