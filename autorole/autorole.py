@@ -138,8 +138,15 @@ class Autorole:
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
             try:
-                await ctx.send("```Current autorole state: {}```".format(
-                    await self.config.guild(guild).ENABLED()))
+                enabled = await self.config.guild(guild).ENABLED()
+                roles = await self.config.guild(guild).ROLE()
+                role_name = []
+                for guild_role in guild.roles:
+                    for auto_role in roles:
+                        if guild_role.id == auto_role:
+                            role_name.append(guild_role.name)
+                role_name_str = ", ".join(role for role in role_name)
+                await ctx.send("```Current autorole state: {}\nCurrent Roles:{}```".format(enabled, role_name_str))
             except KeyError:
                 pass
 
@@ -160,7 +167,7 @@ class Autorole:
                 await self.config.guild(guild).ENABLED.set(True)
                 await ctx.send("Autorole is now enabled.")
 
-    @autorole.command(pass_context=True, no_pm=True)
+    @autorole.command(pass_context=True, no_pm=True, name="add", aliases=["role"])
     @checks.admin_or_permissions(manage_roles=True)
     async def role(self, ctx, *, role: discord.Role):
         """Add a role for autorole to assign.
@@ -168,6 +175,9 @@ class Autorole:
         You can use this command multiple times to add multiple roles."""
         guild = ctx.message.guild
         roles = await self.config.guild(guild).ROLE()
+        if role in roles:
+            await ctx.send("{} is already in the autorole list.".format(role.name))
+            return
         roles.append(role.id)
         await self.config.guild(guild).ROLE.set(roles)
         await ctx.send(f"Added the role `{role.name}` to the autorole.")
@@ -178,13 +188,12 @@ class Autorole:
         """Remove a role from the autorole."""
         guild = ctx.message.guild
         roles = await self.config.guild(guild).ROLE()
-        try:
-            roles.pop(role.id)
-        except ValueError:
-            await ctx.send("That role was never added.")
-        else:
-            await self.config.guild(guild).ROLE.set(roles)
-            await ctx.send(f"Removed the role `{role.name}` from the autorole.")
+        if role not in roles:
+            await ctx.send("{} is not in the autorole list.".format(role.name))
+            return
+        roles.remove(role.id)
+        await self.config.guild(guild).ROLE.set(roles)
+        await ctx.send(f"Removed the role `{role.name}` from the autorole.")
 
     @autorole.command(pass_context=True, no_pm=True)
     @checks.admin_or_permissions(manage_roles=True)
