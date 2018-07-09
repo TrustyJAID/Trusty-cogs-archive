@@ -28,7 +28,7 @@ class QPosts:
         default_data = {"twitter":{"access_secret" : "",
         "access_token" : "",
         "consumer_key" : "",
-        "consumer_secret" : ""}, "boards":{}, "channels":[]}
+        "consumer_secret" : ""}, "boards":{}, "channels":[], "last_checked":0}
         self.config = Config.get_conf(self, 112444567876)
         self.config.register_global(**default_data)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
@@ -113,16 +113,17 @@ class QPosts:
                 for page in data:
                     for thread in page["threads"]:
                         # print(thread["no"])
-                        try:
-                            async with self.session.get("{}/{}/res/{}.json".format(self.url, board,thread["no"])) as resp:
-                                posts = await resp.json()
-                        except:
-                            print("error grabbing thread {} in board {}".format(thread["no"], board))
-                            continue
-                        for post in posts["posts"]:
-                            if "trip" in post:
-                                if post["trip"] in self.trips:
-                                    Q_posts.append(post)
+                        if thread["last_modified"] >= await self.config.last_checked():
+                            try:
+                                async with self.session.get("{}/{}/res/{}.json".format(self.url, board,thread["no"])) as resp:
+                                    posts = await resp.json()
+                            except:
+                                print("error grabbing thread {} in board {}".format(thread["no"], board))
+                                continue
+                            for post in posts["posts"]:
+                                if "trip" in post:
+                                    if post["trip"] in self.trips:
+                                        Q_posts.append(post)
                 old_posts = [post_no["no"] for post_no in board_posts[board]]
 
                 for post in Q_posts:
@@ -143,6 +144,7 @@ class QPosts:
                             await self.postq(post, "/{}/ {}".format(board, "EDIT"))
             await self.config.boards.set(board_posts)
             print("checking Q...")
+            await self.config.last_checked.set(datetime.utcnow())
             await asyncio.sleep(60)
 
     async def get_quoted_post(self, qpost):
