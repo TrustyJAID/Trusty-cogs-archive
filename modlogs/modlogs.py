@@ -17,7 +17,6 @@ inv_settings = {"embed": False, "Channel": None, "toggleedit": False, "toggledel
 class ModLogs:
     def __init__(self, bot):
         self.bot = bot
-        self.direct = "data/modlogset/settings.json"
         self.config = Config.get_conf(self, 154457677895)
         self.config.register_guild(**inv_settings)
 
@@ -51,12 +50,12 @@ class ModLogs:
 
     @checks.admin_or_permissions(administrator=True)
     @commands.group(pass_context=True, no_pm=True)
-    async def modlogset(self, ctx):
+    async def modlogsetup(self, ctx):
         """Change modlog settings"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
-    @modlogset.command(name='channel', pass_context=True, no_pm=True)
+    @modlogsetup.command(name='channel', pass_context=True, no_pm=True)
     async def _channel(self, ctx):
         """Set the channel to send notifications too"""
         guild = ctx.message.guild
@@ -73,7 +72,7 @@ class ModLogs:
         else:
             return
 
-    @modlogset.command(pass_context=True, no_pm=True)
+    @modlogsetup.command(pass_context=True, no_pm=True)
     async def embed(self, ctx):
         """Enables or disables embed modlog."""
         guild = ctx.message.guild
@@ -86,13 +85,13 @@ class ModLogs:
             
             await ctx.send("Disabled embed modlog.")
 
-    @modlogset.command(pass_context=True, no_pm=True)
+    @modlogsetup.command(pass_context=True, no_pm=True)
     async def disable(self, ctx):
         """disables the modlog"""
         guild = ctx.message.guild
         
         if await self.config.guild(guild).Channel() is None:
-            await ctx.send("guild not found, use modlogset to set a channnel")
+            await ctx.send("guild not found, use modlogsetup to set a channnel")
             return
         await self.config.guild(guild).Channel.set(None)
         
