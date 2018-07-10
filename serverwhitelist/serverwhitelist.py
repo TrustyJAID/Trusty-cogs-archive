@@ -12,7 +12,7 @@ class ServerWhitelist:
         self.settings_file = "data/serverwhitelist/settings.json"
         self.settings = dataIO.load_json(self.settings_file)
 
-    @commands.group(pass_context=True, name="serverwhitelist", aliases=["serverwhitelist"])
+    @commands.group(pass_context=True, name="serverwhitelist")
     @checks.is_owner()
     async def serverwhitelist(self, ctx):
         """Add or remove servers to the bots approved server list"""
