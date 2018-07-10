@@ -6,5 +6,5 @@
     "NAME" : "ServerWhitelist",
     "REQUIREMENTS" : [""],
     "TAGS" : ["serverwhitelist"],
-    "INSTALL_MSG" : "Sets a whitelist for redbot to leave unapproved servers."
+    "INSTALL_MSG" : "Sets a whitelist for redbot to leave unapproved servers. WARNING: Loading the cog will make the bot leave any new servers unless it is added with the `[p]serverwhitelist add <server_id>` command."
 }
