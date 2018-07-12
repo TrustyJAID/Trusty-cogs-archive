@@ -126,7 +126,7 @@ class Translate:
     @checks.is_owner()
     async def translateset(self, ctx, api_key):
         """You must get an API key from google to set this up
-        https://console.cloud.google.com/apis/library/translate.googleapis.com/?q=translate&id=c22f20ba-6a29-40ae-9084-8bc264a97fc2&project=dameznet-158219
+        https://console.cloud.google.com/apis/library/translate.googleapis.com/
         """
         await self.config.api_key.set(api_key)
         await ctx.send("API key set.")
