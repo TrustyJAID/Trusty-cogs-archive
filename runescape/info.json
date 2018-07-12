@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Runescape",
+    "DESCRIPTION" : "Gathers stats from Runescape API endpoints.",
+    "DISABLED" : false,
+    "NAME" : "runescape",
+    "REQUIREMENTS" : [""],
+    "TAGS" : ["runescape"],
+    "INSTALL_MSG" : "gathers runescape stats and information."
+}
