@@ -30,8 +30,6 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 >Tweets - A modified version of Palm's twitter cog utilising twitter streams to setup a twitter channel to post user tweets.
 
->Anime - A cog that gets what current anime episodes are airing and posts them on discord when they start airing.
-
 >Mock - Mock the user who last posted!
 
 >Translate - Add flag emojis to messages to translate to that language or translate messages by command. (Uses Google Translate and may incur some fees)
@@ -46,6 +44,8 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 **Works in Progress**
 *These Cogs are a work in progress and have limited to no functionality at the moment. Feel free to leave ideas or suggestions!*
+
+>Anime - A cog that gets what current anime episodes are airing and posts them on discord when they start airing.
 
 >Halo - Cogs for accessing information from the Halo video games API systems.
 
