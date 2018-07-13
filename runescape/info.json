@@ -4,7 +4,7 @@
     "DESCRIPTION" : "Gathers stats from Runescape API endpoints.",
     "DISABLED" : false,
     "NAME" : "runescape",
-    "REQUIREMENTS" : [""],
+    "REQUIREMENTS" : ["tabulate"],
     "TAGS" : ["runescape"],
     "INSTALL_MSG" : "gathers runescape stats and information."
 }
