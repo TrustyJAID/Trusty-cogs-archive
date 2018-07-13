@@ -339,10 +339,9 @@ class Anime:
     @checks.is_owner()
     async def _aniset(self, ctx):
         """Command for setting required access information for the API.
-        To get this info, visit https://apps.twitter.com and create a new application.
-        Once the application is created, click Keys and Access Tokens then find the
-        button that says Create my access token and click that. Once that is done,
-        use the subcommands of this command to set the access details"""
+        To get this info, visit https://anilist.co/home log in, go to your profile
+        select Developer and create new Client, set the name and provide your client_id
+        and client secret with `[p]aniset creds client_id client_secret`"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
