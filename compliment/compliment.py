@@ -42,13 +42,9 @@ def check_files():
     """Moves the file from cogs to the data directory. Important -> Also changes the name to insults.json"""
     insults = {"You ugly as hell damn. Probably why most of your friends are online right?"}
 
-    if not os.path.isfile("data/compliment/compliments.json"):
-        if os.path.isfile("cogs/put_in_cogs_folder.json"):
-            print("moving default insults.json...")
-            os.rename("cogs/put_in_cogs_folder.json", "data/compliment/compliments.json")
-        else:
-            print("creating default compliments.json...")
-            fileIO("data/compliment/compliments.json", "save", insults)
+    if not os.path.isfile("data/compliment/compliment.json"):
+        print("creating default compliment.json...")
+        fileIO("data/compliment/compliment.json", "save", insults)
 
 
 def setup(bot):
