@@ -10,7 +10,7 @@ class Compliment:
     """Airenkun's Insult Cog"""
     def __init__(self, bot):
         self.bot = bot
-        self.compliments = fileIO("data/insult/compliment.json", "load")
+        self.compliments = fileIO("data/compliment/compliment.json", "load")
 
     @commands.command(pass_context=True, no_pm=True, aliases=["cpl"])
     async def compliment(self, ctx, user : discord.Member=None):
