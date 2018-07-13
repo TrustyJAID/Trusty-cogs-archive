@@ -40,6 +40,19 @@ class Anime:
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
+    @anime.command()
+    @checks.is_owner()
+    async def reset(self, ctx):
+        airing = await self.config.airing()
+        new_airing = []
+        for anime in airing:
+            try:
+                if anime["episodes"] != []:
+                    new_airing.append(anime)
+            except KeyError:
+                pass
+        await self.config.airing.set(new_airing)
+
     async def check_airing_start(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("Anime"):
