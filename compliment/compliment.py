@@ -19,10 +19,6 @@ class Compliment:
         msg = ' '
         if user != None:
 
-            if ctx.message.author.id == "218773382617890828" and user.id == "245862769054711809":
-                await self.bot.say(user.mention + " you're cute! :smile:")
-                return
-
             if user.id == self.bot.user.id:
                 user = ctx.message.author
                 msg = [" Hey I appreciate the compliment! :smile:", "No ***YOU'RE*** awesome! :smile:"]
