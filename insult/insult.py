@@ -11,7 +11,6 @@ class Insult:
     def __init__(self, bot):
         self.bot = bot
         self.insults = fileIO("data/insult/insults.json","load")
-        self.compliments = fileIO("data/insult/compliment.json", "load")
 
     @commands.command(pass_context=True, no_pm=True, aliases=["takeitback"])
     async def insult(self, ctx, user : discord.Member=None):
@@ -32,27 +31,6 @@ class Insult:
                 await self.bot.say(user.mention + msg + randchoice(self.insults))
         else:
             await self.bot.say(ctx.message.author.mention + msg + randchoice(self.insults))
-
-    @commands.command(pass_context=True, no_pm=True, aliases=["cpl"])
-    async def compliment(self, ctx, user : discord.Member=None):
-        """Compliment the user"""
-
-        msg = ' '
-        if user != None:
-
-            if ctx.message.author.id == "218773382617890828" and user.id == "245862769054711809":
-                await self.bot.say(user.mention + " you're cute! :smile:")
-                return
-
-            if user.id == self.bot.user.id:
-                user = ctx.message.author
-                msg = [" Hey I appreciate the compliment! :smile:", "No ***YOU'RE*** awesome! :smile:"]
-                await self.bot.say(user.mention + randchoice(msg))
-
-            else:
-                await self.bot.say(user.mention + msg + randchoice(self.compliments))
-        else:
-            await self.bot.say(ctx.message.author.mention + msg + randchoice(self.compliments))
 
 
 def check_folders():
