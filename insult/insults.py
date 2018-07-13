@@ -1,4 +1,4 @@
-[
+insults = [
     "Yo Mama so fat she sued Xbox 360 for guessing her weight.",
     "You're so fat that when you were diagnosed with a flesh eating bacteria - the doctors gave you 87 years to live.",
     "You're so fat you've got more chins than a Hong Kong phone book.",
