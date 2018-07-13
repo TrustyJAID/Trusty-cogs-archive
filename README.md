@@ -42,6 +42,8 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 >Decode - Allows one to encode or decode in Binary and DNA sequencing (ACGT).
 
+>Compliment - Compliment a user!
+
 **Works in Progress**
 *These Cogs are a work in progress and have limited to no functionality at the moment. Feel free to leave ideas or suggestions!*
 
@@ -61,8 +63,6 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 >Stickyroles - Keep user roles when they leave the server and re-join. Useful for muted roles.
 
->Insult - Insult or compliment a user!
-
 >Welcome - Welcomes users to the server
 
 >Modlogs - A more in-depth modlog cog for more information about users joining/leaving and messages edited/deleted.
@@ -71,6 +71,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 >Cleverbot - Have your bot respond with cleverbot responses
 
+>Insult - Insult a user!
 
 **Special cogs**
 *These cogs are not meant for mainstream use but may provide some useful functions for some people. Support may be limited.*
