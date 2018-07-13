@@ -344,7 +344,7 @@ class Anime:
         button that says Create my access token and click that. Once that is done,
         use the subcommands of this command to set the access details"""
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
     @_aniset.command(name='creds')
     @checks.is_owner()
