@@ -1,9 +1,9 @@
 {
     "AUTHOR" : "Airen and JennJenn/ TrustyJAID",
-    "SHORT" : "Insult or compliment people in a creative way",
-    "DESCRIPTION" : "Insult or compliment people in a creative way",
+    "SHORT" : "Insult people in a creative way",
+    "DESCRIPTION" : "Insult people in a creative way",
     "DISABLED" : false,
     "NAME" : "Insult",
     "TAGS" : ["insults", "fun"],
-    "INSTALL_MSG" : "Usage: `[p]insult <user>` `[p]compliment <user>`"
+    "INSTALL_MSG" : "Usage: `[p]insult <user>`"
 }
