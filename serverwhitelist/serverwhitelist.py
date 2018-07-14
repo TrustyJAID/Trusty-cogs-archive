@@ -18,6 +18,9 @@ class ServerWhitelist:
         """Add or remove servers to the bots approved server list"""
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
+            msg = "Current Whitelisted servers: "
+            servers = ", ".join(server for server in self.settings["whitelist"])
+            await self.bot.say(msg+servers)
 
     @serverwhitelist.command(pass_context=True, aliases=["set"])
     @checks.is_owner()
