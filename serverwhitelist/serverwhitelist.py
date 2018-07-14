@@ -23,7 +23,7 @@ class ServerWhitelist:
     @checks.is_owner()
     async def add(self, ctx, server_id:int):
         """Add a server to the bots approved server list."""
-        if server_id in self.settings["whitelist"]:
+        if str(server_id) in self.settings["whitelist"]:
             await self.bot.send_message(ctx.message.channel, "{} is already in the whitelist.".format(server_id))
             return
         self.settings["whitelist"].append(str(server_id))
@@ -35,7 +35,7 @@ class ServerWhitelist:
     @checks.is_owner()
     async def remove(self, ctx, server_id:int):
         """Removes a server from the bots approved server list."""
-        if server_id not in self.settings["whitelist"]:
+        if str(server_id) not in self.settings["whitelist"]:
             await self.bot.send_message(ctx.message.channel, "{} is not in the whitelist.".format(server_id))
             return
         self.settings["whitelist"].remove(str(server_id))
