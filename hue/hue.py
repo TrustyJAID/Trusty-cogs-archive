@@ -65,7 +65,7 @@ class Hue():
     async def _hue(self, ctx):
         """Commands for interacting with Hue lights"""
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
     @_hue.command(name="connect")
     async def hue_connect(self):
@@ -174,7 +174,7 @@ class Hue():
             await ctx.send("Whoops, set the IP.")
             return
         if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
+            await ctx.send_help()
 
     async def rgb_to_xy(self, red:float, green:float, blue:float):
         X = 0.4124*red + 0.3576*green + 0.1805*blue
