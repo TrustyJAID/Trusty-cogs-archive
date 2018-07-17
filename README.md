@@ -8,8 +8,6 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 
 >Faces - Find your own Japanese style emoji face courtesy of the CIA.
 
->Rainbow - a cog to change the colour of a role every 2-5 minutes.
-
 >REKT - a command to see how rekt someone is.
 
 >Pillconvert - a cog to upload any colour pill image.
@@ -55,6 +53,8 @@ To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cog
 >Gab - Commands to require people to supply their gab account to gain access to a server.
 
 >Activity - cog to detect if a user has talked in a certain amount of time and if not kick them and send them an invite back to the server.
+
+>Serverwhitelist - Add a whitelist for which servers the bot can join. While the cog is loaded the bot will leave all new servers until the server ID is added to the whitelist.
 
 **Special cogs**
 
