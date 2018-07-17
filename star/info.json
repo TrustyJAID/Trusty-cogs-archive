@@ -4,6 +4,6 @@
     "DESCRIPTION" : "Create a starboard channel to save those amazing posts!",
     "DISABLED" : false,
     "NAME" : "TrustyBot",
-    "TAGS" : ["general"],
+    "TAGS" : ["general", "starboard"],
     "INSTALL_MSG" : "Create a starboard!"
 }
