@@ -38,6 +38,9 @@ class StickyRoles:
                                "role. Remember to take role hierarchy in "
                                "consideration.")
             return
+        if role.id in sticky_roles:
+            await ctx.send("{} is already in the sticky roles.".format(role.name))
+            return
         sticky_roles.append(role.id)
         await self.config.guild(guild).sticky_roles.set(sticky_roles)
         await ctx.send("That role will now be reapplied on join.")
@@ -47,13 +50,12 @@ class StickyRoles:
         """Removes role to be reapplied on join"""
         guild = ctx.message.guild
         sticky_roles = await self.config.guild(guild).sticky_roles()
-        try:
-            sticky_roles.remove(role.id)
-        except ValueError:
+        if role.id not in sticky_roles:
             await ctx.send("That role was never added in the first place.")
-        else:
-            await self.config.guild(guild).sticky_roles.set(sticky_roles)
-            await ctx.send("That role won't be reapplied on join.")
+            return
+        sticky_roles.remove(role.id)
+        await self.config.guild(guild).sticky_roles.set(sticky_roles)
+        await ctx.send("That role won't be reapplied on join.")
 
     @stickyroles.command(pass_context=True)
     async def clear(self, ctx):
