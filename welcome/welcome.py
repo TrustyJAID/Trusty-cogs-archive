@@ -22,14 +22,12 @@ class Welcome:
         self.bot = bot
         self.config = Config.get_conf(self, 144465786453)
         self.config.register_guild(**default_settings)
-        # self.settings = dataIO.load_json(settings_path)
 
     @commands.group(pass_context=True, no_pm=True)
     @checks.admin_or_permissions(manage_guild=True)
     async def welcomeset(self, ctx):
         """Sets welcome module settings"""
         guild = ctx.message.guild
-        # print(guild_settings)
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
             msg = "```"
@@ -288,7 +286,7 @@ class Welcome:
         if is_embed:
             em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
             em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
-            em.set_thumbnail(url=member.avatar_url)
+            em.set_thumbnail(url=member.avatar_url_as(format='png'))
             await channel.send(embed=em)
         else:
             await channel.send(msg.format(member, guild))
@@ -326,7 +324,7 @@ class Welcome:
                 if is_embed:
                     em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
                     em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
-                    em.set_thumbnail(url=member.avatar_url)
+                    em.set_thumbnail(url=member.avatar_url_as(format='png'))
                     await channel.send(embed=em)
                 else:
                     await channel.send(msg.format(member, guild))
@@ -334,7 +332,7 @@ class Welcome:
                 if is_embed:
                     em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
                     em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
-                    em.set_thumbnail(url=member.avatar_url)
+                    em.set_thumbnail(url=member.avatar_url_as(format='png'))
                     await channel.send(embed=em)
                 else:
                     await channel.send(msg.format(member, guild))
