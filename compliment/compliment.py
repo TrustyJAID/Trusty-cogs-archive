@@ -13,7 +13,7 @@ class Compliment:
 
     @commands.command()
     async def compliment(self, ctx, user : discord.Member=None):
-        """Insult the user"""
+        """Compliment the user"""
 
         msg = ' '
         if user != None:
