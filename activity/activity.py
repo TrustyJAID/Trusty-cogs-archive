@@ -1,7 +1,5 @@
 import discord
 from discord.ext import commands
-from .utils.chat_formatting import *
-from .utils.dataIO import dataIO
 from redbot.core import checks
 from redbot.core import Config
 import asyncio
@@ -17,12 +15,13 @@ class ActivityChecker():
     def __init__(self, bot):
         self.bot = bot
         default_guild = {"channel": "",
-                        "check_roles": 0,
+                        "check_roles": [],
                         "time": 604800,
                         "invite": True,
                         "link": "",
                         "rip_count": 0,
-                        "enabled":False}
+                        "enabled":False,
+                        "members":[]}
         # self.settings_file = "data/activity/settings.json"
         # self.log_file = "data/activity/log.json"
         # self.settings = dataIO.load_json(self.settings_file)
@@ -47,25 +46,23 @@ class ActivityChecker():
     async def list_roles(self, ctx):
         """lists the roles checked"""
         guild = ctx.message.guild
-        if guild.id not in self.log:
+        if not await self.config.guild(ctx.guild).enabled():
             await ctx.send("I am not setup to check activity on this guild!")
         else:
             msg = ""
-            for role in self.settings[guild.id]["check_roles"]:
-                role_name = "".join(x.name for x in guild.roles if x.id == role)
-                msg += role_name + ", "
-        await ctx.send("```" + msg[:-2] + "```")
+            for role in await self.config.guild(ctx.guild).check_roles():
+                role_name = ", ".join(x.name for x in guild.roles if x.id == role)
+                msg += role_name
+            await ctx.send("```" + msg + "```")
 
     async def check_ignored_users(self, guild, member_id):
         member = guild.get_member(member_id)
-        roles = self.settings[guild.id]["check_roles"]
+        roles = await self.config.guild(guild).check_roles()
         if member is None:
             # print("member doesn't exist on the guild I should remove them from the list")
-            try:
-                del self.log[guild.id][member_id]
-                dataIO.save_json(self.log_file, self.log)
-            except KeyError:
-                pass
+            member_list = await self.config.guild(guild).members()
+            member_list.remove(member_id)
+            await self.config.guild(guild).members.set(member_list)
             return True
         if member.bot:
             # print("member is a bot account, we don't care about those " + member.name)
@@ -73,7 +70,7 @@ class ActivityChecker():
         if  member is guild.owner:
             # print("member is the guild owner, we can't kick them anyways " + member.name)
             return True
-        if  member.id == self.bot.settings.owner:
+        if  member.id == self.bot.owner_id:
             # print("member is the bot owner, we don't want to kick them do we? " + member.name)
             return True
         for role in member.roles:
@@ -88,18 +85,19 @@ class ActivityChecker():
         last_post_time = time.time()
         guild = ctx.message.guild
         member_name = ""
-        if guild.id not in self.log:
-            await ctx.send("I don't have activity checking set on this guild!")
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup to check activity on this guild!")
             return
-        for member_id in list(self.log[guild.id]):
-            member = guild.get_member(member_id)
-            if await self.check_ignored_users(guild, member_id):
+        member_list = await self.config.guild(guild).members()
+        for member_id in member_list:
+            member = guild.get_member(member_id["id"])
+            if await self.check_ignored_users(guild, member_id["id"]):
                 continue
-            member_time = self.log[guild.id][member_id]
+            member_time = member_id["time"]
             if member_time <= last_post_time:
                 last_post_time = member_time
                 member_name = member.name
-        time_left = timedelta(seconds=abs(time.time() - last_post_time - self.settings[guild.id]["time"]), microseconds=0)
+        time_left = timedelta(seconds=abs(time.time() - last_post_time - await self.config.guild(guild).time()), microseconds=0)
         time_left = time_left - timedelta(microseconds=time_left.microseconds)
         clean_time = "{} seconds until purging starts with {}!".format(time_left, member_name)
         # clean_time = time.strftime("%j days %H hours %M minutes %S seconds", time.gmtime(time_left))
@@ -120,44 +118,48 @@ class ActivityChecker():
 
     async def get_everyone_role(self, guild):
         for role in guild.roles:
-            if role.is_everyone:
+            if role.is_default():
                 return role.id
 
     @activity.command(pass_context=True, name="role")
     async def role_ignore(self, ctx, role:discord.Role):
         """Add or remove a role to be checked. Remove all roles to check everyone."""
         guild = ctx.message.guild
-        guild_roles = self.settings[guild.id]["check_roles"]
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup to check activity on this guild!")
+            return
+        guild_roles = await self.config.guild(guild).check_roles()
         channel = ctx.message.channel
         added_role = False
         everyone_role = await self.get_everyone_role(guild)
         if role.id in guild_roles:
-            self.settings[guild.id]["check_roles"].remove(role.id)
-            await self.bot.send_message(channel, "Now ignoring {}!".format(role.name))
+            guild_roles.remove(role.id)
+            await channel.send("Now ignoring {}!".format(role.name))
             added_role = True
         if role.id not in guild_roles and not added_role:
-            self.settings[guild.id]["check_roles"].append(role.id)
-            await self.bot.send_message(channel, "Now checking {}!".format(role.name))
+            guild_roles.append(role.id)
+            await channel.send("Now checking {}!".format(role.name))
         if len(guild_roles) < 1:
-            self.settings[guild.id]["check_roles"].append(everyone_role)
+            guild_roles.append(everyone_role)
             await self.bot.send_message(channel, "Now checking everyone!")
         if len(guild_roles) > 1 and everyone_role in guild_roles:
-            self.settings[guild.id]["check_roles"].remove(everyone_role)
-        dataIO.save_json(self.settings_file, self.settings)
+            guild_roles.remove(everyone_role)
+        await self.config.guild(guild).check_roles.set(guild_roles)
 
     @activity.command(pass_context=True, name="invite")
     async def send_invite(self, ctx):
         """Toggles sending user invite links to re-join the guild"""
         guild = ctx.message.guild
-        if guild.id not in self.settings:
+        if not await self.config.guild(guild).enabled():
             await ctx.send("I am not setup to check activity on this guild!")
             return
-        if self.settings[guild.id]["invite"]:
-            self.settings[guild.id]["invite"] = False
+
+        if await self.config.guild(guild).invite():
+            await self.config.guild(guild).invite.set(False)
             await ctx.send("No longer sending invite links!")
             return
-        if not self.settings[guild.id]["invite"]:
-            self.settings[guild.id]["invite"] = True
+        if not await self.config.guild(guild).invite():
+            await self.config.guild(guild).invite.set(True)
             await ctx.send("Sending invite links to kicked users!")
             return
 
@@ -165,6 +167,9 @@ class ActivityChecker():
     async def set_invite_link(self, ctx, *, link=None):
         """Sets the invite link for when the bot can't create one."""
         guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup to check activity on this guild!")
+            return
         if link is None:
             invite_link = await self.get_invite_link(guild)
             if invite_link is None:
@@ -176,8 +181,7 @@ class ActivityChecker():
             except(discord.errors.NotFound, HTTPException):
                 await ctx.send("That is not a valid discord invite link!")
                 return
-        self.settings[guild.id]["link"] = invite_link.url
-        dataIO.save_json(self.settings_file, self.settings)
+        await self.config.guild(guild).link.set(invite_link.url)
         await ctx.send("Invite link set to {} for this guild!".format(invite_link))
         
 
@@ -195,22 +199,25 @@ class ActivityChecker():
             return None        
 
     @activity.command(pass_context=True)
-    async def refresh(self, ctx, channel:discord.channel=None, guild:discord.guild=None):
+    async def refresh(self, ctx, channel:discord.TextChannel=None, guild:discord.guild=None):
         """Refreshes the activity checker to start right now"""
         if guild is None:
             guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup to check activity on this guild!")
+            return
         await self.build_list(ctx, guild)
         await ctx.send("The list has been refreshed!")
 
     async def build_list(self, ctx, guild):
         """Builds a new list of all guild members"""
         cur_time = time.time()
-        self.log[guild.id] = {}
+        member_list = {}
         for member in guild.members:
             if await self.check_ignored_users(guild, member.id):
                 continue
-            self.log[guild.id][member.id] = cur_time
-        dataIO.save_json(self.log_file, self.log)
+            member_list[member.id] = cur_time
+        await self.config.guild(guild).members.set(member_list)
         return
 
     @activity.command(pass_context=True, name="time")
@@ -218,6 +225,9 @@ class ActivityChecker():
         """Set the time to check for removal"""
         time_unit = time_unit.lower()
         guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup to check activity on this guild!")
+            return
         s = ""
         if time_unit.endswith("s"):
             time_unit = time_unit[:-1]
@@ -229,26 +239,24 @@ class ActivityChecker():
             await ctx.send("Quantity must not be 0 or negative.")
             return
         seconds = self.units[time_unit] * quantity
-        self.settings[guild.id]["time"] = seconds
-        dataIO.save_json(self.settings_file, self.settings)
-        await ctx.send("Okay, setting the guild time check to {}".format(seconds))
+        await self.config.guild(guild).time.set(seconds)
+        await ctx.send("Okay, setting the guild time check to {}s".format(seconds))
 
     @activity.command(pass_context=True, name="channel")
-    async def set_channel(self, ctx, channel:discord.Channel=None):
+    async def set_channel(self, ctx, channel:discord.TextChannel=None):
         """Set the channel to post activity messages"""
         guild = ctx.message.guild
         if channel is None:
             channel = ctx.message.channel
-        if guild.id not in self.settings:
+        if not await self.config.guild(guild).enabled():
             await ctx.send("I am not setup to check activity on this guild!")
             return
-        self.settings[guild.id]["channel"] = channel.id
-        dataIO.save_json(self.settings_file, self.settings)
+        await self.config.guild(guild).channel.set(channel.id)
         await ctx.send("Okay, sending warning messages to {}".format(channel.mention))
 
 
     @activity.command(pass_context=True, name="set")
-    async def add_guild(self, ctx, channel:discord.Channel=None, role:discord.Role=None):
+    async def add_guild(self, ctx, channel:discord.TextChannel=None, role:discord.Role=None):
         """Set the guild for activity checking"""
         guild = ctx.message.guild
         if channel is None:
@@ -257,21 +265,23 @@ class ActivityChecker():
             role = role.id
         if role is None:
             role = await self.get_everyone_role(guild)
-        if guild.id in self.log:
-            await self.bot.say("This guild is already checking for activity!")
+        if await self.config.guild(ctx.guild).enabled():
+            await ctx.send("This guild is already checking for activity!")
             return
-        invite_link = await self.get_invite_link(guild)
-        if invite_link is None:
-            await ctx.send("I could not create an invite link here! Set a link I can use with the link command.")
-        else:
-            invite_link = invite_link.url
-        self.settings[guild.id] = {"channel": channel.id,
-                                    "check_roles": [role],
-                                    "time": 604800,
-                                    "invite": True,
-                                    "link": invite_link,
-                                    "rip_count": 0}
-        dataIO.save_json(self.settings_file, self.settings)
+        invite_link = "https://discord.gg/"
+        # if invite_link is None:
+            # await ctx.send("I could not create an invite link here! Set a link I can use with the link command.")
+        # else:
+            # invite_link = invite_link.url
+        await self.config.guild(ctx.guild).channel.set(channel.id)
+        await self.config.guild(ctx.guild).check_roles.set([role])
+        await self.config.guild(ctx.guild).time.set(604800)
+        await self.config.guild(ctx.guild).invite.set(True)
+        await self.config.guild(ctx.guild).link.set(invite_link)
+        await self.config.guild(ctx.guild).rip_count.set(0)
+        await self.config.guild(ctx.guild).members.set([])
+        await self.config.guild(ctx.guild).enabled.set(True)
+
         await self.build_list(ctx, guild)
         await ctx.send("Sending activity check messages to {}".format(channel.mention))
 
@@ -286,70 +296,109 @@ class ActivityChecker():
     async def activity_checker(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("ActivityChecker"):
-            for guild_id in (self.log):
-                guild = self.bot.get_guild(id=guild_id)
-                channel = self.bot.get_channel(id=self.settings[guild.id]["channel"])
-                roles = self.settings[guild.id]["check_roles"]
+            for guild in self.bot.guilds:
+
+                if not await self.config.guild(guild).enabled():
+                    # Ignore guilds not added to the activity checker
+                    continue
+                roles = await self.config.guild(guild).check_roles()
                 cur_time = time.time()
-                for member_id in list(self.log[guild.id]):
-                    member = guild.get_member(member_id)
-                    if await self.check_ignored_users(guild, member_id):
+                member_list = await self.config.guild(guild).members()
+                for member_id in member_list:
+                    member = guild.get_member(member_id["id"])
+                    if await self.check_ignored_users(guild, member_id["id"]):
                         continue
-                    last_msg_time = cur_time - self.log[guild.id][member.id]
-                    if last_msg_time > self.settings[guild.id]["time"]:
-                        msg = await self.bot.send_message(channel, "{} you haven't talked in a while! you have 15 seconds to react to this message to stay!"
-                                                          .format(member.mention, last_msg_time))
-                        await self.bot.add_reaction(msg, "☑")
-                        answer = await self.bot.wait_for_reaction(emoji="☑", user=member, message=msg, timeout=15.0)
-                        if answer is not None:
-                            await self.bot.send_message(channel, "Good, you decided to stay!")
-                            self.log[guild.id][member.id] = time.time()
-                            dataIO.save_json(self.log_file, self.log)
-                        if answer is None:
-                            await self.bot.send_message(channel, "Goodbye {}!".format(member.mention))
-                            if self.settings[guild.id]["invite"]:
-                                invite = self.settings[guild.id]["link"]
-                                if invite is None:
-                                    # tries to create an invite link
-                                    invite = self.get_invite_link(guild)
-                                    invite = invite.url
-                                if invite is not None:
-                                    invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(guild.name, invite)
-                                    try:
-                                        await self.bot.send_message(member, invite_msg)
-                                    except(discord.errors.Forbidden, discord.errors.NotFound):
-                                        if "rip_count" not in self.settings[guild.id]:
-                                            self.settings[guild.id]["rip_count"] = 0
-                                        self.settings[guild.id]["rip_count"] += 1
-                                        dataIO.save_json(self.settings_file, self.settings)
-                                        await self.bot.send_message(channel, "RIP #{0} {1}".format(self.settings[guild.id]["rip_count"], member.name))
-                                    except discord.errors.HTTPException:
-                                        pass
-                                else:
-                                    if "rip_count" not in self.settings[guild.id]:
-                                        self.settings[guild.id]["rip_count"] = 0
-                                    self.settings[guild.id]["rip_count"] += 1
-                                    dataIO.save_json(self.settings_file, self.settings)
-                                    await self.bot.send_message(channel, "RIP #{0} {1}".format(self.settings[guild.id]["rip_count"], member.name))
-                                    print("I can't create invites for some reason! Set a link for me to use!")
-                            await self.bot.kick(member)
-                            del self.log[guild.id][member.id]
-                            dataIO.save_json(self.log_file, self.log)
+                    last_msg_time = cur_time - member_id["time"]
+                    if last_msg_time > await self.config.guild(guild).time():
+                        await self.maybe_kick(guild, member)
             await asyncio.sleep(15)
+
+    async def remove_member(self, guild, member_id):
+        member_list = await self.config.guild(guild).members()
+        for member in member_list:
+            if member_id == member["id"]:
+                member_list.remove(member)
+        await self.config.guild(guild).members.set(member_list)
+
+    async def update_member(self, guild, member_id):
+        member_list = await self.config.guild(guild).members()
+        for member in member_list:
+            if member_id == member["id"]:
+                member_list.remove(member)
+                member["time"] = time.time()
+                member_list.append(member)
+        await self.config.guild(guild).members.set(member_list)
+
+    async def check_member(self, guild, member_id):
+        member_list = await self.config.guild(guild).members()
+        exists = False
+        for member in member_list:
+            if member_id == member["id"]:
+                exists = True
+        return exists
+
+
+    async def maybe_kick(self, guild, member):
+        channel = guild.get_channel(id=await self.config.guild(guild).channel())
+        msg = await channel.send("{}, you haven't talked in a while! you have 15 seconds to react to this message to stay!"
+                                 .format(member.mention))
+        await msg.add_reaction("☑")
+        check = lambda react, user:user == member and react.emoji == "☑" and react.message.id == msg.id
+        try:
+            react, user = await ctx.bot.wait_for("reaction_add", check=check, timeout=15.0)
+        except asyncio.TimeoutError:
+            await channel.send("Goodbye {}!".format(member.mention))
+            await self.maybe_invite(guild, member)
+            # await guild.kick(member)
+
+            await self.remove_member(guild, member.id)
+        else:
+            await channel.send("Good, you decided to stay!")
+            await self.update_member_time(guild, member.id)
+
+    async def maybe_invite(self, guild, member):
+        if await self.config.guild(guild).invite():
+            invite = await self.config.guild(guild).link()
+            if invite is not None:
+                invite_msg = "You have been kicked from {0}, here's an invite link to get back! {1}".format(guild.name, invite)
+                try:
+                    await member.send(invite_msg)
+                except(discord.errors.Forbidden, discord.errors.NotFound):
+                    rip_count = await self.config.guild(guild).rip_count()
+                    rip_count += 1
+                    await self.config.guild(guild).rip_count.set(rip_count)
+                    channel = guild.get_channel(id=await self.config.guild(guild).channel())
+                    await channel.send("RIP #{0} {1}".format(rip_count, member.name))
+                except discord.errors.HTTPException:
+                    pass
+            else:
+                rip_count = await self.config.guild(guild).rip_count()
+                rip_count += 1
+                await self.config.guild(guild).rip_count.set(rip_count)
+                channel = guild.get_channel(id=await self.config.guild(guild).channel())
+                await channel.send("RIP #{0} {1}".format(rip_count, member.name))
+            
 
 
 
     async def on_message(self, message):
         guild = message.guild
         author = message.author
-        if message.channel.is_private:
+        if message.guild is None:
+            print("failing here")
             return
-        if guild.id not in self.log:
+        if not await self.config.guild(guild).enabled():
             return
-        if author.id not in self.log[guild.id]:
+        if await self.check_member(guild, author.id):
             if not await self.check_ignored_users(guild, author.id):
-                self.log[guild.id][author.id] = time.time()
+                await self.update_member(guild, author.id)
             else:
                 return
-        self.log[guild.id][author.id] = time.time()
-        dataIO.save_json(self.log_file, self.log)
+        else:
+            if not await self.check_ignored_users(guild, author.id):
+                member_list = await self.config.guild(guild).members()
+                member_data = {"id":author.id, "name":author.name, "time":time.time()}
+                member_list.append(member_data)
+                await self.config.guild(guild).members.set(member_list)
+            else:
+                return
