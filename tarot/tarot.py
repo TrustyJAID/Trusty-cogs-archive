@@ -23,7 +23,7 @@ class Tarot:
     @commands.group(pass_context=True)
     async def tarot(self, ctx):
         if ctx.invoked_subcommand is None:
-            await send_cmd_help(ctx)
+            await self.bot.send_cmd_help(ctx)
     
     @tarot.command(name="life", pass_context=True)
     async def _life(self, ctx, user: discord.Member=None):
