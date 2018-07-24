@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from redbot.core import Config
+from redbot.core import Config, checks
 
 class ServerWhitelist:
 
