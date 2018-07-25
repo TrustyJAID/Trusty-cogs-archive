@@ -66,6 +66,11 @@ class QPosts:
             return
 
     @commands.command()
+    @checks.is_owner()
+    async def reset_qpost(self):
+        await self.config.last_checked.set(0)
+
+    @commands.command()
     async def dlq(self, ctx):
         board_posts = await self.config.boards()
         for board in self.boards:
