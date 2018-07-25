@@ -58,7 +58,7 @@ class Backup:
 
     @commands.command(pass_context=True, aliases=["serverbackup"])
     @checks.admin_or_permissions(manage_messages=True)
-    async def logs(self, ctx, *, guild_id:int=None):
+    async def serverlogs(self, ctx, *, guild_id:int=None):
         if guild_name is None:
             guild = ctx.message.guild
         else:
