@@ -59,7 +59,7 @@ class Backup:
     @commands.command(pass_context=True, aliases=["serverbackup"])
     @checks.admin_or_permissions(manage_messages=True)
     async def serverlogs(self, ctx, *, guild_id:int=None):
-        if guild_name is None:
+        if guild_id is None:
             guild = ctx.message.guild
         else:
             for guilds in self.bot.guilds:
