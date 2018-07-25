@@ -89,7 +89,6 @@ class Backup:
                                       "id":message.author.id,
                                       "bot":message.author.bot},
                             "content":message.content,
-                            "embeds":message.embeds,
                             "channel":{"name":message.channel.name, "id":message.channel.id},
                             "mention_everyone":message.mention_everyone,
                             "mentions":[{"name":user.name, 
