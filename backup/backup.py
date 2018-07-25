@@ -2,8 +2,8 @@ import discord
 import asyncio
 import aiohttp
 from discord.ext import commands
-from .utils.dataIO import dataIO
-from cogs.utils import checks
+from redbot.core import checks
+from redbot.core.data_manager import cog_data_path
 import datetime
 import os
 
@@ -17,77 +17,68 @@ class Backup:
     def __unload(self):
         self.session.close()
 
+    def save_json(self, filename, data):
+        """Atomically saves json file"""
+        rnd = randint(1000, 9999)
+        path, ext = os.path.splitext(filename)
+        tmp_file = "{}-{}.tmp".format(path, rnd)
+        self._save_json(tmp_file, data)
+        try:
+            self._read_json(tmp_file)
+        except json.decoder.JSONDecodeError:
+            self.logger.exception("Attempted to write file {} but JSON "
+                                  "integrity check on tmp file has failed. "
+                                  "The original file is unaltered."
+                                  "".format(filename))
+            return False
+        os.replace(tmp_file, filename)
+        return True
+
+    def _read_json(self, filename):
+        with open(filename, encoding='utf-8', mode="r") as f:
+            data = json.load(f)
+        return data
+
+    def _save_json(self, filename, data):
+        with open(filename, encoding='utf-8', mode="w") as f:
+            json.dump(data, f, indent=4,sort_keys=True,
+                separators=(',',' : '))
+        return data
+
     async def check_folder(self, folder_name):
-        if not os.path.exists("data/backup/{}".format(folder_name)) or not os.path.exists("data/backup/{}/files".format(folder_name)):
+        if not os.path.exists("{}/{}".format(str(cog_data_path(self)),folder_name)):
             try:
-                os.makedirs("data/backup/{}".format(folder_name))
-                os.makedirs("data/backup/{}/files".format(folder_name))
+                os.makedirs("{}/{}".format(str(cog_data_path(self)),folder_name))
+                os.makedirs("{}/{}/files".format(str(cog_data_path(self)),folder_name))
                 return True
             except:
                 return False
         else:
             return True
 
-    @commands.command(pass_context=True, aliases=["dlimage"])
-    @checks.admin_or_permissions(manage_messages=True)
-    async def imagedl(self, ctx, *, server_name=None):
-        if server_name is None:
-            server = ctx.message.server
-        else:
-            for servers in self.bot.servers:
-                if server_name.lower() in servers.name.lower():
-                    server = servers
-        channel = ctx.message.channel
-        is_folder = await self.check_folder(server.name)
-        total_msgs = 0
-        if not is_folder:
-            print("{} folder doesn't exist!".format(server.name))
-            return
-        for chn in server.channels:
-            # await self.bot.send_message(channel, "backing up {}".format(chn.name))
-            files_saved = 0
-            try:
-                async for message in self.bot.logs_from(chn, limit=10000000):
-                    if message.attachments != []:
-                        for file in message.attachments:
-                            async with self.session.get(file["url"]) as resp:
-                                data = await resp.read()
-                            file_loc = "data/backup/{}/files/{}".format(server.name, "{}-{}".format(total_msgs,file["filename"]))
-                            with open(file_loc, "wb") as file:
-                                file.write(data)
-                        files_saved += 1
-                    total_msgs += 1
-                await self.bot.send_message(channel, "{} messages saved from {}".format(files_saved, chn.name))
-            except discord.errors.Forbidden:
-                await self.bot.send_message(channel, "0 messages saved from {}".format(chn.name))
-                pass
-        await self.bot.send_message(channel, "{} messages saved from {}".format(total_msgs, server.name))
-            
-
-
     @commands.command(pass_context=True, aliases=["backup"])
     @checks.admin_or_permissions(manage_messages=True)
-    async def logs(self, ctx, *, server_name=None):
-        if server_name is None:
-            server = ctx.message.server
+    async def logs(self, ctx, *, guild_id:int=None):
+        if guild_name is None:
+            guild = ctx.message.guild
         else:
-            for servers in self.bot.servers:
-                if server_name.lower() in servers.name.lower():
-                    server = servers
+            for guilds in self.bot.guilds:
+                if guild_id == guilds.id:
+                    guild = guilds
         today = datetime.date.today().strftime("%Y-%m-%d")
         channel = ctx.message.channel
-        is_folder = await self.check_folder(server.name)
+        is_folder = await self.check_folder(guild.name)
         total_msgs = 0
         files_saved = 0
         if not is_folder:
-            print("{} folder doesn't exist!".format(server.name))
+            print("{} folder doesn't exist!".format(guild.name))
             return
-        for chn in server.channels:
-            # await self.bot.send_message(channel, "backing up {}".format(chn.name))
+        for chn in guild.channels:
+            # await channel.send("backing up {}".format(chn.name))
             message_list = []
             try:
-                async for message in self.bot.logs_from(chn, limit=10000000):
-                    data = {"timestamp":message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                async for message in chn.history(limit=10000000):
+                    data = {"timestamp":message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                             "tts":message.tts,
                             "author":{"name":message.author.name,
                                       "display_name":message.author.display_name,
@@ -95,7 +86,6 @@ class Backup:
                                       "id":message.author.id,
                                       "bot":message.author.bot},
                             "content":message.content,
-                            "nonce":message.nonce,
                             "embeds":message.embeds,
                             "channel":{"name":message.channel.name, "id":message.channel.id},
                             "mention_everyone":message.mention_everyone,
@@ -109,33 +99,14 @@ class Backup:
                             "role_mentions":[{"name":role.name, 
                                               "id":role.id} for role in message.role_mentions],
                             "id":message.id,
-                            "attachments":message.attachments,
                             "pinned":message.pinned}
-                    if message.attachments != []:
-                        for file in message.attachments:
-                            async with self.session.get(file["url"]) as resp:
-                                img_data = await resp.read()
-                            file_loc = "data/backup/{}/files/{}".format(server.name, "{}-{}".format(files_saved, file["filename"]))
-                            with open(file_loc, "wb") as file:
-                                file.write(img_data)
-                            files_saved += 1
                     message_list.append(data)
                 total_msgs += len(message_list)
                 if len(message_list) == 0:
                     continue
-                dataIO.save_json("data/backup/{}/{}-{}.json".format(server.name, chn.name, today), message_list)
-                await self.bot.send_message(channel, "{} messages saved from {}".format(len(message_list), chn.name))
+                self.save_json("{}/{}/{}-{}.json".format(str(cog_data_path(self)),guild.name, chn.name, today), message_list)
+                await channel.send("{} messages saved from {}".format(len(message_list), chn.name))
             except discord.errors.Forbidden:
-                await self.bot.send_message(channel, "0 messages saved from {}".format(chn.name))
+                await channel.send("0 messages saved from {}".format(chn.name))
                 pass
-        await self.bot.send_message(channel, "{} messages saved from {}".format(total_msgs, server.name))
-
-
-def check_folder():
-    if not os.path.exists("data/backup"):
-        print("Creating data/backup folder")
-        os.makedirs("data/backup")
-
-def setup(bot):
-    check_folder()
-    bot.add_cog(Backup(bot))
+        await channel.send("{} messages saved from {}".format(total_msgs, guild.name))
