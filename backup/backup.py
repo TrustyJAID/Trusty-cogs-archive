@@ -6,6 +6,9 @@ from redbot.core import checks
 from redbot.core.data_manager import cog_data_path
 import datetime
 import os
+from random import randint
+import json
+import logging
 
 
 class Backup:
