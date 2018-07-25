@@ -111,4 +111,7 @@ class Backup:
             except discord.errors.Forbidden:
                 await channel.send("0 messages saved from {}".format(chn.name))
                 pass
+            except AttributeError:
+                await channel.send("0 messages saved from {}".format(chn.name))
+                pass
         await channel.send("{} messages saved from {}".format(total_msgs, guild.name))
