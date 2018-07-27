@@ -66,7 +66,6 @@ class QPosts:
             return
 
     @commands.command()
-    @checks.is_owner()
     async def reset_qpost(self):
         await self.config.last_checked.set(0)
 
