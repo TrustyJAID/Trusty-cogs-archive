@@ -6,19 +6,19 @@ import wand, wand.color, wand.drawing
 import PIL, PIL.Image, PIL.ImageFont, PIL.ImageOps, PIL.ImageDraw
 import numpy as np
 import cairosvg, jpglitch, urbandict
-import pixelsort.sorter, pixelsort.sorting, pixelsort.util, pixelsort.interval
 import hashlib, base64
-from vw import macintoshplus
+from .pixelsort import sorter, sorting, interval
+from .pixelsort import util as ps_util
+from .vw import macintoshplus
 from urllib.parse import parse_qs
 from lxml import etree
 from imgurpython import ImgurClient
 from io import BytesIO, StringIO
 from discord.ext import commands
-from utils import checks
+from redbot.core import checks
 from pyfiglet import figlet_format
 from string import ascii_lowercase as alphabet
 from urllib.parse import quote
-from mods.cog import Cog
 from concurrent.futures._base import CancelledError
 
 code = "```py\n{0}\n```"
@@ -51,10 +51,8 @@ def find_coeffs(pa, pb):
     res = np.dot(np.linalg.inv(A.T*A)*A.T, B)
     return np.array(res).reshape(8)
 
-class NotSoBot(Cog):
+class NotSoBot():
     def __init__(self, bot):
-        super().__init__(bot)
-        self.discord_path = bot.path.discord
         self.files_path = bot.path.files
         self.download = bot.download
         self.bytes_download = bot.bytes_download
@@ -84,12 +82,12 @@ class NotSoBot(Cog):
         self.voice_list = ['`Allison - English/US (Expressive)`', '`Michael - English/US`', '`Lisa - English/US`', '`Kate - English/UK`', '`Renee - French/FR`', '`Birgit - German/DE`', '`Dieter - German/DE`', '`Francesca - Italian/IT`', '`Emi - Japanese/JP`', '`Isabela - Portuguese/BR`', '`Enrique - Spanish`', '`Laura - Spanish`', '`Sofia - Spanish/NA`']
         self.scrap_regex = re.compile(",\"ou\":\"([^`]*?)\"")
         self.google_keys = bot.google_keys
-        self.interval_functions = {"random": pixelsort.interval.random, "threshold": pixelsort.interval.threshold, "edges": pixelsort.interval.edge, "waves": pixelsort.interval.waves, "file": pixelsort.interval.file_mask, "file-edges": pixelsort.interval.file_edges, "none": pixelsort.interval.none}
-        self.s_functions =  {"lightness": pixelsort.sorting.lightness, "intensity": pixelsort.sorting.intensity, "maximum": pixelsort.sorting.maximum, "minimum": pixelsort.sorting.minimum}
+        self.interval_functions = {"random": interval.random, "threshold": interval.threshold, "edges": interval.edge, "waves": interval.waves, "file": interval.file_mask, "file-edges": interval.file_edges, "none": interval.none}
+        self.s_functions =  {"lightness": sorting.lightness, "intensity": sorting.intensity, "maximum": sorting.maximum, "minimum": sorting.minimum}
         self.webmd_responses = ['redacted']
         self.webmd_count = random.randint(0, len(self.webmd_responses)-1)
         self.color_combinations = [[150, 50, -25], [135, 30, -10], [100, 50, -15], [75, 25, -15], [35, 20, -25], [0, 20, 0], [-25, 45, 35], [-25, 45, 65], [-45, 70, 75], [-65, 100, 135], [-45, 90, 100], [-10, 40, 70], [25, 25, 50], [65, 10, 10], [100, 25, 0], [135, 35, -10]]
-        self.fp_dir = os.listdir(self.files_path('fp/'))
+        # self.fp_dir = os.listdir(self.files_path('fp/'))
         self.more_cache = {}
 
     async def gist(self, ctx, idk, content:str):
@@ -105,19 +103,6 @@ class NotSoBot(Cog):
             async with session.post('https://spit.mixtape.moe/api/create', data=payload) as r:
                 url = await r.text()
                 await ctx.send('Uploaded to paste, URL: <{0}>'.format(url))
-
-    @commands.command(pass_context=True)
-    @commands.cooldown(1, 3)
-    async def badmeme(self, ctx, direct=None):
-        """returns bad meme (shit api)"""
-        load = await self.get_json("https://api.imgflip.com/get_memes")
-        url = random.choice(load['data']['memes'])
-        url = url['url']
-        if direct:
-            await ctx.send(url)
-        else:
-            b = await self.bytes_download(url)
-            await self.bot.upload(b, filename='badmeme.png')
 
     def do_magik(self, scale, *imgs):
         try:
@@ -176,7 +161,7 @@ class NotSoBot(Cog):
             scale_msg = get_images[2]
             if scale_msg is None:
                 scale_msg = ''
-            msg = await self.bot.send_message(ctx.message.channel, "ok, processing")
+            msg = await ctx.message.channel.send( "ok, processing")
             list_imgs = []
             for url in img_urls:
                 b = await self.bytes_download(url)
@@ -260,7 +245,7 @@ class NotSoBot(Cog):
                 await ctx.send("Invalid or Non-GIF!")
                 ctx.command.reset_cooldown(ctx)
                 return
-            x = await self.bot.send_message(ctx.message.channel, "ok, processing (this might take a while for big gifs)")
+            x = await ctx.message.channel.send( "ok, processing (this might take a while for big gifs)")
             rand = self.bot.random()
             gifin = gif_dir+'1_{0}.gif'.format(rand)
             gifout = gif_dir+'2_{0}.gif'.format(rand)
@@ -287,39 +272,9 @@ class NotSoBot(Cog):
                 os.remove(image)
             os.remove(gifin)
             os.remove(gifout)
-            await self.bot.delete_message(x)
+            await await x.delete()
         except Exception as e:
             print(e)
-
-    #redacted
-    @commands.command(pass_context=True)
-    async def aa(self, ctx, *, user:str):
-        """rope"""
-        user = user.strip("`")
-        if len(ctx.message.mentions):
-            user = ctx.message.mentions[0].name
-        msg = "``` _________     \n|         |    \n|         0 <-- {0}    \n|        /|\\  \n|        / \\  \n|              \n|              \n```\n".format(user)
-        msg += "**kronk your splinter** `{0}`\nropstor.org?u={1}".format(user, quote(user))    
-        await ctx.send(msg)
-
-    @commands.command(pass_context=True)
-    async def a(self, ctx, *, user:str, direct=None):
-        """make dank meme"""
-        if len(user) > 25:
-            await ctx.send("ur names 2 long asshole")
-            return
-        if len(ctx.message.mentions) and len(ctx.message.mentions) == 1:
-            user = ctx.message.mentions[0].name
-        payload = {'template_id': '57570410', 'username': '', 'password' : '', 'text0' : '', 'text1' : '{0} you'.format(user)}
-        with aiohttp.ClientSession() as session:
-            async with session.post("https://api.imgflip.com/caption_image", data=payload) as r:
-                load = await r.json()
-        url = load['data']['url']
-        if direct:
-            await ctx.send(url)
-        else:
-            b = await self.bytes_download(url)
-            await self.bot.upload(b, filename='a.png')
 
     @commands.command(pass_context=True)
     async def caption(self, ctx, url:str=None, text:str=None, color=None, size=None, x:int=None, y:int=None):
@@ -332,7 +287,7 @@ class NotSoBot(Cog):
             if check == False:
                 await ctx.send("Invalid or Non-Image!")
                 return
-            xx = await self.bot.send_message(ctx.message.channel, "ok, processing")
+            xx = await ctx.message.channel.send( "ok, processing")
             b = await self.bytes_download(url)
             img = wand.image.Image(file=b)
             i = img.clone()
@@ -590,7 +545,7 @@ class NotSoBot(Cog):
                 final = BytesIO()
                 img.save(final, 'png')
                 final.seek(0)
-                await self.bot.delete_message(x)
+                await await x.delete()
                 await self.bot.upload(final, filename='iascii.png')
         except Exception as e:
             await ctx.send(e)
@@ -632,7 +587,7 @@ class NotSoBot(Cog):
                 gif_dir = self.files_path('gascii/')
                 location = gif_dir+'1_{0}.gif'.format(rand)
                 location2 = gif_dir+'2_{0}.gif'.format(rand)
-                x = await self.bot.send_message(ctx.message.channel, "ok, processing")
+                x = await ctx.message.channel.send( "ok, processing")
                 await self.download(url, location)
                 if os.path.getsize(location) > 3000000 and ctx.message.author.id != self.bot.owner.id:
                     await ctx.send("Sorry, GIF Too Large!")
@@ -650,7 +605,7 @@ class NotSoBot(Cog):
                     os.remove(location)
                     return
                 await self.bot.run_process(['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', self.files_path('gascii/')+'%d_{0}.png'.format(rand), location2])
-                await self.bot.delete_message(x)
+                await await x.delete()
                 await self.bot.upload(location2, filename='gascii.gif')
                 for image in list_imgs:
                     os.remove(image)
@@ -770,7 +725,7 @@ class NotSoBot(Cog):
                 scale_msg = '\n'+scale_msg
             do_2 = False
             rand = self.bot.random()
-            x = await self.bot.send_message(ctx.message.channel, "ok, resizing `{0}` by `{1}`".format(url, str(size)))
+            x = await ctx.message.channel.send( "ok, resizing `{0}` by `{1}`".format(url, str(size)))
             b = await self.bytes_download(url)
             if sys.getsizeof(b) > 3000000:
                 await ctx.send("Sorry, image too large for waifu2x guilds!")
@@ -869,7 +824,7 @@ class NotSoBot(Cog):
                     i += 1
             await self.bot.upload(final, filename='enlarge.png', content='Visit image link for accurate resize visual.'+scale_msg if size > 3 else scale_msg if scale_msg != '' else None)
             await asyncio.sleep(3)
-            await self.bot.delete_message(x)
+            await await x.delete()
         except Exception as e:
             await ctx.send(code.format(e))
             await ctx.send("Error: Failed\n `Discord Failed To Upload or Waifu2x guilds Failed`")
@@ -1133,7 +1088,7 @@ class NotSoBot(Cog):
                 return
             elif not get_images:
                 return
-            xx = await self.bot.send_message(ctx.message.channel, "ok, processing")
+            xx = await ctx.message.channel.send( "ok, processing")
             count = 0
             list_im = []
             for url in get_images:
@@ -1259,7 +1214,7 @@ class NotSoBot(Cog):
 
     @commands.command(pass_context=True)
     async def jagroshisgay(self, ctx, *, txt:str):
-        x = await self.bot.send_message(ctx.message.channel, txt, replace_mentions=True)
+        x = await ctx.message.channel.send( txt, replace_mentions=True)
         txt = u"\u202E " + txt
         await self.bot.edit_message(x, txt)
 
