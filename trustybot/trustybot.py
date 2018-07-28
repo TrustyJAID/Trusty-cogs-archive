@@ -8,7 +8,7 @@ from redbot.core import checks, bank
 from redbot.core.utils.chat_formatting import pagify, box
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.data_manager import cog_data_path
-from .data import links, messages
+from .data import links, messages, donotdo
 import datetime
 import os
 import string
@@ -29,9 +29,6 @@ numbs = {
 class TrustyBot:
     def __init__(self, bot):
         self.bot = bot
-        # self.donotdo = dataIO.load_json("data/dnd/donotdo.json")
-        self.text = messages
-        self.links = links
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     @commands.command(hidden=True)
@@ -236,12 +233,12 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
         alias = await self.first_word(msg[len(prefix):])
         if alias == "beemovie":
             return
-        if alias in self.text:
+        if alias in messages:
             await channel.trigger_typing()
-            await channel.send(self.text[alias])
-        if alias in self.links:
+            await channel.send(messages[alias])
+        if alias in links:
             await channel.trigger_typing()
-            await channel.send(self.links[alias])
+            await channel.send(links[alias])
         return
 
     async def first_word(self, msg):
@@ -666,7 +663,7 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
     async def listtext(self):
         """List phrases added to bot"""
         msg = ""
-        for text in self.text.keys():
+        for text in messages.keys():
             msg += text + ", "
         await ctx.send("```" + msg[:len(msg)-2] + "```")
     
@@ -674,7 +671,7 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
     async def listlinks(self):
         """List links added to bot"""
         msg = ""
-        for link in self.links.keys():
+        for link in links.keys():
             msg += link + ", "
         await ctx.send("```" + msg[:len(msg)-2] + "```")
     
@@ -705,14 +702,14 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
         await ctx.send("Help support me  and development of TrustyBot by buying my album or donating bitcoin on my website :smile: https://trustyjaid.com/")
 
     
-    @commands.command(pass_context=True)
-    async def dnd(self, ctx, number=None):
+    @commands.command(pass_context=True, aliases=["dnd"])
+    async def donotdo(self, ctx, number=None):
         if number is None:
-            await ctx.send(choice(self.donotdo))
+            await ctx.send(choice(donotdo))
         elif number.isdigit():
-            await ctx.send(self.donotdo[int(number)-1])
+            await ctx.send(donotdo[int(number)-1])
         else:
-            await ctx.send(choice(self.donotdo))
+            await ctx.send(choice(donotdo))
 
     @commands.command(hidden=False)
     async def halp(self,ctx, user=None):
@@ -726,12 +723,12 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
     @commands.command(hidden=False)
     async def dreams(self):
         """don't let your dreams be dreams"""
-        await ctx.send(self.text["dreams"].format("dreams"))
+        await ctx.send(messages["dreams"].format("dreams"))
 
     @commands.command(hidden=False)
     async def memes(self):
         """don't let your memes be dreams"""
-        await ctx.send(self.text["dreams"].format("memes"))
+        await ctx.send(messages["dreams"].format("memes"))
 
     @commands.command(pass_context=True)
     async def flipm(self, ctx, *, message):
