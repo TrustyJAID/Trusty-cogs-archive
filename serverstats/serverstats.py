@@ -283,7 +283,7 @@ class ServerStats:
         guild = ctx.message.guild
         msg = ""
         for role in guild.roles:
-            msg += ("{} ({})".format(role.name, role.id))
+            msg += ("{} ({})\n".format(role.name, role.id))
 
         for page in pagify(msg, ["\n"]):
             await ctx.send(page)
