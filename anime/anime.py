@@ -114,7 +114,7 @@ class Anime:
             time = 0
         last_time = datetime.utcfromtimestamp(time)
         time_now = datetime.utcnow()
-        if last_time.day != last_time.day:
+        if last_time.day != time_now.day:
             await self.get_currently_airing()
         return
 
