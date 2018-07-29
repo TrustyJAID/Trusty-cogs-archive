@@ -59,7 +59,7 @@ class Unity4J:
                 print(e)
         
     async def on_message(self, message):
-        if message.channel.id == 472912906111942656:
+        if message.channel.id == 469783041145962496 or message.channel.id == 469771424773701649:
             if "donate" in message.content.lower():
                 await message.chnnel.send("Would you like to donate to support Julian? Please do so at https://iamwikileaks.org/donate and https://justice4assange.com. Thank you so much for supporting him!")
         
