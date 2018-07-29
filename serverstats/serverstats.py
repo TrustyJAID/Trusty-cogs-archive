@@ -283,8 +283,10 @@ class ServerStats:
         guild = ctx.message.guild
         msg = ""
         for role in guild.roles:
-            msg += (role.name + ",")
-        await ctx.send(msg)
+            msg += ("{} ({})".format(role.name, role.id))
+
+        for page in pagify(msg, ["\n"]):
+            await ctx.send(page)
 
     @commands.command(pass_context=True)
     async def rolestats(self, ctx):
