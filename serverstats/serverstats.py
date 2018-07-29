@@ -158,8 +158,7 @@ class ServerStats:
         channels = {}
         msg = "__**{}({})**__\n".format(guild.name, guild.id)
         for channel in guild.channels:
-            for channel in guild.channels:
-                msg += "{} ({}): {}".format(channel.mention, channel.id, channel.position)
+            msg += "{} ({}): {}\n".format(channel.mention, channel.id, channel.position)
         for page in pagify(msg, ["\n"]):
             await ctx.send(page)
 
