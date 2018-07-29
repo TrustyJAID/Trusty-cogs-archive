@@ -47,4 +47,5 @@ blank_template = [
              {"badge_name":"Vegas Golden Knights","code":"VGK", "file_name": 'Vegas Golden Knights-template.png', "is_inverted":False},
              {"badge_name":"Washington Capitals","code":"WSH", "file_name":'Washington Capitals-template.png', "is_inverted":False},
              {"badge_name":"Winnipeg Jets","code":"WPG", "file_name": 'Winnipeg Jets-template.png', "is_inverted":False},
-             {"badge_name":"Seattle Thunderbirds","code":"STT", "file_name": 'Seattle Thunderbirds-template.png', "is_inverted":False}]
+             {"badge_name":"Seattle Thunderbirds","code":"STT", "file_name": 'Seattle Thunderbirds-template.png', "is_inverted":False},
+             {"badge_name":"unity4j","code":"U4J", "file_name": 'Unity4J-template.png', "is_inverted":False}]
