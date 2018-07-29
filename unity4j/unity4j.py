@@ -36,8 +36,8 @@ class Unity4J:
                     try:
                         await member.send("Hey there. You have no role assigned yet and we want to help you settle into your #Unity4J team as soon as possible. Please go to #role, read through the role descriptions and answer the questions, and to <#469816208464805896> or <#470402195477626910> if you need any help. Thank you!")
                     except Exception as e:
-                        print(e)
-                await self.config.last_checked.set(now.timestamp())
+                        print("{}({}): {}".format(member.name, member.id, e))
+                await self.config.last_sent.set(now.timestamp())
             await asyncio.sleep(600)
 
 
