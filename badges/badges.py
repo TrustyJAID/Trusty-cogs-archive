@@ -68,7 +68,7 @@ class Badges:
             return BytesIO(test)
 
     def make_template(self, user, badge):
-        if user is discord.Member:
+        if hasattr(user, "roles"):
             department = "GENERAL SUPPORT" if user.top_role.name == "@everyone" else user.top_role.name.upper()
             status = user.status
             level = str(len(user.roles))
