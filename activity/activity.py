@@ -54,8 +54,12 @@ class ActivityChecker():
             link = await self.config.guild(guild).link()
             link_enabled = await self.config.guild(guild).invite()
             enabled = await self.config.guild(guild).enabled()
-            for role in await self.config.guild(guild).check_roles():
-                roles = ", ".join(x.mention for x in guild.roles if x.id == role)
+            roles_list = await self.config.guild(guild).check_roles()
+            if roles_list == []:
+                roles = "None"
+            else:
+                for role in roles_list:
+                    roles = ", ".join(x.mention for x in guild.roles if x.id == role)
             rip_count = await self.config.guild(guild).rip_count()
             em = discord.Embed()
             if enabled:
