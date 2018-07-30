@@ -22,7 +22,7 @@ class Anime:
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.url = "https://anilist.co/api/"
         self.config = Config.get_conf(self, 15863754656)
-        default_global = {"last_check":None, "airing":[], "api":{'client_id': '', 'client_secret': '', "access_token":{}}}
+        default_global = {"last_check":0, "airing":[], "api":{'client_id': '', 'client_secret': '', "access_token":{}}}
         default_guild = {"enabled":False, "channel":None}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
@@ -71,7 +71,7 @@ class Anime:
                     # print(time_start.timestamp())
                     if time_start < time_now:
                         await self.post_anime_announcement(anime, episode, time_start)
-            await self.config.last_check.set(time_now.timestamp())
+            # await self.config.last_check.set(time_now.timestamp())
             await self.remove_posted_shows()
             # dataIO.save_json("data/anilist/settings.json", self.settings)
             await asyncio.sleep(60)
@@ -257,7 +257,7 @@ class Anime:
             data = await resp.json()
         for anime in data:
             if not anime["adult"]:
-                print(anime["title_english"])
+                # print(anime["title_english"])
                 episode_data = {}
                 async with self.session.get(self.url + "anime/{}/airing".format(anime["id"]), params=header1) as resp:
                     ani_data = await resp.json()
@@ -271,7 +271,7 @@ class Anime:
             if episode_data != {}:
                 data[data.index(anime)]["episodes"] = episode_data
         await self.config.airing.set(data)
-
+        await self.config.last_check.set(datetime.utcnow().timestamp())
         # dataIO.save_json("data/anilist/airing.json", self.airing)
 
     @anime.command(hidden=True, pass_context=True)
