@@ -40,7 +40,7 @@ class Unity4J:
     async def message_need_a_role(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("Unity4J"):
-            last_checked = datetime.utcfromtimestamp(await self.config.last_sent())
+            last_checked = datetime.fromtimestamp(await self.config.last_sent())
             now = datetime.utcnow()
             if last_checked.day != now.day:
                 guild = self.bot.get_guild(469771424274317312)
