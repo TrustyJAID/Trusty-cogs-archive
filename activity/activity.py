@@ -35,12 +35,42 @@ class ActivityChecker():
     def __unload(self):
         self.activitycheck.cancel()
 
+    async def get_role(self, guild, role_id):
+        role_return = None
+        for role in guild.roles:
+            if role.id == role_id:
+                role_return = role
+        return role_return
+
     @commands.group(pass_context=True)
     @checks.mod_or_permissions(kick_members=True)
     async def activity(self, ctx):
         """Setup an activity checker channel"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
+            guild = ctx.message.guild
+            time = await self.config.guild(guild).time()
+            channel = guild.get_channel(await self.config.guild(guild).channel())
+            link = await self.config.guild(guild).link()
+            link_enabled = await self.config.guild(guild).invite()
+            enabled = await self.config.guild(guild).enabled()
+            for role in await self.config.guild(guild).check_roles():
+                roles = ", ".join(x.mention for x in guild.roles if x.id == role)
+            rip_count = await self.config.guild(guild).rip_count()
+            em = discord.Embed()
+            if enabled:
+                em.description = "The Activity Checker is currently **ON**"
+            else:
+                em.description = "The Activity Checker is currently **OFF**"
+            em.set_author(name="{} Activity Checker".format(guild.name), icon_url=guild.icon_url)
+            em.add_field(name="Channel", value="Posting kick messages in {}".format(channel.mention))
+            em.add_field(name="Roles being checked", value=roles)
+            em.add_field(name="Time", value=time)
+            em.add_field(name="RIP", value="{} members had DM's from the bot disabled".format(rip_count))
+            em.set_thumbnail(url=guild.icon_url)
+            if link_enabled:
+                em.add_field(name="Invite Link", value=link)
+            await ctx.send(embed=em)
 
     @activity.command(pass_context=True, name="list")
     async def list_roles(self, ctx):
@@ -96,25 +126,23 @@ class ActivityChecker():
             member_time = member_id["time"]
             if member_time <= last_post_time:
                 last_post_time = member_time
-                member_name = member.name
+                member_name = member.mention
         time_left = timedelta(seconds=abs(time.time() - last_post_time - await self.config.guild(guild).time()), microseconds=0)
         time_left = time_left - timedelta(microseconds=time_left.microseconds)
         clean_time = "{} seconds until purging starts with {}!".format(time_left, member_name)
         # clean_time = time.strftime("%j days %H hours %M minutes %S seconds", time.gmtime(time_left))
         await ctx.send(clean_time)
 
-    @activity.command(pass_context=True, name="remove")
-    async def rem_guild(self, ctx, guild:discord.guild=None):
+    @activity.command(pass_context=True, name="remove", aliases=["disable"])
+    async def rem_guild(self, ctx):
         """Removes a guild from the activity checker"""
-        if guild is None:
-            guild = ctx.message.guild
-        if guild.id in self.settings:
-            del self.settings[guild.id]
-            dataIO.save_json(self.settings_file, self.settings)
-        if guild.id in self.log:
-            del self.log[guild.id]
-            dataIO.save_json(self.log_file, self.log)
+        guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup to check activity on this guild!")
+            return
+        await self.config.guild(guild).enabled.set(False)
         await ctx.send("Done! No more activity checking in {}!".format(guild.name))
+
 
     async def get_everyone_role(self, guild):
         for role in guild.roles:
@@ -122,7 +150,7 @@ class ActivityChecker():
                 return role.id
 
     @activity.command(pass_context=True, name="role")
-    async def role_ignore(self, ctx, role:discord.Role):
+    async def role_check(self, ctx, role:discord.Role):
         """Add or remove a role to be checked. Remove all roles to check everyone."""
         guild = ctx.message.guild
         if not await self.config.guild(guild).enabled():
@@ -309,7 +337,8 @@ class ActivityChecker():
                     if await self.check_ignored_users(guild, member_id["id"]):
                         continue
                     last_msg_time = cur_time - member_id["time"]
-                    if last_msg_time > await self.config.guild(guild).time():
+                    guild_time = await self.config.guild(guild).time()
+                    if last_msg_time > guild_time:
                         await self.maybe_kick(guild, member)
             await asyncio.sleep(15)
 
@@ -339,20 +368,25 @@ class ActivityChecker():
 
 
     async def maybe_kick(self, guild, member):
-        channel = guild.get_channel(id=await self.config.guild(guild).channel())
+        channel = guild.get_channel(await self.config.guild(guild).channel())
         msg = await channel.send("{}, you haven't talked in a while! you have 15 seconds to react to this message to stay!"
                                  .format(member.mention))
         await msg.add_reaction("☑")
-        check = lambda react, user:user == member and react.emoji == "☑" and react.message.id == msg.id
+        check = lambda react, user:user.id == member.id and react.emoji == "☑" and react.message.id == msg.id
         try:
-            react, user = await ctx.bot.wait_for("reaction_add", check=check, timeout=15.0)
+            react, user = await self.bot.wait_for("reaction_add", check=check, timeout=15.0)
         except asyncio.TimeoutError:
+            await msg.remove_reaction("☑", guild.me)
             await channel.send("Goodbye {}!".format(member.mention))
             await self.maybe_invite(guild, member)
-            # await guild.kick(member)
+            try:
+                await guild.kick(member)
+            except Exception as e:
+                print("Could not Kick {}({}): {}".format(member.name, member.id, e))
 
             await self.remove_member(guild, member.id)
         else:
+            await msg.remove_reaction("☑", guild.me)
             await channel.send("Good, you decided to stay!")
             await self.update_member_time(guild, member.id)
 
@@ -367,7 +401,7 @@ class ActivityChecker():
                     rip_count = await self.config.guild(guild).rip_count()
                     rip_count += 1
                     await self.config.guild(guild).rip_count.set(rip_count)
-                    channel = guild.get_channel(id=await self.config.guild(guild).channel())
+                    channel = guild.get_channel(await self.config.guild(guild).channel())
                     await channel.send("RIP #{0} {1}".format(rip_count, member.name))
                 except discord.errors.HTTPException:
                     pass
@@ -385,7 +419,6 @@ class ActivityChecker():
         guild = message.guild
         author = message.author
         if message.guild is None:
-            print("failing here")
             return
         if not await self.config.guild(guild).enabled():
             return
