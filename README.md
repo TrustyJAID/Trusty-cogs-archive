@@ -42,6 +42,10 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 >Compliment - Compliment a user!
 
+>Activity - Track users posting on a server and kick people who have been inactive for the set time.
+
+>ServerStats - This cog provides a ton of useful development functions for gathering channel data and user data as well as providing a way to setup a channel to monitor which servers are adding the bot.
+
 **Works in Progress**
 *These Cogs are a work in progress and have limited to no functionality at the moment. Feel free to leave ideas or suggestions!*
 
@@ -52,9 +56,6 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 >Notsobot - Work on converting some notsobot commands to redbot. Hopefully avoiding Image Magick.
 
 >Trump - Make your own Declaration signed by Trump.
-
->Activity - Track users posting on a server and kick people who have been inactive for the set time. Working on rewriting for V3.
-
 
 **Rewritten Cogs Originally Made by others**
 *These cogs were originally written by others for V2. As they were used frequently on TrustyBot I ported them over quickly for V3. A better version may be available.*
@@ -95,5 +96,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 >Chatterbot - Teach your bot how to talk by watching conversations on servers and reply. Uses chatterbot library. NOTE: This cog is not recommended to be used at this time. After a month of usage it caused the whole bot to slow down while it searched for responses. I recommend looking at cleverbot for the time being.
 
 >Blockchain - a cog to download and the bitcoin blockchain for hidden files and data. Requires bitcoin RPC connection and complicated setup **don't use** unless you know what you're doing.
+
+>Unity4J - Hard coded cog for one server. Do not use.
 
 Any questions you can find me and TrustyBot over on https://discord.gg/wVVrqej
