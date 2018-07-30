@@ -47,6 +47,8 @@ class ActivityChecker():
             channel = guild.get_channel(await self.config.guild(guild).channel())
             if channel is None:
                 channel = "None"
+            else:
+                channel = channel.mention
             link = await self.config.guild(guild).link()
             link_enabled = await self.config.guild(guild).invite()
             enabled = await self.config.guild(guild).enabled()
@@ -63,7 +65,7 @@ class ActivityChecker():
             else:
                 em.description = "The Activity Checker is currently **OFF**"
             em.set_author(name="{} Activity Checker".format(guild.name), icon_url=guild.icon_url)
-            em.add_field(name="Channel", value="Posting kick messages in {}".format(channel.mention))
+            em.add_field(name="Channel", value="Posting kick messages in {}".format(channel))
             em.add_field(name="Roles being checked", value=roles)
             em.add_field(name="Time", value=time)
             em.add_field(name="RIP", value="{} members had DM's from the bot disabled".format(rip_count))
