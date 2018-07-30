@@ -45,6 +45,8 @@ class ActivityChecker():
             guild = ctx.message.guild
             time = await self.config.guild(guild).time()
             channel = guild.get_channel(await self.config.guild(guild).channel())
+            if channel is None:
+                channel = "None"
             link = await self.config.guild(guild).link()
             link_enabled = await self.config.guild(guild).invite()
             enabled = await self.config.guild(guild).enabled()
