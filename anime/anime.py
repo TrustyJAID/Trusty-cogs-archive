@@ -112,7 +112,7 @@ class Anime:
         time = await self.config.last_check()
         if time is None:
             time = 0
-        last_time = datetime.utcfromtimestamp(time)
+        last_time = datetime.fromtimestamp(time)
         time_now = datetime.utcnow()
         if last_time.day != time_now.day:
             await self.get_currently_airing()
