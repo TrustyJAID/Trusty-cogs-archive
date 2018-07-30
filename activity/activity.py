@@ -22,14 +22,8 @@ class ActivityChecker():
                         "rip_count": 0,
                         "enabled":False,
                         "members":[]}
-        # self.settings_file = "data/activity/settings.json"
-        # self.log_file = "data/activity/log.json"
-        # self.settings = dataIO.load_json(self.settings_file)
-        # self.log = dataIO.load_json(self.log_file)
         self.config = Config.get_conf(self, 16484554673)
-
         self.units = {"minute" : 60, "hour" : 3600, "day" : 86400, "week": 604800, "month": 2592000}
-        # loop = asyncio.get_event_loop()
         self.activitycheck = bot.loop.create_task(self.activity_checker())
 
     def __unload(self):
@@ -55,7 +49,7 @@ class ActivityChecker():
             link_enabled = await self.config.guild(guild).invite()
             enabled = await self.config.guild(guild).enabled()
             roles_list = await self.config.guild(guild).check_roles()
-            if roles_list == []:
+            if roles_list is None:
                 roles = "None"
             else:
                 for role in roles_list:
