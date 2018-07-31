@@ -133,7 +133,7 @@ class ServerStats:
 
     @commands.command(pass_context=True)
     @checks.is_owner()
-    async def members(self, ctx, number:int=10, guild_id:int=None):
+    async def topmembers(self, ctx, number:int=10, guild_id:int=None):
         """Lists top 10 members on the server by join date"""
         if guild_id is not None:
             guild = self.bot.get_guild(id=guild_id)
