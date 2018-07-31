@@ -20,8 +20,6 @@ class Autorole:
         self.bot = bot
         self.config = Config.get_conf(self, 45463543548)
         self.config.register_guild(**default_settings)
-        # self.file_path = "data/autorole/settings.json"
-        # self.settings = dataIO.load_json(self.file_path)
         self.users = {}
         self.messages = {}
 
@@ -175,8 +173,14 @@ class Autorole:
         You can use this command multiple times to add multiple roles."""
         guild = ctx.message.guild
         roles = await self.config.guild(guild).ROLE()
+        if not permissions_for(guild.me).manage_roles:
+            await ctx.send("I don't have the manage roles permission to use these features!")
+            return
         if role.id in roles:
             await ctx.send("{} is already in the autorole list.".format(role.name))
+            return
+        if guild.me.top_role < role:
+            await ctx.send("{} is higher than my highest role in the Discord hierarchy.".format(role.name))
             return
         roles.append(role.id)
         await self.config.guild(guild).ROLE.set(roles)
