@@ -31,6 +31,7 @@ class Runescape:
 
     @runescape.command()
     async def set(self, ctx, RunescapeName):
+        """Set your runescape name for easer commands."""
         user = self.bot.get_user(ctx.message.author.id)
         await self.config.user(user).rsn.set(RunescapeName)
         await ctx.send("Your Runescape name has been set. To change re-do this command.")
@@ -60,7 +61,8 @@ class Runescape:
         return await self.get_profile_obj(data)
 
     @runescape.command()
-    async def profile(self, ctx, runescape_name=None):
+    async def profile(self, ctx, runescape_name=None, activity:int=10):
+        """Display a players profile in Runescape"""
         user = self.bot.get_user(ctx.message.author.id)
         if runescape_name is None:
             runescape_name = await self.config.user(user).rsn()
@@ -69,14 +71,15 @@ class Runescape:
                 return
 
         details = await self.get_player_details(runescape_name)
-        data = await self.get_profile(runescape_name)
+        data = await self.get_profile(runescape_name, activity)
         # print(data.slayer)
         embed = await self.profile_embed(data, details)
         await ctx.send(embed=embed)
 
 
     @runescape.command()
-    async def stats(self, ctx, runescape_name):
+    async def stats(self, ctx, runescape_name=None):
+        """Display a players stats in Runescape"""
         user = self.bot.get_user(ctx.message.author.id)
         if runescape_name is None:
             runescape_name = await self.config.user(user).rsn()
