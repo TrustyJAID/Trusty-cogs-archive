@@ -242,11 +242,12 @@ class ActivityChecker():
     async def build_list(self, ctx, guild):
         """Builds a new list of all guild members"""
         cur_time = time.time()
-        member_list = {}
+        member_list = []
         for member in guild.members:
             if await self.check_ignored_users(guild, member.id):
                 continue
-            member_list[member.id] = cur_time
+            member_data = {"id":member.id, "name":member.name, "time":cur_time}
+            member_list.append(member_data)
         await self.config.guild(guild).members.set(member_list)
         return
 
