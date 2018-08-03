@@ -197,58 +197,6 @@ class Tweets():
             return
         await self.bot.send_message(ctx.message.channel, "Twitter name changed to {}!".format(message))
 
-    @_tweets.command(hidden = True, pass_context=True, name="getfollowers")
-    @checks.is_owner()
-    async def getfollowers(self, ctx, *, username: str):
-        api = await self.authenticate()
-        followers = api.followers_ids(username)
-        print(followers)
-        user_list = []
-        for follower in tw.Cursor(api.followers, id=username).items(5000):
-            user_list.append(follower)
-            """
-            data = {
-                  "id": follower.id,
-                  "id_str": follower.id_str,
-                  "name": follower.name,
-                  "screen_name": follower.screen_name,
-                  "location": follower.location,
-                  "url": follower.url,
-                  "description": follower.description,
-                  "protected": follower.protected,
-                  "followers_count": follower.followers_count,
-                  "friends_count": follower.friends_count,
-                  "listed_count": follower.listed_count,
-                  # "created_at": follower.created_at,
-                  "favourites_count": follower.favourites_count,
-                  "utc_offset": follower.utc_offset,
-                  "time_zone": follower.time_zone,
-                  "geo_enabled": follower.geo_enabled,
-                  "verified": follower.verified,
-                  "statuses_count": follower.statuses_count,
-                  "lang": follower.lang,
-                  "contributors_enabled": follower.contributors_enabled,
-                  "is_translator": follower.is_translator,
-                  "is_translation_enabled": follower.is_translation_enabled,
-                  "profile_background_color": follower.profile_background_color,
-                  "profile_background_image_url": follower.profile_background_image_url,
-                  "profile_background_image_url_https": follower.profile_background_image_url_https,
-                  "profile_background_tile": follower.profile_background_tile,
-                  "profile_image_url": follower.profile_image_url,
-                  "profile_image_url_https": follower.profile_image_url_https,
-                  "profile_link_color": follower.profile_link_color,
-                  "profile_sidebar_border_color": follower.profile_sidebar_border_color,
-                  "profile_sidebar_fill_color": follower.profile_sidebar_fill_color,
-                  "profile_text_color": follower.profile_text_color,
-                  "profile_use_background_image": follower.profile_use_background_image,
-                  "default_profile": follower.default_profile,
-                  "default_profile_image": follower.default_profile_image,
-                  "following": follower.following
-                  }"""
-            # user_list.append(data)
-        dataIO.save_json("data/tweets/{}.json".format(username), user_list)
-        await self.bot.send_message(ctx.message.channel, "Download done!")
-
     def random_colour(self):
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
 
@@ -462,28 +410,32 @@ class Tweets():
                 user_id = str(status.user.id)
                 screen_name = status.user.screen_name
                 last_id = status.id
-                if user_id not in self.settings["accounts"]:
-                    self.settings["accounts"][user_id] = {"channel" : [], 
-                                                          "lasttweet": last_id, 
-                                                          "replies": False,
-                                                          "username": screen_name}
         
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                     The error code is " + str(e) + account)
             await self.bot.say("That account does not exist! Try again")
             return
-        channel_list = self.settings["accounts"][user_id]["channel"]
         if channel is None:
             channel = ctx.message.channel
+        added = await self.add_account(channel, user_id)
+        if added:
+            await self.bot.say("{0} Added to {1}!".format(account, channel.mention))
+        else:
+            await self.bot.say("{} is already posting or could not be added to {}".format(account, channel.mention))
+        
 
+    async def add_account(self, channel, user_id, screen_name, last_id=0):
+        if user_id not in self.settings["accounts"]:
+            self.settings["accounts"][user_id] = {"channel" : [], 
+                                                  "lasttweet": last_id, 
+                                                  "replies": False,
+                                                  "username": screen_name}
+        channel_list = self.settings["accounts"][user_id]["channel"]
         if channel.id in channel_list:
-            await self.bot.say("I am already posting in {}".format(channel.mention))
-            return
+            return False
         channel_list.append(channel.id)
-        await self.bot.say("{0} Added to {1}!".format(account, channel.mention))
         dataIO.save_json(self.settings_file, self.settings)
-        self.autotweet_restart()
 
     @_autotweet.command(pass_context=True, name="list")
     async def _list(self, ctx):
@@ -505,6 +457,74 @@ class Tweets():
         else:
             await self.bot.send_message(ctx.message.channel, "I don't seem to have autotweets setup here!")
 
+    @_autotweet.command((pass_context=True, name="addlist"))
+    async def add_list(self, ctx, owner, list_name, channel:discord.Channel=None):
+        """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
+        api = await self.authenticate()
+        try:
+            list_members = api.list_members(owner_screen_name=owner, slug=list_name)
+        except:
+            await self.bot.send_message(ctx.message.channel, "The owner {} and list name {} don't appear to be available!".format(owner, list_name))
+            return
+        if channel is None:
+            channel = ctx.message.channel
+        added_accounts = []
+        missed_accounts = []
+        for member in list_members:
+            added = await self.add_account(channel, member.id, member.name)
+            if added:
+                added_accounts.append(member.name)
+            else:
+                missed_accounts.append(member.name)
+        if len(added_accounts) != 0:
+            msg = ", ".join(member for member in added_accounts)
+            await self.bot.send_message(ctx.message.channel, "Added the following accounts to {}: {}".format(channel.mention, msg))
+        if len(missed_accounts) != 0:
+            msg = ", ".join(member for member in missed_accounts)
+            await self.bot.send_message(ctx.message.channel, "The following accounts could not be added to {}: {}".format(channel.mention, msg))
+
+    @_autotweet.command(name="remlist")
+    async def rem_list(self, ctx, owner, list_name, channel:discord.TextChannel=None):
+        """Remove an entire twitter list from a specified channel. The list must be public or the bot owner must own it."""
+        api = await self.authenticate()
+        try:
+            list_members = api.list_members(owner_screen_name=owner, slug=list_name)
+        except:
+            await self.bot.send_message(ctx.message.channel, "The owner {} and list name {} don't appear to be available!".format(owner, list_name))
+            return
+        if channel is None:
+            channel = ctx.message.channel
+        removed_accounts = []
+        missed_accounts = []
+        for member in list_members:
+            removed = await self.del_account(channel, member.id, member.name)
+            if removed:
+                removed_accounts.append(member.name)
+            else:
+                missed_accounts.append(member.name)
+        if len(removed_accounts) != 0:
+            msg = ", ".join(member for member in removed_accounts)
+            await self.bot.send_message(ctx.message.channel, "Removed the following accounts from {}: {}".format(channel.mention, msg))
+        if len(missed_accounts) != 0:
+            msg = ", ".join(member for member in missed_accounts)
+            await self.bot.send_message(ctx.message.channel, "The following accounts weren't added to {} or there was another error: {}".format(channel.mention, msg))
+            
+        
+    async def del_account(self, channel, user_id):
+        if user_id not in self.settings["accounts"]:
+            return False
+
+        channel_list = self.settings["accounts"][user_id]["channel"]
+        if channel.id in channel_list:
+            self.settings["accounts"][user_id]["channel"].remove(channel.id)
+            dataIO.save_json(self.settings_file, self.settings)
+            self.autotweet_restart()
+            await self.bot.say("{} has been removed from {}".format(account, channel.mention))
+            if len(self.settings["accounts"][user_id]["channel"]) < 2:
+                del self.settings["accounts"][user_id]
+                dataIO.save_json(self.settings_file, self.settings)
+                self.autotweet_restart()
+        return True
 
     @_autotweet.command(pass_context=True, name="del", aliases=["delete", "rem", "remove"])
     async def _del(self, ctx, account, channel:discord.Channel=None):
@@ -521,20 +541,9 @@ class Tweets():
                     The error code is " + str(e) + account)
             await self.bot.say("That account does not exist! Try again")
             return
-        if user_id not in self.settings["accounts"]:
-            await self.bot.say("{} is not in my list of accounts!".format(account))
-            return
-
-        channel_list = self.settings["accounts"][user_id]["channel"]
-        if channel.id in channel_list:
-            self.settings["accounts"][user_id]["channel"].remove(channel.id)
-            dataIO.save_json(self.settings_file, self.settings)
-            self.autotweet_restart()
+        removed = await self.del_account(channel, user_id)
+        if removed:
             await self.bot.say("{} has been removed from {}".format(account, channel.mention))
-            if len(self.settings["accounts"][user_id]["channel"]) < 2:
-                del self.settings["accounts"][user_id]
-                dataIO.save_json(self.settings_file, self.settings)
-                self.autotweet_restart()
         else:
             await self.bot.say("{0} doesn't seem to be posting in {1}!"
                                .format(account, channel.mention))
