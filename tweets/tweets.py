@@ -506,7 +506,7 @@ class Tweets():
 
     @_autotweet.command(name="remlist")
     async def rem_list(self, ctx, owner, list_name, channel:discord.TextChannel=None):
-        """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
+        """Remove an entire twitter list from a specified channel. The list must be public or the bot owner must own it."""
         api = await self.authenticate()
         try:
             list_members = api.list_members(owner_screen_name=owner, slug=list_name)
