@@ -90,7 +90,6 @@ class Tweets():
                 stream_start = TweetListener(api, self.bot)
                 self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
                 self.start_stream_loop(tweet_list)
-            print("Waiting")
             await asyncio.sleep(300)
 
 
