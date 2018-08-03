@@ -68,8 +68,11 @@ class Tweets():
         self.loop = bot.loop.create_task(self.start_stream())
         
     def __unload(self):
-        self.mystream.disconnect()
-        self.loop.cancel()
+        try:
+            self.mystream.disconnect()
+            self.loop.cancel()
+        except:
+            pass
 
     async def start_stream(self):
         await self.bot.wait_until_ready()
@@ -77,15 +80,17 @@ class Tweets():
             if self.mystream is None:
                 api = await self.authenticate()
                 tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
-                stream_start = TweetListener(api, self.bot)
-                self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
-                self.start_stream_loop(tweet_list)
+                if tweet_list != []:
+                    stream_start = TweetListener(api, self.bot)
+                    self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
+                    self.start_stream_loop(tweet_list)
             if not self.mystream.running:
                 api = await self.authenticate()
                 tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
                 stream_start = TweetListener(api, self.bot)
                 self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
                 self.start_stream_loop(tweet_list)
+            print("Waiting")
             await asyncio.sleep(300)
 
 
@@ -360,7 +365,9 @@ class Tweets():
             await ctx.send_help()
 
     @_autotweet.command(name="error")
+    @checks.is_owner()
     async def _error(self, ctx, channel:discord.TextChannel=None):
+        """Set an error channel for tweet stream error updates"""
         if not channel:
             channel = ctx.channel
         await self.config.error_channel.set(channel.id)
@@ -424,23 +431,11 @@ class Tweets():
             return
         if channel is None:
             channel = ctx.message.channel
-        followed_accounts = await self.config.accounts()
-
-        is_followed, twitter_account = await self.is_followed_account(user_id)
-        if is_followed:
-            if channel.id in twitter_account["channel"]:
-                await ctx.send("I am already posting {} tweets in {}".format(screen_name, channel.mention))
-                return
-            else:
-                followed_accounts.remove(twitter_account)
-                twitter_account["channel"].append(channel.id)
-                followed_accounts.append(twitter_account)
-                await self.config.accounts.set(followed_accounts)
+        added = await self.add_account(channel, user_id, screen_name)
+        if added:
+            await ctx.send("{0} Added to {1}!".format(account, channel.mention))
         else:
-            twitter_account = TweetEntry(user_id, screen_name, [channel.id], last_id)
-            followed_accounts.append(twitter_account.to_json())
-            await self.config.accounts.set(followed_accounts)
-        await ctx.send("{0} Added to {1}!".format(account, channel.mention))
+            await ctx.send("I am already posting {} tweets in {}".format(screen_name, channel.mention))
         # await self.autotweet_restart()
 
     @_autotweet.command( name="list")
@@ -464,7 +459,93 @@ class Tweets():
                 embed.add_field(name=channel.name, value=account_list[:-2])
         await ctx.send(embed=embed)
 
+    async def add_account(self, channel, user_id, screen_name):
+        """Adds a twitter account to the specified channel. Returns False if it is already in the channel."""
+        followed_accounts = await self.config.accounts()
 
+        is_followed, twitter_account = await self.is_followed_account(user_id)
+        if is_followed:
+            if channel.id in twitter_account["channel"]:
+                return False
+            else:
+                followed_accounts.remove(twitter_account)
+                twitter_account["channel"].append(channel.id)
+                followed_accounts.append(twitter_account)
+                await self.config.accounts.set(followed_accounts)
+        else:
+            twitter_account = TweetEntry(user_id, screen_name, [channel.id], 0)
+            followed_accounts.append(twitter_account.to_json())
+            await self.config.accounts.set(followed_accounts)
+        return True
+
+    @_autotweet.command(name="addlist")
+    async def add_list(self, ctx, owner, list_name, channel:discord.TextChannel=None):
+        """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
+        api = await self.authenticate()
+        try:
+            list_members = api.list_members(owner_screen_name=owner, slug=list_name)
+        except:
+            await ctx.send("The owner {} and list name {} don't appear to be available!".format(owner, list_name))
+            return
+        if channel is None:
+            channel = ctx.message.channel
+        added_accounts = []
+        missed_accounts = []
+        for member in list_members:
+            added = await self.add_account(channel, member.id, member.name)
+            if added:
+                added_accounts.append(member.name)
+            else:
+                missed_accounts.append(member.name)
+        if len(added_accounts) != 0:
+            msg = ", ".join(member for member in added_accounts)
+            await ctx.send("Added the following accounts to {}: {}".format(channel.mention, msg))
+        if len(missed_accounts) != 0:
+            msg = ", ".join(member for member in missed_accounts)
+            await ctx.send("The following accounts could not be added to {}: {}".format(channel.mention, msg))
+
+    @_autotweet.command(name="remlist")
+    async def rem_list(self, ctx, owner, list_name, channel:discord.TextChannel=None):
+        """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
+        api = await self.authenticate()
+        try:
+            list_members = api.list_members(owner_screen_name=owner, slug=list_name)
+        except:
+            await ctx.send("The owner {} and list name {} don't appear to be available!".format(owner, list_name))
+            return
+        if channel is None:
+            channel = ctx.message.channel
+        removed_accounts = []
+        missed_accounts = []
+        for member in list_members:
+            removed = await self.del_account(channel, member.id, member.name)
+            if removed:
+                removed_accounts.append(member.name)
+            else:
+                missed_accounts.append(member.name)
+        if len(removed_accounts) != 0:
+            msg = ", ".join(member for member in removed_accounts)
+            await ctx.send("Removed the following accounts from {}: {}".format(channel.mention, msg))
+        if len(missed_accounts) != 0:
+            msg = ", ".join(member for member in missed_accounts)
+            await ctx.send("The following accounts weren't added to {} or there was another error: {}".format(channel.mention, msg))
+            
+
+    async def del_account(self, channel, user_id, screen_name):
+        account_ids = [x["twitter_id"] for x in await self.config.accounts()]
+        if user_id not in account_ids:
+            return False
+        account_list = [x for x in await self.config.accounts()]
+        twitter_account = [x for x in account_list if user_id == x["twitter_id"]][0]
+        if channel.id in twitter_account["channel"]:
+            account_list.remove(twitter_account)
+            twitter_account["channel"].remove(channel.id)
+            account_list.append(twitter_account)
+            await self.config.accounts.set(account_list)
+            if len(twitter_account["channel"]) < 1:
+                account_list.remove(twitter_account)
+                await self.config.accounts.set(account_list)
+        return True
 
     @_autotweet.command( name="del", aliases=["delete", "rem", "remove"])
     async def _del(self, ctx, account, channel:discord.TextChannel=None):
@@ -481,25 +562,11 @@ class Tweets():
                     The error code is " + str(e) + account)
             await ctx.send("Something went wrong here! Try again")
             return
-        account_ids = [x["twitter_id"] for x in await self.config.accounts()]
-        if user_id not in account_ids:
-            await ctx.send("{} is not in my list of accounts!".format(account))
-            return
-        account_list = [x for x in await self.config.accounts()]
-        twitter_account = [x for x in account_list if user_id == x["twitter_id"]][0]
-        if channel.id in twitter_account["channel"]:
-            account_list.remove(twitter_account)
-            twitter_account["channel"].remove(channel.id)
-            account_list.append(twitter_account)
-            await self.config.accounts.set(account_list)
-            await ctx.send("{} has been removed from {}".format(twitter_account["twitter_name"], channel.mention))
-            if len(twitter_account["channel"]) < 1:
-                account_list.remove(twitter_account)
-                await self.config.accounts.set(account_list)
-            await self.autotweet_restart()
+        removed = await self.del_account(channel, user_id, screen_name)
+        if removed:
+            await ctx.send("{} has been removed from {}".format(account, channel.mention))
         else:
-            await ctx.send("{0} doesn't seem to be posting in {1}!"
-                               .format(account, channel.mention))
+            await ctx.send("{0} doesn't seem to be posting in {1}!".format(account, channel.mention))
 
 
     @commands.group( name='tweetset')
