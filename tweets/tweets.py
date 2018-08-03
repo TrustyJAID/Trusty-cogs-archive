@@ -457,7 +457,7 @@ class Tweets():
         else:
             await self.bot.send_message(ctx.message.channel, "I don't seem to have autotweets setup here!")
 
-    @_autotweet.command((pass_context=True, name="addlist"))
+    @_autotweet.command(pass_context=True, name="addlist")
     async def add_list(self, ctx, owner, list_name, channel:discord.Channel=None):
         """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
         api = await self.authenticate()
