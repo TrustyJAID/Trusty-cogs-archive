@@ -484,7 +484,7 @@ class Tweets():
             await self.bot.send_message(ctx.message.channel, "The following accounts could not be added to {}: {}".format(channel.mention, msg))
 
     @_autotweet.command(name="remlist")
-    async def rem_list(self, ctx, owner, list_name, channel:discord.TextChannel=None):
+    async def rem_list(self, ctx, owner, list_name, channel:discord.Channel=None):
         """Remove an entire twitter list from a specified channel. The list must be public or the bot owner must own it."""
         api = await self.authenticate()
         try:
