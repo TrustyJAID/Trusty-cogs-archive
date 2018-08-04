@@ -510,7 +510,7 @@ class Tweets():
             await self.bot.send_message(ctx.message.channel, "The following accounts weren't added to {} or there was another error: {}".format(channel.mention, msg))
             
         
-    async def del_account(self, channel, user_id):
+    async def del_account(self, channel, user_id, screen_name):
         if user_id not in self.settings["accounts"]:
             return False
 
