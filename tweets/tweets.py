@@ -97,8 +97,8 @@ class Tweets():
 
     async def authenticate(self):
         """Authenticate with Twitter's API"""
-        auth = tw.OAuthHandler(self.consumer_key, self.consumer_secret)
-        auth.set_access_token(self.access_token, self.access_secret)
+        auth = tw.OAuthHandler(self.settings["api"]['consumer_key'], self.settings["api"]['consumer_secret'])
+        auth.set_access_token(self.settings["api"]['access_token'], self.settings["api"]['access_secret'])
         return tw.API(auth)
 
     async def tweet_menu(self, ctx, post_list: list,
