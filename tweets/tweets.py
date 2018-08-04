@@ -5,6 +5,7 @@ import discord
 import asyncio
 from .utils.dataIO import dataIO
 from .utils import checks
+from .utils.chat_formatting import pagify
 try:
     import tweepy as tw
     twInstalled = True
@@ -462,7 +463,16 @@ class Tweets():
         """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
         api = await self.authenticate()
         try:
-            list_members = api.list_members(owner_screen_name=owner, slug=list_name)
+            cursor = -1
+            list_members = []
+            member_count = api.get_list(owner_screen_name=owner, slug=list_name).member_count
+            print(member_count)
+            while len(list_members) < member_count:
+                member_list = api.list_members(owner_screen_name=owner, slug=list_name, cursor=cursor)
+                for member in member_list[0]:
+                    list_members.append(member)
+                cursor = member_list[1][-1]
+                print("{} members added".format(len(member_list[0])))
         except:
             await self.bot.send_message(ctx.message.channel, "The owner {} and list name {} don't appear to be available!".format(owner, list_name))
             return
@@ -478,17 +488,30 @@ class Tweets():
                 missed_accounts.append(member.name)
         if len(added_accounts) != 0:
             msg = ", ".join(member for member in added_accounts)
-            await self.bot.send_message(ctx.message.channel, "Added the following accounts to {}: {}".format(channel.mention, msg))
+            msg_send = "Added the following accounts to {}: {}".format(channel.mention, msg)
+            for page in pagify(msg_send):
+                await self.bot.send_message(ctx.message.channel, page)
         if len(missed_accounts) != 0:
             msg = ", ".join(member for member in missed_accounts)
-            await self.bot.send_message(ctx.message.channel, "The following accounts could not be added to {}: {}".format(channel.mention, msg))
+            msg_send = "The following accounts could not be added to {}: {}".format(channel.mention, msg)
+            for page in pagify(msg_send):
+                await self.bot.send_message(ctx.message.channel, page)
 
     @_autotweet.command(pass_context=True, name="remlist")
     async def rem_list(self, ctx, owner, list_name, channel:discord.Channel=None):
         """Remove an entire twitter list from a specified channel. The list must be public or the bot owner must own it."""
         api = await self.authenticate()
         try:
-            list_members = api.list_members(owner_screen_name=owner, slug=list_name)
+            cursor = -1
+            list_members = []
+            member_count = api.get_list(owner_screen_name=owner, slug=list_name).member_count
+            print(member_count)
+            while len(list_members) < member_count:
+                member_list = api.list_members(owner_screen_name=owner, slug=list_name, cursor=cursor)
+                for member in member_list[0]:
+                    list_members.append(member)
+                cursor = member_list[1][-1]
+                print("{} members added".format(len(member_list[0])))
         except:
             await self.bot.send_message(ctx.message.channel, "The owner {} and list name {} don't appear to be available!".format(owner, list_name))
             return
@@ -504,10 +527,14 @@ class Tweets():
                 missed_accounts.append(member.name)
         if len(removed_accounts) != 0:
             msg = ", ".join(member for member in removed_accounts)
-            await self.bot.send_message(ctx.message.channel, "Removed the following accounts from {}: {}".format(channel.mention, msg))
+            msg_send = "Removed the following accounts from {}: {}".format(channel.mention, msg)
+            for page in pagify(msg_send):
+                await self.bot.send_message(ctx.message.channel, page)
         if len(missed_accounts) != 0:
             msg = ", ".join(member for member in missed_accounts)
-            await self.bot.send_message(ctx.message.channel, "The following accounts weren't added to {} or there was another error: {}".format(channel.mention, msg))
+            msg_send = "The following accounts weren't added to {} or there was another error: {}".format(channel.mention, msg)
+            for page in pagify(msg_send):
+                await self.bot.send_message(ctx.message.channel, page)
             
         
     async def del_account(self, channel, user_id, screen_name):
