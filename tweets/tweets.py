@@ -436,6 +436,7 @@ class Tweets():
             return False
         channel_list.append(channel.id)
         dataIO.save_json(self.settings_file, self.settings)
+        return True
 
     @_autotweet.command(pass_context=True, name="list")
     async def _list(self, ctx):
@@ -518,12 +519,9 @@ class Tweets():
         if channel.id in channel_list:
             self.settings["accounts"][user_id]["channel"].remove(channel.id)
             dataIO.save_json(self.settings_file, self.settings)
-            self.autotweet_restart()
-            await self.bot.say("{} has been removed from {}".format(account, channel.mention))
-            if len(self.settings["accounts"][user_id]["channel"]) < 2:
+            if len(self.settings["accounts"][user_id]["channel"]) < 1:
                 del self.settings["accounts"][user_id]
                 dataIO.save_json(self.settings_file, self.settings)
-                self.autotweet_restart()
         return True
 
     @_autotweet.command(pass_context=True, name="del", aliases=["delete", "rem", "remove"])
