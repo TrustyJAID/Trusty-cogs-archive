@@ -431,10 +431,9 @@ class Tweets():
                                                   "lasttweet": last_id, 
                                                   "replies": False,
                                                   "username": screen_name}
-        channel_list = self.settings["accounts"][user_id]["channel"]
-        if channel.id in channel_list:
+        if channel.id in self.settings["accounts"][user_id]["channel"]:
             return False
-        channel_list.append(channel.id)
+        self.settings["accounts"][user_id]["channel"].append(channel.id)
         dataIO.save_json(self.settings_file, self.settings)
         return True
 
@@ -515,13 +514,11 @@ class Tweets():
         if user_id not in self.settings["accounts"]:
             return False
 
-        channel_list = self.settings["accounts"][user_id]["channel"]
-        if channel.id in channel_list:
+        if channel.id in self.settings["accounts"][user_id]["channel"]:
             self.settings["accounts"][user_id]["channel"].remove(channel.id)
-            dataIO.save_json(self.settings_file, self.settings)
             if len(self.settings["accounts"][user_id]["channel"]) < 1:
                 del self.settings["accounts"][user_id]
-                dataIO.save_json(self.settings_file, self.settings)
+        dataIO.save_json(self.settings_file, self.settings)
         return True
 
     @_autotweet.command(pass_context=True, name="del", aliases=["delete", "rem", "remove"])
