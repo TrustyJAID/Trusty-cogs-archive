@@ -504,9 +504,7 @@ class Tweets():
         missed_accounts = []
         print(len(list_members))
         for member in list_members:
-            # added = await self.add_account(channel, member.id, member.name)
-            added = False
-            print(member.name)
+            added = await self.add_account(channel, member.id, member.name)
             if added:
                 added_accounts.append(member.name)
             else:
