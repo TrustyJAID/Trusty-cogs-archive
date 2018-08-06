@@ -583,7 +583,8 @@ class Tweets():
             channel = ctx.message.channel
         try:
             for status in tw.Cursor(api.user_timeline, id=account).items(1):
-                user_id = status.user.id     
+                user_id = status.user.id
+                screen_name = status.user.screen_name
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                     The error code is " + str(e) + account)
