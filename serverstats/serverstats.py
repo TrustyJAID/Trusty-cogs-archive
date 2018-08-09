@@ -309,6 +309,7 @@ class ServerStats:
     @commands.command(aliases=["serverstats"])
     @checks.mod_or_permissions(manage_messages=True)
     async def server_stats(self, ctx, *, guild_id:int=None):
+        """Gets total messages on the server and per-channel basis as well as most single user posts"""
         if guild_id is None:
             guild = ctx.message.guild
         else:
@@ -317,37 +318,39 @@ class ServerStats:
                     guild = guilds
         channel = ctx.message.channel
         total_msgs = 0
-        files_saved = 0
         msg = ""
         total_contribution = {}
-        for chn in guild.channels:
-            # await channel.send("backing up {}".format(chn.name))
-            channel_msgs = 0
-            channel_contribution = {}
-            try:
-                async for message in chn.history(limit=10000000):
-                    author = message.author
-                    channel_msgs += 1
-                    total_msgs += 1
-                    if author.id not in channel_contribution:
-                        channel_contribution[author.id] = 1
-                    else:
-                        channel_contribution[author.id] += 1
+        warning_msg = await ctx.send("This might take a while!")
+        async with ctx.channel.typing():
+            for chn in guild.channels:
+                channel_msgs = 0
+                channel_contribution = {}
+                try:
+                    async for message in chn.history(limit=10000000):
+                        author = message.author
+                        channel_msgs += 1
+                        total_msgs += 1
+                        if author.id not in channel_contribution:
+                            channel_contribution[author.id] = 1
+                        else:
+                            channel_contribution[author.id] += 1
 
-                    if author.id not in total_contribution:
-                        total_contribution[author.id] = 1
-                    else:
-                        total_contribution[author.id] += 1
-                highest, users = await self.check_highest(channel_contribution)
-                msg += "{}: Total Messages:**{}**   most posts **{}**\n".format(chn.mention, channel_msgs, highest)
-            except discord.errors.Forbidden:
-                pass
-            except AttributeError:
-                pass
-        highest, users = await self.check_highest(total_contribution)
-        new_msg = "__{}__: Total Messages:**{}**  most posts **{}**\n{}".format(guild.name, total_msgs, highest, msg)
-        for page in pagify(new_msg, ["\n"]):
-            await channel.send(page)
+                        if author.id not in total_contribution:
+                            total_contribution[author.id] = 1
+                        else:
+                            total_contribution[author.id] += 1
+                    highest, users = await self.check_highest(channel_contribution)
+                    msg += "{}: Total Messages:**{}**   most user posts **{}**\n".format(chn.mention, channel_msgs, highest)
+                except discord.errors.Forbidden:
+                    pass
+                except AttributeError:
+                    pass
+            highest, users = await self.check_highest(total_contribution)
+            new_msg = "__{}__: Total Messages:**{}**  Most user posts **{}**\n{}".format(guild.name, total_msgs, highest, msg)
+            await warning_msg.delete()
+            for page in pagify(new_msg, ["\n"]):
+                await channel.send(page)
+
 
     async def emoji_menu(self, ctx, post_list: list,
                          message: discord.Message=None,
