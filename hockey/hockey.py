@@ -20,10 +20,6 @@ try:
 except ImportError:
     pass
 
-# Global variables for getting current game schedules
-YEAR_START = 2017
-YEAR_FINISH = 2018
-
 class Hockey:
 
     def __init__(self, bot):
@@ -54,6 +50,14 @@ class Hockey:
 
     ##############################################################################
     # Here is all the logic for gathering game data and updating information
+
+    def get_season(self):
+        now = datetime.now()
+        if (now.month, now.day) < (7, 1):
+            return (now.year - 1, now.year)
+        if (now.month, now.day) >= (7, 1):
+            return (now.year, now.year + 1)
+
 
     async def get_day_games(self):
         """
@@ -216,7 +220,7 @@ class Hockey:
         page_num = 0
         today = datetime.now()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
-              .format(base=self.url, year=YEAR_START, year2=YEAR_FINISH)
+              .format(base=self.url, year=self.get_seaason()[0], year2=self.get_seaason()[1])
         url += "&teamId={}".format(self.teams[team]["id"])
         async with self.session.get(url) as resp:
             data = await resp.json()
@@ -1007,7 +1011,7 @@ class Hockey:
         page_num = 0
         today = datetime.now()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
-              .format(base=self.url, year=YEAR_START, year2=YEAR_FINISH)
+              .format(base=self.url, year=self.get_seaason()[0], year2=self.get_seaason()[1])
         
         if team is not None:
             team_search = await check_valid_team(team)
