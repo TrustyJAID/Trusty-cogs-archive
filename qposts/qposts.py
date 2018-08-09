@@ -36,7 +36,7 @@ class QPosts:
         # self.qposts = dataIO.load_json("data/qposts/qposts.json")
         self.url = "https://8ch.net"
         self.boards = ["greatawakening", "qresearch", "patriotsfight"]
-        self.trips = ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE", "!CbboFOtcZs", "!A6yxsPKia."]
+        self.trips = ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE", "!CbboFOtcZs", "!A6yxsPKia.", "!2jsTvXXmX"]
         self.loop = bot.loop.create_task(self.get_q_posts())
 
     def __unload(self):
@@ -213,11 +213,11 @@ class QPosts:
         em.timestamp = datetime.utcfromtimestamp(qpost["time"])
         if text != "":
             if "_" in text or "~" in text or "*" in text:
-                em.description = "```\n{}```".format(text[:1993])
+                em.description = "```\n{}```".format(text[:1990])
             else:
-                em.description = text[:2000]
+                em.description = text[:1900]
         if ref_text != "":
-            if "_" in ref_text or "~" in ref_text or "*" in ref_text:
+            if ref_text.count("_") > 2 or ref_text.count("~") > 2 or ref_text.count("*") > 2:
                 em.add_field(name=str(post["no"]), value="```{}```".format(ref_text[:1000]))
             else:
                 em.add_field(name=str(post["no"]), value=ref_text[:1000])
@@ -249,9 +249,9 @@ class QPosts:
             if not channel.permissions_for(guild.me).send_messages:
                     continue
             if not channel.permissions_for(guild.me).embed_links:
-                await channel.send(text)
+                await channel.send(text[:1900])
             try:
-                role = [role for role in guild.roles if role.name == "QPOSTS"][0]
+                role = "".join(role.mention for role in guild.roles if role.name == "QPOSTS")
                 await channel.send("{} <{}>".format(role.mention, url), embed=em)
             except:
                 await channel.send("<{}>".format(url), embed=em)
