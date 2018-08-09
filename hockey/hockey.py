@@ -220,7 +220,7 @@ class Hockey:
         page_num = 0
         today = datetime.now()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
-              .format(base=self.url, year=self.get_seaason()[0], year2=self.get_seaason()[1])
+              .format(base=self.url, year=self.get_season()[0], year2=self.get_season()[1])
         url += "&teamId={}".format(self.teams[team]["id"])
         async with self.session.get(url) as resp:
             data = await resp.json()
@@ -1011,7 +1011,7 @@ class Hockey:
         page_num = 0
         today = datetime.now()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
-              .format(base=self.url, year=self.get_seaason()[0], year2=self.get_seaason()[1])
+              .format(base=self.url, year=self.get_season()[0], year2=self.get_season()[1])
         
         if team is not None:
             team_search = await check_valid_team(team)
