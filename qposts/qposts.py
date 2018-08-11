@@ -242,7 +242,11 @@ class QPosts:
         
         
         for channel_id in await self.config.channels():
-            channel = self.bot.get_channel(id=channel_id)
+            try:
+                channel = self.bot.get_channel(id=channel_id)
+            except Exception as e:
+                print(e)
+                continue
             if channel is None:
                 continue
             guild = channel.guild
@@ -360,24 +364,29 @@ class QPosts:
         await self.q_menu(ctx, qposts, board)
 
     async def save_q_files(self, post):
-        file_id = post["tim"]
-        file_ext = post["ext"]
-        file_path =  cog_data_path(self) /"files"
-        file_path.mkdir(exist_ok=True, parents=True)
-        url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-        async with self.session.get(url) as resp:
-            image = await resp.read()
-        with open(str(file_path) + "/{}{}".format(file_id, file_ext), "wb") as out:
-            out.write(image)
-        if "extra_files" in post:
-            for file in post["extra_files"]:
-                file_id = file["tim"]
-                file_ext = file["ext"]
-                url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
-                async with self.session.get(url) as resp:
-                    image = await resp.read()
-                with open(str(file_path) + "/{}{}".format(file_id, file_ext), "wb") as out:
-                    out.write(image)
+        try:
+            file_id = post["tim"]
+            file_ext = post["ext"]
+        
+            file_path =  cog_data_path(self) /"files"
+            file_path.mkdir(exist_ok=True, parents=True)
+            url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
+            async with self.session.get(url) as resp:
+                image = await resp.read()
+            with open(str(file_path) + "/{}{}".format(file_id, file_ext), "wb") as out:
+                out.write(image)
+            if "extra_files" in post:
+                for file in post["extra_files"]:
+                    file_id = file["tim"]
+                    file_ext = file["ext"]
+                    url = "https://media.8ch.net/file_store/{}{}".format(file_id, file_ext)
+                    async with self.session.get(url) as resp:
+                        image = await resp.read()
+                    with open(str(file_path) + "/{}{}".format(file_id, file_ext), "wb") as out:
+                        out.write(image)
+        except Exception as e:
+            print(e)
+            pass
 
     @commands.command(pass_context=True)
     async def qchannel(self, ctx, channel:discord.TextChannel=None):
