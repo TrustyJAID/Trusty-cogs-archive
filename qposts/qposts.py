@@ -256,8 +256,9 @@ class QPosts:
                 await channel.send(text[:1900])
             try:
                 role = "".join(role.mention for role in guild.roles if role.name == "QPOSTS")
-                await channel.send("{} <{}>".format(role.mention, url), embed=em)
-            except:
+                await channel.send("{} <{}>".format(role, url), embed=em)
+            except Exception as e:
+                print(e)
                 await channel.send("<{}>".format(url), embed=em)
 
 
