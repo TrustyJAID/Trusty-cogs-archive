@@ -348,7 +348,7 @@ class Anime:
     @_aniset.command(name='creds')
     @checks.is_owner()
     async def set_creds(self, ctx, client_id:str, client_secret:str):
-        """Sets the access credentials. See [p]help tweetset for instructions on getting these"""
+        """Sets the access credentials. See [p]help aniset for instructions on getting these"""
         # self.settings["api"]["client_id"] = client_id
         # self.settings["api"]["client_secret"] = client_secret
         await self.config.api.client_id.set(client_id)
