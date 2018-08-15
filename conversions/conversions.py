@@ -79,14 +79,14 @@ class Conversions:
         if coins is None:
             async with self.session.get("https://api.coinmarketcap.com/v2/ticker/") as resp:
                 data = await resp.json()
-            for i in range(25):
-                coin_list.append(data["data"][i])
+            for coin in data["data"]:
+                coin_list.append(data["data"][coin])
         else:
             coins = re.split("\W+", coins)
             for coin in coins:
                 coin_list.append(await self.checkcoins(coin))
         embed = discord.Embed(title="Crypto coin comparison")
-        for coin in coin_list:
+        for coin in coin_list[:25]:
             if coin is not None:
                 msg = "1 {0} is {1:.2f} USD".format(coin["symbol"], float(coin["quotes"]["USD"]["price"]))
                 embed.add_field(name=coin["name"], value=msg)
@@ -200,11 +200,11 @@ class Conversions:
 
     async def conversionrate(self, currency1, currency2):
         """Function to convert different currencies"""
-        CONVERSIONRATES = "http://api.fixer.io/latest?base={}".format(currency1.upper())
+        CONVERSIONRATES = "https://free.currencyconverterapi.com/api/v6/convert?q={}_{}&compact=ultra".format(currency1.upper(), currency2.upper())
         try:
             async with self.session.get(CONVERSIONRATES) as resp:
                 data = await resp.json()
-            conversion = (data["rates"][currency2.upper()])
+            conversion = data["{}_{}".format(currency1.upper(), currency2.upper())]
             return conversion
         except:
             return None
