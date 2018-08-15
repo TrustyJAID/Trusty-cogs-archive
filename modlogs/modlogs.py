@@ -1,4 +1,4 @@
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 import datetime
