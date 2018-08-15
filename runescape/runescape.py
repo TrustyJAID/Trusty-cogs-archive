@@ -58,6 +58,8 @@ class Runescape:
 
     async def get_profile(self, runescape_name, activities=5):
         data = await self.get_data_profile(runescape_name, activities)
+        if "error" in data:
+          return "NO PROFILE"
         return await self.get_profile_obj(data)
 
     @runescape.command()
@@ -72,6 +74,9 @@ class Runescape:
 
         details = await self.get_player_details(runescape_name)
         data = await self.get_profile(runescape_name, activity)
+        if data == "NO PROFILE":
+          await ctx.send("The account {} doesn't appear to exist!".format(runescape_name))
+          return
         # print(data.slayer)
         embed = await self.profile_embed(data, details)
         await ctx.send(embed=embed)
@@ -89,6 +94,9 @@ class Runescape:
 
         details = await self.get_player_details(runescape_name)
         data = await self.get_profile(runescape_name)
+        if data == "NO PROFILE":
+          await ctx.send("The account {} doesn't appear to exist!".format(runescape_name))
+          return
         # print(data.slayer)
         skills = await self.stats_message(data)
         await ctx.send(skills)
