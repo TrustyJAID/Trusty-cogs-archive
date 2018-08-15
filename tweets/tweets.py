@@ -382,7 +382,7 @@ class Tweets():
         for account in account_list:
             for channel in account["channel"]:
                 chn = self.bot.get_channel(channel)
-                if channel is None:
+                if chn is None:
                     print("Removing channel {}".format(channel))
                     account_list.remove(account)
                     account["channel"].remove(channel)
