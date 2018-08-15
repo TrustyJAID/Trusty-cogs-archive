@@ -106,6 +106,7 @@ class Tweets():
                               await self.config.api.access_secret())
         return tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5, retry_errors=5)
 
+                
     async def tweet_menu(self, ctx, post_list: list,
                          message: discord.Message=None,
                          page=0, timeout: int=30):
@@ -372,6 +373,24 @@ class Tweets():
             channel = ctx.channel
         await self.config.error_channel.set(channel.id)
         await ctx.send("Twitter error channel set to {}".format(channel.mention))
+
+    @_autotweet.command()
+    @checks.is_owner()
+    async def tweets_cleanup(self, ctx):
+        """Searches for unavailable channels and removes posting in those channels"""
+        account_list = [x for x in await self.config.accounts()]
+        for account in account_list:
+            for channel in account["channel"]:
+                chn = self.bot.get_channel(channel)
+                if channel is None:
+                    print("Removing channel {}".format(channel))
+                    account_list.remove(account)
+                    account["channel"].remove(channel)
+                    account_list.append(account)
+            if len(account["channel"]) == 0:
+                print("Removing account {}".format(account["twitter_name"]))
+                account_list.remove(account)
+        await self.config.accounts.set(account_list)
 
     @_autotweet.command( name="restart")
     async def restart_stream(self, ctx):
