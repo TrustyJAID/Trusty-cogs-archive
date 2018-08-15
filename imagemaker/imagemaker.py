@@ -4,7 +4,7 @@ from PIL import ImageSequence
 import numpy as np
 import aiohttp
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core.data_manager import bundled_data_path
 from io import BytesIO, StringIO
 import sys

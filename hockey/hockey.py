@@ -3,7 +3,7 @@ import aiohttp
 import asyncio
 import json
 from datetime import datetime
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 from .teams import teams

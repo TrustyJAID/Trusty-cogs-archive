@@ -1,6 +1,6 @@
 import discord
 import os
-from discord.ext import commands
+from redbot.core import commands
 from collections import defaultdict
 from redbot.core import Config
 from redbot.core import checks

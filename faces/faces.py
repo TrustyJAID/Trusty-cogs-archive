@@ -1,7 +1,7 @@
 import discord
 from random import choice
 import random
-from discord.ext import commands
+from redbot.core import commands
 from . import faceslist
 
 class Faces:

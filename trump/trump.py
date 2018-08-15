@@ -4,7 +4,7 @@ import json
 import os
 import discord
 import numpy as np
-from discord.ext import commands
+from redbot.core import commands
 from .utils.dataIO import dataIO
 from PIL import Image, ImageDraw, ImageFont
 

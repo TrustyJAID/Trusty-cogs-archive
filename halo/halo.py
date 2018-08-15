@@ -1,6 +1,6 @@
 import discord
 import aiohttp
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from redbot.core import checks
 from random import choice as randchoice
