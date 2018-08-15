@@ -94,33 +94,14 @@ class Runescape:
         await ctx.send(skills)
 
     async def raw_stats_message(self, p):
-        skills_list = [["Overall", p.totalskill, "{:,}".format(p.totalxp), p.rank],
-                       ["Attack", p.attack["level"], "{:,}".format(p.attack["xp"]), "{:,}".format(p.attack["rank"])],
-                       ["Defence", p.defence["level"], "{:,}".format(p.defence["xp"]), "{:,}".format(p.defence["rank"])],
-                       ["Strength", p.strength["level"], "{:,}".format(p.strength["xp"]), "{:,}".format(p.strength["rank"])],
-                       ["Constitution", p.constitution["level"], "{:,}".format(p.constitution["xp"]), "{:,}".format(p.constitution["rank"])],
-                       ["Ranged", p.ranged["level"], "{:,}".format(p.ranged["xp"]), "{:,}".format(p.ranged["rank"])],
-                       ["Prayer", p.prayer["level"], "{:,}".format(p.prayer["xp"]), "{:,}".format(p.prayer["rank"])],
-                       ["Magic", p.magic["level"], "{:,}".format(p.magic["xp"]), "{:,}".format(p.magic["rank"])],
-                       ["Cooking", p.cooking["level"], "{:,}".format(p.cooking["xp"]), "{:,}".format(p.cooking["rank"])],
-                       ["Woodcutting", p.attack["level"], "{:,}".format(p.attack["xp"]), "{:,}".format(p.attack["rank"])],
-                       ["Fletching", p.fletching["level"], "{:,}".format(p.fletching["xp"]), "{:,}".format(p.fletching["rank"])],
-                       ["Fishing", p.fishing["level"], "{:,}".format(p.fishing["xp"]), "{:,}".format(p.fishing["rank"])],
-                       ["Crafting", p.crafting["level"], "{:,}".format(p.crafting["xp"]), "{:,}".format(p.crafting["rank"])],
-                       ["Smithing", p.smithing["level"], "{:,}".format(p.smithing["xp"]), "{:,}".format(p.smithing["rank"])],
-                       ["Mining", p.mining["level"], "{:,}".format(p.mining["xp"]), "{:,}".format(p.mining["rank"])],
-                       ["Herblore", p.herblore["level"], "{:,}".format(p.herblore["xp"]), "{:,}".format(p.herblore["rank"])],
-                       ["Agility", p.agility["level"], "{:,}".format(p.agility["xp"]), "{:,}".format(p.agility["rank"])],
-                       ["Thieving", p.thieving["level"], "{:,}".format(p.thieving["xp"]), "{:,}".format(p.thieving["rank"])],
-                       ["Slayer", p.slayer["level"], "{:,}".format(p.slayer["xp"]), "{:,}".format(p.slayer["rank"])],
-                       ["Farming", p.farming["level"], "{:,}".format(p.farming["xp"]), "{:,}".format(p.farming["rank"])],
-                       ["Runecrafting", p.runecrafting["level"], "{:,}".format(p.runecrafting["xp"]), "{:,}".format(p.runecrafting["rank"])],
-                       ["Hunter", p.hunter["level"], "{:,}".format(p.hunter["xp"]), "{:,}".format(p.hunter["rank"])],
-                       ["Construction", p.construction["level"], "{:,}".format(p.construction["xp"]), "{:,}".format(p.construction["rank"])],
-                       ["Summoning", p.summoning["level"], "{:,}".format(p.summoning["xp"]), "{:,}".format(p.summoning["rank"])],
-                       ["Dungeoneering", p.dungeoneering["level"], "{:,}".format(p.dungeoneering["xp"]), "{:,}".format(p.dungeoneering["rank"])],
-                       ["Divination", p.divination["level"], "{:,}".format(p.divination["xp"]), "{:,}".format(p.divination["rank"])],
-                       ["Invention", p.invention["level"], "{:,}".format(p.invention["xp"]), "{:,}".format(p.invention["rank"])]]
+        skills_list = [["Overall", p.totalskill, "{:,}".format(p.totalxp), p.rank]]
+        skills = ["Attack","Defence","Strength","Constitution","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking","Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecrafting","Hunter","Construction","Summoning","Dungeoneering","Divination","Invention"]
+        stats = p.to_json()
+        for skill in skills:
+          level = stats[skill.lower()]["level"]
+          xp = stats[skill.lower()]["xp"]
+          rank = stats[skill.lower()]["rank"] if "rank" in stats[skill.lower()] else "Unranked"
+          skills_list.append([skill, level, xp, rank])
         return tabulate(skills_list, headers=['Skill', 'Level', 'Experience', 'Rank'], tablefmt='orgtbl')
 
     async def stats_message(self, p):
