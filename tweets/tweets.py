@@ -1,7 +1,7 @@
 from typing import Generator, Tuple, Iterable
 from random import choice as randchoice
 from datetime import datetime as dt
-from discord.ext import commands
+from redbot.core import commands
 import discord
 import asyncio
 from redbot.core import Config

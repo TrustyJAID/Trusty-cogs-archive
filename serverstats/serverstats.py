@@ -1,7 +1,7 @@
 from random import choice, randint
 import discord
 import asyncio
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks, bank, Config
 import datetime
 from redbot.core.i18n import Translator

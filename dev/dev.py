@@ -7,7 +7,7 @@ from contextlib import redirect_stdout
 from copy import copy
 
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core.i18n import Translator
 from redbot.core.utils.chat_formatting import box, pagify
