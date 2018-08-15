@@ -1,4 +1,4 @@
-from discord.ext import commands
+from redbot.core import commands
 from .teams import teams
 import asyncio
 from datetime import datetime, timezone

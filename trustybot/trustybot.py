@@ -3,7 +3,7 @@ import random
 import aiohttp
 import discord
 import asyncio
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks, bank
 from redbot.core.utils.chat_formatting import pagify, box
 from redbot.core.data_manager import bundled_data_path

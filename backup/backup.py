@@ -1,7 +1,7 @@
 import discord
 import asyncio
 import aiohttp
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core.data_manager import cog_data_path
 import datetime

@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core.data_manager import bundled_data_path
 from redbot.core import checks
 from random import choice, randint

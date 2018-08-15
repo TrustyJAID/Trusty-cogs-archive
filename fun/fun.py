@@ -1,7 +1,7 @@
 import random
 import re
 import json
-from discord.ext import commands
+from redbot.core import commands
 import discord
 
 '''Module for fun/meme commands commands
