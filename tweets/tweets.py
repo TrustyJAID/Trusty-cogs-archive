@@ -374,11 +374,11 @@ class Tweets():
         await self.config.error_channel.set(channel.id)
         await ctx.send("Twitter error channel set to {}".format(channel.mention))
 
-    @_autotweet.command()
+    @_autotweet.command(name="cleanup")
     @checks.is_owner()
     async def tweets_cleanup(self, ctx):
         """Searches for unavailable channels and removes posting in those channels"""
-        account_list = [x for x in await self.config.accounts()]
+        account_list = await self.config.accounts()
         for account in account_list:
             for channel in account["channel"]:
                 chn = self.bot.get_channel(channel)
