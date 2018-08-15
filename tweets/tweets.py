@@ -348,13 +348,13 @@ class Tweets():
                     await channel_send.send(post_url, embed=em)
                 except Exception as e:
                     error_channel = self.bot.get_channel(await self.config.error_channel())
-                    error_channel.send("{} error in {}: {}".format(username, channel, e))
+                    await error_channel.send("{} error in {}: {}".format(username, channel, e))
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
             if await self.config.error_channel() is not None:
                 error_channel = self.bot.get_channel(await self.config.error_channel())
-                error_channel.send(e + ": Username" + username)
+                await error_channel.send(e + ": Username" + username)
             return
     
     @commands.group(name='autotweet')
