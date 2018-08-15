@@ -1,7 +1,7 @@
 import discord
 from redbot.core import Config
 from redbot.core import checks
-from discord.ext import commands
+from redbot.core import commands
 from .message_entry import StarboardMessage
 import re
 

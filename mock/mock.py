@@ -1,6 +1,6 @@
 import discord
 import random
-from discord.ext import commands
+from redbot.core import commands
 
 class Mock:
     """mock a user as spongebob"""

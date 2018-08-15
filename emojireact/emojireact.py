@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from .unicode_codes import UNICODE_EMOJI
 

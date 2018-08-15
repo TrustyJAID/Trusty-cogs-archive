@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from . import tarot_cards
 import aiohttp
 import json
