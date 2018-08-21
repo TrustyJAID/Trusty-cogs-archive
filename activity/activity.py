@@ -171,7 +171,7 @@ class ActivityChecker():
             await channel.send("Now checking {}!".format(role.name))
         if len(guild_roles) < 1:
             guild_roles.append(everyone_role)
-            await self.bot.send_message(channel, "Now checking everyone!")
+            await channel.send("Now checking everyone!")
         if len(guild_roles) > 1 and everyone_role in guild_roles:
             guild_roles.remove(everyone_role)
         await self.config.guild(guild).check_roles.set(guild_roles)
