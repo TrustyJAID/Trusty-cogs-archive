@@ -46,6 +46,8 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 >ServerStats - This cog provides a ton of useful development functions for gathering channel data and user data as well as providing a way to setup a channel to monitor which servers are adding the bot.
 
+>Runescape - a cog to grab Runescape 3 stats and profile information
+
 **Works in Progress**
 *These Cogs are a work in progress and have limited to no functionality at the moment. Feel free to leave ideas or suggestions!*
 
