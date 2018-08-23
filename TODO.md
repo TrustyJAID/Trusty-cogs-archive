@@ -3,9 +3,13 @@
 
 ## Hockey
 > 1 Hour, 30 minutes, and 10 minutes until game start
+
 > Multiple teams per channel
+
 > Text only based on channel permissions
+
 > Image only based on channel permissions
+
 > Game day threads from associated subreddit
 
 ## Anime
