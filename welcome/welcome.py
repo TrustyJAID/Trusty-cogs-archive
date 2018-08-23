@@ -29,7 +29,6 @@ class Welcome:
         """Sets welcome module settings"""
         guild = ctx.message.guild
         if ctx.invoked_subcommand is None:
-            await ctx.send_help()
             msg = "```"
             msg += "Random GREETING: {}\n".format(rand_choice(await self.config.guild(guild).GREETING()))
             msg += "CHANNEL: #{}\n".format(await self.config.guild(guild).CHANNEL())
@@ -47,7 +46,6 @@ class Welcome:
         """
         if ctx.invoked_subcommand is None or \
                 isinstance(ctx.invoked_subcommand, commands.Group):
-            await ctx.send_help()
             return
 
     @welcomeset_msg.command(pass_context=True, name="add", no_pm=True)
@@ -149,7 +147,6 @@ class Welcome:
         """Special welcome for bots"""
         if ctx.invoked_subcommand is None or \
                 isinstance(ctx.invoked_subcommand, commands.Group):
-            await ctx.send_help()
             return
 
     @welcomeset_bot.command(pass_context=True, name="msg", no_pm=True)

@@ -41,7 +41,6 @@ class ActivityChecker():
     async def activity(self, ctx):
         """Setup an activity checker channel"""
         if ctx.invoked_subcommand is None:
-            await ctx.send_help()
             guild = ctx.message.guild
             time = await self.config.guild(guild).time()
             channel = guild.get_channel(await self.config.guild(guild).channel())

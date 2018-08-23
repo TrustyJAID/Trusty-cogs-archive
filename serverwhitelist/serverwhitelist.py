@@ -14,8 +14,7 @@ class ServerWhitelist:
     @checks.is_owner()
     async def serverwhitelist(self, ctx):
         """Add or remove servers to the bots approved server list"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @serverwhitelist.command(aliases=["set"])
     @checks.is_owner()
