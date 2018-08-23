@@ -346,10 +346,16 @@ class Tweets():
             for channel in channel_list:
                 try:
                     channel_send = self.bot.get_channel(int(channel))
-                    await channel_send.send(post_url, embed=em)
+                    if channel_send is None:
+                        await self.del_account(channel, user_id, username)
+                    if channel_send.permissions_for(channel_send.guild.me).embed_links:
+                        await channel_send.send(post_url, embed=em)
+                    else:
+                        await channel_send.send(post_url)                    
                 except Exception as e:
                     error_channel = self.bot.get_channel(await self.config.error_channel())
                     await error_channel.send("{} error in {}: {}".format(username, channel, e))
+                    await self.del_account(channel, user_id, username)
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
@@ -450,6 +456,11 @@ class Tweets():
             return
         if channel is None:
             channel = ctx.message.channel
+        if not channel.permissions_for(ctx.guild.me).send_messages:
+            await ctx.send("I don't have permission to post in {}".format(channel.mention))
+            return
+        if not channel.permissions_for(ctx.guild.me).embed_links:
+            await ctx.send("I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(channel.mention))
         added = await self.add_account(channel, user_id, screen_name)
         if added:
             await ctx.send("{0} Added to {1}!".format(account, channel.mention))
@@ -519,6 +530,11 @@ class Tweets():
             return
         if channel is None:
             channel = ctx.message.channel
+        if not channel.permissions_for(ctx.guild.me).send_messages:
+            await ctx.send("I don't have permission to post in {}".format(channel.mention))
+            return
+        if not channel.permissions_for(ctx.guild.me).embed_links:
+            await ctx.send("I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(channel.mention))
         added_accounts = []
         missed_accounts = []
         print(len(list_members))
@@ -560,7 +576,7 @@ class Tweets():
         removed_accounts = []
         missed_accounts = []
         for member in list_members:
-            removed = await self.del_account(channel, member.id, member.name)
+            removed = await self.del_account(channel.id, member.id, member.name)
             if removed:
                 removed_accounts.append(member.name)
             else:
@@ -577,15 +593,15 @@ class Tweets():
                 await ctx.send(page)
             
 
-    async def del_account(self, channel, user_id, screen_name):
+    async def del_account(self, channel_id, user_id, screen_name):
         account_ids = [x["twitter_id"] for x in await self.config.accounts()]
         if user_id not in account_ids:
             return False
         account_list = [x for x in await self.config.accounts()]
         twitter_account = [x for x in account_list if user_id == x["twitter_id"]][0]
-        if channel.id in twitter_account["channel"]:
+        if channel_id in twitter_account["channel"]:
             account_list.remove(twitter_account)
-            twitter_account["channel"].remove(channel.id)
+            twitter_account["channel"].remove(channel_id)
             account_list.append(twitter_account)
             await self.config.accounts.set(account_list)
             if len(twitter_account["channel"]) < 1:
@@ -609,7 +625,7 @@ class Tweets():
                     The error code is " + str(e) + account)
             await ctx.send("Something went wrong here! Try again")
             return
-        removed = await self.del_account(channel, user_id, screen_name)
+        removed = await self.del_account(channel.id, user_id, screen_name)
         if removed:
             await ctx.send("{} has been removed from {}".format(account, channel.mention))
         else:
