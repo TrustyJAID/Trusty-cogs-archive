@@ -604,15 +604,13 @@ class Hockey:
     @commands.group(pass_context=True, name="hockey", aliases=["nhl"])
     async def hockey_commands(self, ctx):
         """Various Hockey related commands also aliased to `nhl`"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @commands.group()
     @checks.admin_or_permissions(manage_channels=True)
     async def gdc(self, ctx):
         """Game Day Channel setup for the server"""
         if ctx.invoked_subcommand is None:
-            await ctx.send_help()
             guild = ctx.message.guild
             create_channels = await self.config.guild(guild).create_channels()
             if create_channels is None:

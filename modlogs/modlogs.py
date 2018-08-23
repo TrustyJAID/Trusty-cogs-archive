@@ -29,7 +29,6 @@ class ModLogs:
         if ctx.invoked_subcommand is None:
             guild = ctx.message.guild
             
-            await ctx.send_help()
             try:
                 e = discord.Embed(title="Setting for {}".format(guild.name), colour=discord.Colour.blue())
                 e.description = "ModLogs channel set to {}".format(self.bot.get_channel(id=await self.config.guild(guild).Channel()).mention)
@@ -52,8 +51,7 @@ class ModLogs:
     @commands.group(pass_context=True, no_pm=True)
     async def modlogsetup(self, ctx):
         """Change modlog settings"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @modlogsetup.command(name='channel', pass_context=True, no_pm=True)
     async def _channel(self, ctx):

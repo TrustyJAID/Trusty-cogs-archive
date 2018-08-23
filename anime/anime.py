@@ -37,8 +37,7 @@ class Anime:
     @commands.group()
     async def anime(self, ctx):
         """Various anime related commands"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @anime.command()
     @checks.is_owner()
@@ -301,8 +300,7 @@ class Anime:
     @checks.admin_or_permissions(manage_channels=True)
     async def animeset(self, ctx):
         """Setup a channel for anime airing announcements"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     
 
@@ -342,8 +340,7 @@ class Anime:
         To get this info, visit https://anilist.co/home log in, go to your profile
         select Developer and create new Client, set the name and provide your client_id
         and client secret with `[p]aniset creds client_id client_secret`"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_aniset.command(name='creds')
     @checks.is_owner()

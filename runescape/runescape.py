@@ -26,8 +26,8 @@ class Runescape:
 
     @commands.group(name="runescape", aliases=["rs"])
     async def runescape(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        """Search for a user account or profile"""
+        pass
 
     @runescape.command()
     async def set(self, ctx, RunescapeName):
