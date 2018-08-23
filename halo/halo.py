@@ -31,15 +31,13 @@ class Halo():
     @checks.admin_or_permissions(manage_server=True)
     async def _halo5(self, ctx):
         """Get information from Halo 5"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @commands.group(pass_context=True, name='halowars')
     @checks.admin_or_permissions(manage_server=True)
     async def _halowars(self, ctx):
         """Get information from Halo Wars 2"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     def random_colour(self):
         return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
@@ -205,8 +203,7 @@ class Halo():
     async def _haloset(self, ctx):
         """Command for setting required access information for the API.
         To get this info, visit https://developer.haloapi.com and create a new application."""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_haloset.command(pass_context=True)
     async def tokens(self, ctx, subscription_key, language="en"):

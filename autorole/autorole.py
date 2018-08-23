@@ -134,7 +134,6 @@ class Autorole:
         Requires the manage roles permission"""
         guild = ctx.message.guild
         if ctx.invoked_subcommand is None:
-            await ctx.send_help()
             try:
                 enabled = await self.config.guild(guild).ENABLED()
                 roles = await self.config.guild(guild).ROLE()
