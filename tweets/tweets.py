@@ -180,8 +180,7 @@ class Tweets():
     @commands.group( no_pm=True, name='tweets', aliases=["twitter"])
     async def _tweets(self, ctx):
         """Gets various information from Twitter's API"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_tweets.command( name="send")
     @checks.is_owner()
@@ -368,8 +367,7 @@ class Tweets():
     @checks.admin_or_permissions(manage_channels=True)
     async def _autotweet(self, ctx):
         """Command for setting accounts and channels for posting"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_autotweet.command(name="error")
     @checks.is_owner()
@@ -638,8 +636,7 @@ class Tweets():
         """Command for setting required access information for the API.
         To get this info, visit https://apps.twitter.com and create a new application.
         """
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_tweetset.command(name='creds')
     @checks.is_owner()

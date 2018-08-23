@@ -19,7 +19,7 @@ class Chatter():
         self.config = Config.get_conf(self, 3568777796)
         self.config.register_guild(**default_guild)
         self.config.register_channel(**default_channel)
-        self.chatbot = chatterbot.ChatBot("TrustyBot",
+        self.chatbot = chatterbot.ChatBot("Redbot",
                                           output_adapter="chatterbot.output.OutputAdapter",
                                           storage_adapter="chatterbot.storage.MongoDatabaseAdapter",
                                           output_format="text",

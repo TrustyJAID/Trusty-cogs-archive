@@ -401,8 +401,7 @@ class Hockeytest:
     @commands.group()
     async def hockeytest(self, ctx):
         """Various Hockey related commands"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @hockeytest.command(hidden=True)
     @checks.is_owner()

@@ -25,8 +25,7 @@ class StickyRoles:
     @checks.admin()
     async def stickyroles(self, ctx):
         """Adds / removes roles to be reapplied on join"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @stickyroles.command(pass_context=True)
     async def add(self, ctx, *, role: discord.Role):

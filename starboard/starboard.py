@@ -18,14 +18,12 @@ class Starboard:
     @checks.admin_or_permissions(manage_channels=True)
     async def starboard(self, ctx):
         """Commands for managing the starboard"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @starboard.group(pass_context=True, name="role", aliases=["roles"])
     async def _roles(self, ctx):
         """Add or remove roles allowed to add to the starboard"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     async def get_everyone_role(self, guild):
         for role in guild.roles:

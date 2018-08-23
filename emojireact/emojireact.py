@@ -13,9 +13,7 @@ class EmojiReactions:
 
     @commands.group()
     async def emojireact(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
-            
+        if ctx.invoked_subcommand is None:          
             try:
                 guild = ctx.message.guild
                 em = discord.Embed(title="Emojireact settings for {}".format(guild.name), colour=discord.Colour.blue())
