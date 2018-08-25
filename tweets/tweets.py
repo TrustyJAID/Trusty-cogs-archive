@@ -374,11 +374,12 @@ class Tweets():
     async def _replies(self, ctx, account, replies):
         """Enable or disable twitter replies from being posted for an account"""
         account = account.lower()
+        channel_list = []
         for user_id in list(self.settings["accounts"]):
             if account == self.settings["accounts"][user_id]["username"].lower():
                 channel_list = self.settings["accounts"][user_id]["channel"]
                 user = user_id
-        if channel_list is None:
+        if channel_list == []:
             await self.bot.say("{} is not in my list of accounts!".format(account))
             return
         if replies.lower() in ["true", "on"]:
