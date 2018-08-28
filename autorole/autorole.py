@@ -172,7 +172,7 @@ class Autorole:
         You can use this command multiple times to add multiple roles."""
         guild = ctx.message.guild
         roles = await self.config.guild(guild).ROLE()
-        if not guild.permissions_for(guild.me).manage_roles:
+        if not guild.me.guild_permissions.manage_roles:
             await ctx.send("I don't have the manage roles permission to use these features!")
             return
         if role.id in roles:
