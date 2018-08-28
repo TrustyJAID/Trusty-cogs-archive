@@ -204,7 +204,7 @@ class Badges:
                 to_return = await Badge.from_json(badge)
         return to_return
 
-    @commands.group(aliases=["badge"])
+    @commands.group(aliases=["badge"], autohelp=False)
     async def badges(self, ctx, *, badge):
         """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
         guild = ctx.message.guild
