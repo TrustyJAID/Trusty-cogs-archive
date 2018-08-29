@@ -420,7 +420,7 @@ class Tweets():
             return
         if channel is None:
             channel = ctx.message.channel
-        added = await self.add_account(channel, user_id)
+        added = await self.add_account(channel, user_id, screen_name)
         if added:
             await self.bot.say("{0} Added to {1}!".format(account, channel.mention))
         else:
