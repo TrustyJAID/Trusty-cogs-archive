@@ -999,14 +999,21 @@ class Hockey:
                 index = all_teams.index(team_data)
                 await self.standings_menu(ctx, all_teams, "teams", None, index)
 
+    def get_season(self):
+        now = datetime.now()
+        if (now.month, now.day) < (7, 1):
+            return (now.year - 1, now.year)
+        if (now.month, now.day) >= (7, 1):
+            return (now.year, now.year + 1)
+
     @hockey_commands.command(pass_context=True, aliases=["score"])
     async def games(self, ctx, *, team=None):
         """Gets all NHL games this season or selected team"""
         games_list = []
         page_num = 0
         today = datetime.today()
-        year = 2017
-        year2 = 2018
+        year = self.get_season()[0]
+        year2 = self.get_season()[1]
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
               .format(base=self.url, year=year, year2=year2)
         
