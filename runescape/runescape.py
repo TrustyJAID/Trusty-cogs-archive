@@ -63,7 +63,7 @@ class Runescape:
         return await self.get_profile_obj(data)
 
     @runescape.command()
-    async def profile(self, ctx, runescape_name=None, activity:int=10):
+    async def profile(self, ctx, runescape_name:str=None, activity:int=10):
         """Display a players profile in Runescape"""
         user = self.bot.get_user(ctx.message.author.id)
         if runescape_name is None:
@@ -83,7 +83,7 @@ class Runescape:
 
 
     @runescape.command()
-    async def stats(self, ctx, runescape_name=None):
+    async def stats(self, ctx, *, runescape_name:str=None):
         """Display a players stats in Runescape"""
         user = self.bot.get_user(ctx.message.author.id)
         if runescape_name is None:
@@ -137,7 +137,8 @@ class Runescape:
         em.add_field(name="Combat Level", value=profile.combatlevel)
         em.add_field(name="Total Level", value=profile.totalskill)
         em.add_field(name="Total XP", value=profile.totalxp)
-        em.add_field(name="Activities", value=activities)
+        if activities != "":
+            em.add_field(name="Activities", value=activities)
         # if profile.logged_in:
             # em.set_footer(text="Online", icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Green_pog.svg/64px-Green_pog.svg.png")
         # else:
