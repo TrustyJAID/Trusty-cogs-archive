@@ -361,12 +361,12 @@ class ServerStats:
         emojis = post_list[page]
         guild = ctx.message.guild
         em = discord.Embed(timestamp=ctx.message.created_at)
-        em.set_author(name=guild.name, icon_url=guild.icon_url)
+        em.set_author(name=guild.name + " Emojis", icon_url=guild.icon_url)
         regular = []
         msg = ""
         for emoji in emojis:
             msg += emoji
-        em.add_field(name="Emojis", value=msg)
+        em.description = msg
         em.set_footer(text="Page {} of {}".format(page+1, len(post_list)))
         
         if not message:
