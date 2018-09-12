@@ -95,6 +95,14 @@ class Starboard:
                 return
             else:
                 emoji = "<:" + emoji.name + ":" + str(emoji.id) + ">"
+
+        if not channel.permissions_for(guild.me).send_messages:
+            await ctx.send("I don't have permission to post in {}".format(channel.mention))
+            return
+
+        if not channel.permissions_for(guild.me).embed_links:
+            await ctx.send("I don't have permission to embed links in {}".format(channel.mention))
+            return
         
         if role is None:
             role = await self.get_everyone_role(guild)
@@ -163,6 +171,14 @@ class Starboard:
             return
         if channel is None:
             channel = ctx.message.channel
+
+        if not channel.permissions_for(guild.me).send_messages:
+            await ctx.send("I don't have permission to post in {}".format(channel.mention))
+            return
+
+        if not channel.permissions_for(guild.me).embed_links:
+            await ctx.send("I don't have permission to embed links in {}".format(channel.mention))
+            return
         await self.config.guild(guild).channel.set(channel.id)
         await ctx.send("Starboard channel set to {}.".format(channel.mention))
 
