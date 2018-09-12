@@ -73,7 +73,10 @@ class Starboard:
         count = 1
         channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
         em = await self.build_embed(guild, msg)
-        post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
+        try:
+            post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
+        except discord.errors.Forbidden:
+            return await ctx.send("I don't have permissions to post in the starboard channel.")
         past_message_list = await self.config.guild(guild).messages()
         past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
         await self.config.guild(guild).messages.set(past_message_list)
