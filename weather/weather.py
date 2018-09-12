@@ -95,7 +95,7 @@ class Weather:
                         .format(currenttemp, self.unit[units]["temp"]))
         embed.add_field(name="🔆 **Min - Max**", value="{0:.2f}{1} to {2:.2f}{3}"
                         .format(mintemp, self.unit[units]["temp"], maxtemp, self.unit[units]["temp"]))
-        embed.add_field(name="🌄 **Sunrise (utc)**", value=sunrise)
-        embed.add_field(name="🌇 **Sunset (utc)**", value=sunset)
-        embed.set_footer(text="Powered by http://openweathermap.org")
+        embed.add_field(name="🌄 **Sunrise (UTC)**", value=sunrise)
+        embed.add_field(name="🌇 **Sunset (UTC)**", value=sunset)
+        embed.set_footer(text="Powered by https://openweathermap.org")
         await ctx.send(embed=embed)
