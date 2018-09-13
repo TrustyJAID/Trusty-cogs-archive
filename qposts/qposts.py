@@ -161,7 +161,10 @@ class QPosts:
         reference_post = []
         for a in soup.find_all("a", href=True):
             # print(a)
-            url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
+            try:
+                url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
+            except:
+                continue
             async with self.session.get(self.url + url) as resp:
                 data = await resp.json()
             for post in data["posts"]:
