@@ -206,7 +206,7 @@ def check_folder():
         os.makedirs("data/badges/temp/tempgif")
 
 def setup(bot):
-    check_folder
+    check_folder()
     if not importavailable:
         raise NameError("You need to run `pip3 install pillow` and `pip3 install numpy` and `pip3 install pybarcode`")
     n = Badges(bot)
