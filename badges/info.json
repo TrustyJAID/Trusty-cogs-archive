@@ -5,6 +5,6 @@
     "DISABLED" : false,
     "NAME" : "Badges",
     "TAGS" : ["general"],
-    "REQUIREMENTS" : ["pillow", "pybarcode", "numpy"],
+    "REQUIREMENTS" : ["pillow", "pybarcode"],
     "INSTALL_MSG" : "Type [p]badges to see what badges are available!"
 }
