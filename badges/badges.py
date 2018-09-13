@@ -13,7 +13,6 @@ try:
     from PIL import ImageFont
     from PIL import ImageDraw
     from PIL import ImageSequence
-    import numpy as np
     from barcode import generate
     from barcode.writer import ImageWriter
     importavailable = True
@@ -209,7 +208,7 @@ def check_folder():
 def setup(bot):
     check_folder()
     if not importavailable:
-        raise NameError("You need to run `pip3 install pillow` and `pip3 install numpy` and `pip3 install pybarcode`")
+        raise NameError("You need to run `pip3 install pillow` and `pip3 install pybarcode`")
     n = Badges(bot)
     bot.add_cog(n)
 
