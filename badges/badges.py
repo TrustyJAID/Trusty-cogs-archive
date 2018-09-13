@@ -200,9 +200,10 @@ class Badges:
 
 def check_folder():
     if not os.path.exists("data/badges"):
-        print("Creating temporary badge folders folder")
         os.makedirs("data/badges")
+    if not os.path.exists("data/badges/temp"):
         os.makedirs("data/badges/temp")
+    if not os.path.exists("data/badges/temp/tempgif"):
         os.makedirs("data/badges/temp/tempgif")
 
 def setup(bot):
