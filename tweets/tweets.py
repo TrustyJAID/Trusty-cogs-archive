@@ -1,4 +1,4 @@
-from typing import Generator, Tuple, Iterable
+from typing import Generator, Tuple, Iterable, Any
 from random import choice as randchoice
 from datetime import datetime as dt
 from redbot.core import commands
@@ -8,13 +8,14 @@ from redbot.core import Config
 from redbot.core import checks
 from redbot.core.utils.chat_formatting import pagify
 from .tweet_entry import TweetEntry
+
 try:
     import tweepy as tw
+
     twInstalled = True
 except:
     twInstalled = False
 import os
-
 
 numbs = {
     "next": "➡",
@@ -24,11 +25,11 @@ numbs = {
 
 
 class TweetListener(tw.StreamListener):
-    
+
     def __init__(self, api, bot):
+        super().__init__(api=api)
         self.bot = bot
-        self.api = api
-    
+
     def on_status(self, status):
         # print(status.text)
         self.bot.dispatch("tweet_status", status)
@@ -57,17 +58,18 @@ class TweetListener(tw.StreamListener):
         return True
 
 
-class Tweets():
+class Tweets:
     """Cog for displaying info from Twitter's API"""
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 133926854)
-        default_global = {"api":{'consumer_key': '', 'consumer_secret': '',
-            'access_token': '', 'access_secret': ''}, "accounts":[], "error_channel": None}
+        default_global = {"api": {'consumer_key': '', 'consumer_secret': '',
+                                  'access_token': '', 'access_secret': ''}, "accounts": [], "error_channel": None}
         self.config.register_global(**default_global)
         self.mystream = None
         self.loop = bot.loop.create_task(self.start_stream())
-        
+
     def __unload(self):
         try:
             self.mystream.disconnect()
@@ -93,36 +95,34 @@ class Tweets():
                 self.start_stream_loop(tweet_list)
             await asyncio.sleep(300)
 
-
     def start_stream_loop(self, tweet_list):
         self.mystream.filter(follow=tweet_list, async=True)
-        
 
     async def authenticate(self):
         """Authenticate with Twitter's API"""
-        auth = tw.OAuthHandler(await self.config.api.consumer_key(), 
+        auth = tw.OAuthHandler(await self.config.api.consumer_key(),
                                await self.config.api.consumer_secret())
-        auth.set_access_token(await self.config.api.access_token(), 
+        auth.set_access_token(await self.config.api.access_token(),
                               await self.config.api.access_secret())
-        return tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5, retry_errors=5)
+        return tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5,
+                      retry_errors=5)
 
-                
     async def tweet_menu(self, ctx, post_list: list,
-                         message: discord.Message=None,
-                         page=0, timeout: int=30):
+                         message: discord.Message = None,
+                         page=0, timeout: int = 30):
         """menu control logic for this taken from
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
         s = post_list[page]
         created_at = s.created_at
         created_at = created_at.strftime("%Y-%m-%d %H:%M:%S")
-        post_url =\
+        post_url = \
             "https://twitter.com/{}/status/{}".format(s.user.screen_name, s.id)
         desc = "Created at: {}".format(created_at)
         em = discord.Embed(description=s.text,
                            colour=discord.Colour(value=self.random_colour()),
                            url=post_url,
                            timestamp=s.created_at)
-        try:                                
+        try:
             em.set_author(name=s.user.name, icon_url=s.user.profile_image_url)
         except:
             print(s.user.name + " could not get profile image!")
@@ -139,7 +139,8 @@ class Tweets():
         else:
             # message edits don't return the message object anymore lol
             await message.edit(embed=em)
-        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"] and react.message.id == message.id
+        check = lambda react, user: user == ctx.message.author and react.emoji in ["➡", "⬅",
+                                                                                   "❌"] and react.message.id == message.id
         try:
             react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
@@ -177,12 +178,12 @@ class Tweets():
             else:
                 return await message.delete()
 
-    @commands.group( no_pm=True, name='tweets', aliases=["twitter"])
+    @commands.group(no_pm=True, name='tweets', aliases=["twitter"])
     async def _tweets(self, ctx):
         """Gets various information from Twitter's API"""
         pass
 
-    @_tweets.command( name="send")
+    @_tweets.command(name="send")
     @checks.is_owner()
     async def send_tweet(self, ctx, *, message: str):
         """Allows the owner to send tweets through discord"""
@@ -190,13 +191,12 @@ class Tweets():
         api.update_status(message)
         await ctx.send_message(ctx.message.channel, "Tweet sent!")
 
-
     def random_colour(self):
         """Returns a random hex colour for discord.Colour() objects"""
-        return int(''.join([randchoice('0123456789ABCDEF')for x in range(6)]), 16)
+        return int(''.join([randchoice('0123456789ABCDEF') for x in range(6)]), 16)
 
     @_tweets.command(pass_context=True, name="trends")
-    async def trends(self, ctx, *, location: str="United States"):
+    async def trends(self, ctx, *, location: str = "United States"):
         """Gets twitter trends for a given location"""
         api = await self.authenticate()
         location_list = api.trends_available()
@@ -219,14 +219,15 @@ class Tweets():
         for trend in trends[:25]:
             # trend = trends[0]["trends"][i]
             if trend["tweet_volume"] is not None:
-                msg += "{}. [{}]({}) Volume: {}\n".format(trends.index(trend)+1, trend["name"], trend["url"], trend["tweet_volume"])
+                msg += "{}. [{}]({}) Volume: {}\n".format(trends.index(trend) + 1, trend["name"], trend["url"],
+                                                          trend["tweet_volume"])
             else:
-                msg += "{}. [{}]({})\n".format(trends.index(trend)+1, trend["name"], trend["url"])
+                msg += "{}. [{}]({})\n".format(trends.index(trend) + 1, trend["name"], trend["url"])
         em.description = msg[:2000]
         em.timestamp = dt.utcnow()
         await ctx.send(embed=em)
 
-    @_tweets.command( no_pm=True, name='getuser')
+    @_tweets.command(no_pm=True, name='getuser')
     async def get_user(self, ctx, username: str):
         """Get info about the specified user"""
         message = ""
@@ -252,8 +253,8 @@ class Tweets():
             message = "Uh oh, an error occurred somewhere!"
             await ctx.send(message)
 
-    @_tweets.command( no_pm=True, name='gettweets')
-    async def get_tweets(self, ctx, username: str, count: int=1):
+    @_tweets.command(no_pm=True, name='gettweets')
+    async def get_tweets(self, ctx, username: str, count: int = 1):
         """Gets the specified number of tweets for the specified username"""
         cnt = count
         if count > 25:
@@ -268,7 +269,7 @@ class Tweets():
             msg_list = []
             api = await self.authenticate()
             try:
-                for status in\
+                for status in \
                         tw.Cursor(api.user_timeline, id=username).items(cnt):
                     if status.in_reply_to_screen_name is not None and not replies_on:
                         continue
@@ -291,7 +292,7 @@ class Tweets():
             channel = self.bot.get_channel(await self.config.error_channel())
             await channel.send(error)
         return
-    
+
     async def on_tweet_status(self, status):
         """Posts the tweets to the channel"""
         username = status.user.screen_name
@@ -310,9 +311,10 @@ class Tweets():
                                url=post_url,
                                timestamp=status.created_at)
             if hasattr(status, "retweeted_status"):
-                
-                try:                                
-                    em.set_author(name=status.user.name + " Retweeted", url=post_url, icon_url=status.user.profile_image_url)
+
+                try:
+                    em.set_author(name=status.user.name + " Retweeted", url=post_url,
+                                  icon_url=status.user.profile_image_url)
                 except:
                     print(status.user.name + " could not get profile image!")
                 status = status.retweeted_status
@@ -321,12 +323,12 @@ class Tweets():
                 if hasattr(status, "extended_tweet"):
                     text = status.extended_tweet["full_text"]
                     # print(status.extended_tweet)
-                    if  "media" in status.extended_tweet["entities"]:
+                    if "media" in status.extended_tweet["entities"]:
                         em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
                 else:
                     text = status.text
             else:
-                try:                                
+                try:
                     em.set_author(name=status.user.name, url=post_url, icon_url=status.user.profile_image_url)
                 except:
                     print(status.user.name + " could not get profile image!")
@@ -335,7 +337,7 @@ class Tweets():
                 if hasattr(status, "extended_tweet"):
                     text = status.extended_tweet["full_text"]
                     # print(status.extended_tweet)
-                    if  "media" in status.extended_tweet["entities"]:
+                    if "media" in status.extended_tweet["entities"]:
                         em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
                 else:
                     text = status.text
@@ -350,7 +352,7 @@ class Tweets():
                     if channel_send.permissions_for(channel_send.guild.me).embed_links:
                         await channel_send.send(post_url, embed=em)
                     else:
-                        await channel_send.send(post_url)                    
+                        await channel_send.send(post_url)
                 except Exception as e:
                     error_channel = self.bot.get_channel(await self.config.error_channel())
                     await error_channel.send("{} error in {}: {}".format(username, channel, e))
@@ -360,9 +362,9 @@ class Tweets():
                 The error code is " + str(e) + username)
             if await self.config.error_channel() is not None:
                 error_channel = self.bot.get_channel(await self.config.error_channel())
-                await error_channel.send(e + ": Username" + username)
+                await error_channel.send(str(e) + ": Username" + username)
             return
-    
+
     @commands.group(name='autotweet')
     @checks.admin_or_permissions(manage_channels=True)
     async def _autotweet(self, ctx):
@@ -371,7 +373,7 @@ class Tweets():
 
     @_autotweet.command(name="error")
     @checks.is_owner()
-    async def _error(self, ctx, channel:discord.TextChannel=None):
+    async def _error(self, ctx, channel: discord.TextChannel = None):
         """Set an error channel for tweet stream error updates"""
         if not channel:
             channel = ctx.channel
@@ -396,7 +398,7 @@ class Tweets():
                 account_list.remove(account)
         await self.config.accounts.set(account_list)
 
-    @_autotweet.command( name="restart")
+    @_autotweet.command(name="restart")
     async def restart_stream(self, ctx):
         """Restarts the twitter stream if any issues occur."""
         await self.autotweet_restart()
@@ -407,8 +409,8 @@ class Tweets():
             self.mystream.disconnect()
             self.loop.cancel()
         await self.start_stream()
-    
-    @_autotweet.command( name="replies")
+
+    @_autotweet.command(name="replies")
     async def _replies(self, ctx, account):
         """Enable or disable twitter replies from being posted for an account"""
         account = account.lower()
@@ -430,7 +432,7 @@ class Tweets():
     async def get_followed_accounts(self) -> Generator[TweetEntry, None, None]:
         return (TweetEntry.from_json(d) for d in (await self.config.accounts()))
 
-    async def is_followed_account(self, twitter_id) -> bool:
+    async def is_followed_account(self, twitter_id) -> Tuple[bool, Any]:
         followed_accounts = await self.config.accounts()
 
         for account in followed_accounts:
@@ -439,10 +441,13 @@ class Tweets():
         return False, None
 
     @_autotweet.command(name="add")
-    async def _add(self, ctx, account:str, channel:discord.TextChannel=None):
+    async def _add(self, ctx, account: str, channel: discord.TextChannel = None):
         """Adds a twitter account to the specified channel"""
         api = await self.authenticate()
         try:
+            user_id = None
+            screen_name = None
+            last_id = None
             for status in tw.Cursor(api.user_timeline, id=account).items(1):
                 user_id = status.user.id
                 screen_name = status.user.screen_name
@@ -452,13 +457,18 @@ class Tweets():
                     The error code is " + str(e) + account)
             await ctx.send("That account does not exist! Try again")
             return
+        if user_id is None:
+            await ctx.send("No status was retrieved! Try again")
+            return
         if channel is None:
             channel = ctx.message.channel
         if not channel.permissions_for(ctx.guild.me).send_messages:
             await ctx.send("I don't have permission to post in {}".format(channel.mention))
             return
         if not channel.permissions_for(ctx.guild.me).embed_links:
-            await ctx.send("I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(channel.mention))
+            await ctx.send(
+                "I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(
+                    channel.mention))
         added = await self.add_account(channel, user_id, screen_name)
         if added:
             await ctx.send("{0} Added to {1}!".format(account, channel.mention))
@@ -466,7 +476,7 @@ class Tweets():
             await ctx.send("I am already posting {} tweets in {}".format(screen_name, channel.mention))
         # await self.autotweet_restart()
 
-    @_autotweet.command( name="list")
+    @_autotweet.command(name="list")
     async def _list(self, ctx):
         """Lists the autotweet accounts on the guild"""
         account_list = ""
@@ -474,9 +484,9 @@ class Tweets():
 
         accounts = [x for x in await self.config.accounts()]
         embed = discord.Embed(title="Twitter accounts posting in {}".format(guild.name),
-                                  colour=discord.Colour(value=self.random_colour()),
-                                  # description=account_list[:-2],
-                                  timestamp=ctx.message.created_at)
+                              colour=discord.Colour(value=self.random_colour()),
+                              # description=account_list[:-2],
+                              timestamp=ctx.message.created_at)
         embed.set_author(name=guild.name, icon_url=guild.icon_url)
         for channel in guild.channels:
             account_list = ""
@@ -507,7 +517,7 @@ class Tweets():
         return True
 
     @_autotweet.command(name="addlist")
-    async def add_list(self, ctx, owner, list_name, channel:discord.TextChannel=None):
+    async def add_list(self, ctx, owner, list_name, channel: discord.TextChannel = None):
         """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
         api = await self.authenticate()
         try:
@@ -532,7 +542,9 @@ class Tweets():
             await ctx.send("I don't have permission to post in {}".format(channel.mention))
             return
         if not channel.permissions_for(ctx.guild.me).embed_links:
-            await ctx.send("I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(channel.mention))
+            await ctx.send(
+                "I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(
+                    channel.mention))
         added_accounts = []
         missed_accounts = []
         print(len(list_members))
@@ -554,7 +566,7 @@ class Tweets():
                 await ctx.send(page)
 
     @_autotweet.command(name="remlist")
-    async def rem_list(self, ctx, owner, list_name, channel:discord.TextChannel=None):
+    async def rem_list(self, ctx, owner, list_name, channel: discord.TextChannel = None):
         """Remove an entire twitter list from a specified channel. The list must be public or the bot owner must own it."""
         api = await self.authenticate()
         try:
@@ -586,10 +598,10 @@ class Tweets():
                 await ctx.send(page)
         if len(missed_accounts) != 0:
             msg = ", ".join(member for member in missed_accounts)
-            msg_send = "The following accounts weren't added to {} or there was another error: {}".format(channel.mention, msg)
+            msg_send = "The following accounts weren't added to {} or there was another error: {}".format(
+                channel.mention, msg)
             for page in pagify(msg_send, ["\n"]):
                 await ctx.send(page)
-            
 
     async def del_account(self, channel_id, user_id, screen_name):
         account_ids = [x["twitter_id"] for x in await self.config.accounts()]
@@ -607,14 +619,16 @@ class Tweets():
                 await self.config.accounts.set(account_list)
         return True
 
-    @_autotweet.command( name="del", aliases=["delete", "rem", "remove"])
-    async def _del(self, ctx, account, channel:discord.TextChannel=None):
+    @_autotweet.command(name="del", aliases=["delete", "rem", "remove"])
+    async def _del(self, ctx, account, channel: discord.TextChannel = None):
         """Removes a twitter account to the specified channel"""
         account = account.lower()
         api = await self.authenticate()
         if channel is None:
             channel = ctx.message.channel
         try:
+            user_id = None
+            screen_name = None
             for status in tw.Cursor(api.user_timeline, id=account).items(1):
                 user_id = status.user.id
                 screen_name = status.user.screen_name
@@ -623,14 +637,16 @@ class Tweets():
                     The error code is " + str(e) + account)
             await ctx.send("Something went wrong here! Try again")
             return
+        if user_id is None:
+            await ctx.send("No status was retrieved! Try again")
+            return
         removed = await self.del_account(channel.id, user_id, screen_name)
         if removed:
             await ctx.send("{} has been removed from {}".format(account, channel.mention))
         else:
             await ctx.send("{0} doesn't seem to be posting in {1}!".format(account, channel.mention))
 
-
-    @commands.group( name='tweetset')
+    @commands.group(name='tweetset')
     @checks.admin_or_permissions(manage_guild=True)
     async def _tweetset(self, ctx):
         """Command for setting required access information for the API.
@@ -643,6 +659,6 @@ class Tweets():
     async def set_creds(self, ctx, consumer_key: str, consumer_secret: str, access_token: str, access_secret: str):
         """[p]tweetset """
         api = {'consumer_key': consumer_key, 'consumer_secret': consumer_secret,
-            'access_token': access_token, 'access_secret': access_secret}
+               'access_token': access_token, 'access_secret': access_secret}
         await self.config.api.set(api)
         await ctx.send('Set the access credentials!')
