@@ -45,15 +45,20 @@ class Mock:
         result = self.cap_change(msg.content) if hasattr(msg, "content") else self.cap_change(msg)
         author = msg.author if hasattr(msg, "author") else ctx.message.author
         time = msg.created_at if hasattr(msg, "created_at") else ctx.message.created_at
-        # file = discord.File("data/mock/spongebob.jpg")
-        embed = discord.Embed(description=result,
-                              timestamp=time)
+        embed = discord.Embed(description=result, timestamp=time)
         embed.colour = author.colour if hasattr(author, "colour") else discord.Colour.default()
         embed.set_author(name=author.display_name, icon_url=author.avatar_url)
         embed.set_thumbnail(url="https://i.imgur.com/upItEiG.jpg")
-        embed.set_footer(text="{} mocked {}".format(ctx.message.author.display_name, author.display_name), icon_url=ctx.message.author.avatar_url)
+        embed.set_footer(text="{} mocked {}".format(
+                         ctx.message.author.display_name, author.display_name), icon_url=ctx.message.author.avatar_url)
         if hasattr(msg, "attachments") and msg.attachments != []:
             embed.set_image(url=msg.attachments[0].url)
-        await ctx.send(embed=embed)
-        if author != user:
-            await ctx.send("- " + author.mention)
+        if not channel.permissions_for(channel.guild.me).embed_links:
+            if author != user:
+                await ctx.send(result + " - " + author.mention)
+            else:
+                await ctx.send(result)
+        else:
+            await ctx.send(embed=embed)
+            if author != user:
+                await ctx.send("- " + author.mention)
