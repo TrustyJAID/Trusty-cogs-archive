@@ -307,7 +307,7 @@ class Hockey:
                         await message.delete()
                     
                 except Exception as e:
-                    print("something wrong with {} {}: {}".format(team, goal, e))
+                    print("Cannot find message {} {}: {}".format(team, goal, e))
                     pass
             try:
                 team_list.remove(team_data)
