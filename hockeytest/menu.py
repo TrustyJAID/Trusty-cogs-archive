@@ -1,7 +1,7 @@
 import asyncio
 import discord
 import aiohttp
-from redbot.core.context import RedContext
+from redbot.core.commands import Context
 from redbot.core.utils.embed import randomize_colour
 from .embeds import *
 
@@ -10,7 +10,7 @@ numbs = {
     "back": "⬅",
     "exit": "❌"
 }
-async def hockey_menu(ctx:RedContext, display_type:str, post_list: list,
+async def hockey_menu(ctx:Context, display_type:str, post_list: list,
                          message: discord.Message=None,
                          page=0, timeout: int=30):
         """menu control logic for this taken from
