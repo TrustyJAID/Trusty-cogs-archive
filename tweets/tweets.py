@@ -105,7 +105,7 @@ class Tweets:
         auth.set_access_token(await self.config.api.access_token(),
                               await self.config.api.access_secret())
         return tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5,
-                      retry_errors=5)
+                      retry_errors=[500, 502, 503, 504])
 
     async def tweet_menu(self, ctx, post_list: list,
                          message: discord.Message = None,
@@ -130,7 +130,6 @@ class Tweets:
         em.set_footer(text="Retweet count: " + str(s.retweet_count))
         if hasattr(s, "extended_entities"):
             em.set_image(url=s.extended_entities["media"][0]["media_url_https"])
-        print(message)
         if not message:
             message = await ctx.send(embed=em)
             await message.add_reaction("⬅")
@@ -254,7 +253,7 @@ class Tweets:
             await ctx.send(message)
 
     @_tweets.command(no_pm=True, name='gettweets')
-    async def get_tweets(self, ctx, username: str, count: int = 1):
+    async def get_tweets(self, ctx, username: str, count: int = 10):
         """Gets the specified number of tweets for the specified username"""
         cnt = count
         if count > 25:
@@ -290,7 +289,9 @@ class Tweets:
         """Posts tweet stream errors to a specified channel"""
         if await self.config.error_channel() is not None:
             channel = self.bot.get_channel(await self.config.error_channel())
-            await channel.send(error)
+            await channel.send(error + "\n See here for more information <https://developer.twitter.com/en/docs/basics/response-codes.html>")
+            if "420" in error:
+                await channel.send("Maybe you should unload the cog for a while...")
         return
 
     async def on_tweet_status(self, status):
@@ -355,7 +356,7 @@ class Tweets:
                         await channel_send.send(post_url)
                 except Exception as e:
                     error_channel = self.bot.get_channel(await self.config.error_channel())
-                    await error_channel.send("{} error in {}: {}".format(username, channel, e))
+                    await error_channel.send("Removing {} from {}: {}".format(username, channel, e))
                     await self.del_account(channel, user_id, username)
         except tw.TweepError as e:
             print("Whoops! Something went wrong here. \
@@ -471,7 +472,9 @@ class Tweets:
                     channel.mention))
         added = await self.add_account(channel, user_id, screen_name)
         if added:
-            await ctx.send("{0} Added to {1}!".format(account, channel.mention))
+            prefix_list = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send("{0} Added to {1}!\nNow do `{2}autotweet restart` when you've finished adding all accounts!".format(
+                           account, channel.mention, prefix_list[0]))
         else:
             await ctx.send("I am already posting {} tweets in {}".format(screen_name, channel.mention))
         # await self.autotweet_restart()
@@ -559,6 +562,8 @@ class Tweets:
             msg_send = "Added the following accounts to {}: {}".format(channel.mention, msg)
             for page in pagify(msg_send, ["\n"]):
                 await ctx.send(page)
+            prefix_list = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send("Now do `{}autotweet restart` when you've finished adding all accounts!".format(prefix_list[0]))
         if len(missed_accounts) != 0:
             msg = ", ".join(member for member in missed_accounts)
             msg_send = "The following accounts could not be added to {}: {}".format(channel.mention, msg)
