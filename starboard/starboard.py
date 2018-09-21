@@ -38,13 +38,11 @@ class Starboard:
         return guild_emoji
 
     @commands.command()
-    async def star(self, ctx, msg_id, channel_id=None):
+    async def star(self, ctx, msg_id, channel:discord.TextChannel=None):
         """Manually star a message
            Do `[p]star <msg_id> <channel_id>` Deaults to the current channel if not provided"""
-        if channel_id is None:
+        if channel is None:
             channel = ctx.message.channel
-        else:
-            channel = self.bot.get_channel(channel_id)
         guild = channel.guild
         if guild is None:
             await ctx.send("This command can work in guilds only.")
