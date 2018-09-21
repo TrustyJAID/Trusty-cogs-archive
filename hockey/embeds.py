@@ -38,6 +38,8 @@ async def get_stats_msg(data):
     stats, home_i = await get_team_standings(data.home_team)
     msg = "GP:**{gp}** W:**{wins}** L:**{losses}\n**OT:**{ot}** PTS:**{pts}** S:**{streak}**\n"
     streak_types = {"wins":"W", "losses":"L", "ot":"OT"}
+    home_str = "GP:**0** W:**0** L:**0\n**OT:**0** PTS:**0** S:**0**\n"
+    away_str = "GP:**0** W:**0** L:**0\n**OT:**0** PTS:**0** S:**0**\n"
     for team in stats:
         if team.name == data.away_team:
             streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
