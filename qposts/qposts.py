@@ -215,10 +215,13 @@ class QPosts:
         em.set_author(name=name + qpost["trip"], url=url)
         em.timestamp = datetime.utcfromtimestamp(qpost["time"])
         if text != "":
-            if "_" in text or "~" in text or "*" in text:
+            if text.count("_") > 2 or text.count("~") > 2 or text.count("*") > 2:
                 em.description = "```\n{}```".format(text[:1990])
             else:
                 em.description = text[:1900]
+        else:
+            em.description = qpost["com"]
+
         if ref_text != "":
             if ref_text.count("_") > 2 or ref_text.count("~") > 2 or ref_text.count("*") > 2:
                 em.add_field(name=str(post["no"]), value="```{}```".format(ref_text[:1000]))
