@@ -36,7 +36,7 @@ class blockchain:
                     port=self.login_data["port"])
 
     def __unload(self):
-        self.session.close()
+        self.bot.loop.create_task(self.session.close())
 
     async def get_block_height(self):
         params = json.dumps({"jsonrpc":"1.1","method":"getblockcount","id":self.request_id})

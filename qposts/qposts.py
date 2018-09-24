@@ -40,7 +40,7 @@ class QPosts:
         self.loop = bot.loop.create_task(self.get_q_posts())
 
     def __unload(self):
-        self.session.close()
+        self.bot.loop.create_task(self.session.close())
         self.loop.cancel()
 
     async def authenticate(self):
