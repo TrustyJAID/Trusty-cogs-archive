@@ -44,7 +44,7 @@ class Hockey:
         # self.new_loop = None
 
     def __unload(self):
-        self.session.close()
+        self.bot.loop.create_task(self.session.close())
         self.loop.cancel()
         # self.new_loop.cancel()
 
