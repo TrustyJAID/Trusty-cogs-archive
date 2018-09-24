@@ -18,7 +18,7 @@ class Backup:
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     def __unload(self):
-        self.session.close()
+        self.bot.loop.create_task(self.session.close())
 
     def save_json(self, filename, data):
         """Atomically saves json file"""
