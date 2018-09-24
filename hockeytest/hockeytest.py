@@ -51,7 +51,8 @@ class Hockeytest:
         # self.loop = bot.loop.create_task(self.get_team_goals())
 
     def __unload(self):
-        self.session.close()
+        print("unloading")
+        self.bot.loop.create_task(self.bot.loop.create_task(self.session.close()))
         # self.loop.cancel()
         # self.new_loop.cancel()
 
@@ -304,7 +305,7 @@ class Hockeytest:
             except:
                 pass
             # for channels in team_data["channel"]:
-        for channels in await self.config.all_channels():
+        for channels in [464239630263386112]:
             role = None
             channel = self.bot.get_channel(id=channels)
             if channel is None:
