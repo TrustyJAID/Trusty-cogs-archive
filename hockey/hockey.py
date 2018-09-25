@@ -21,7 +21,7 @@ except ImportError:
 __version__ = "2.1.0"
 __author__ = "TrustyJAID"
 
-class Hockeytest:
+class Hockey:
 
     def __init__(self, bot):
         self.bot = bot
@@ -80,7 +80,7 @@ class Hockeytest:
             This loop grabs the current games for the day then passes off to other functions as necessary
         """
         await self.bot.wait_until_ready()
-        while self is self.bot.get_cog("Hockeytest"):
+        while self is self.bot.get_cog("Hockey"):
             await self.refactor_data()
             async with self.session.get(self.url + "/api/v1/schedule") as resp:
                 data = await resp.json()
