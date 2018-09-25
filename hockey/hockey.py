@@ -1017,6 +1017,17 @@ class Hockey:
         await self.config.channel(channel).clear()
         await ctx.send("goals will stop being posted in {}".format(channel.mention))
 
+    @hockey_commands.command(pass_context=True, name="role")
+    async def team_role(self, ctx, *, team):
+        """Set your role to a team role"""
+        guild = ctx.message.guild
+        try:
+            role = [role for role in guild.roles if (team.lower() in role.name.lower() and "GOAL" not in role.name)][0]
+            await ctx.message.author.add_roles(role)
+            await ctx.message.channel.send( "Role applied.")
+        except:
+            await ctx.message.channel.send( "{} is not an available role!".format(team))
+
     @hockey_commands.command(name="goals")
     async def team_goals(self, ctx, *, team=None):
         """Subscribe to goal notifications"""
