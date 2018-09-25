@@ -8,11 +8,10 @@ from .game import Game
 from .helper import *
         
 
-async def game_state_embed(data, state):
+async def game_state_embed(data):
     post_state = ["all", data.home_team, data.away_team]
     timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
     title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
-    colour = int(teams[data.home_team]["home"].replace("#", ""), 16)
     em = discord.Embed(timestamp=timestamp)
     home_field = "{} {} {}".format(data.home_emoji, data.home_team, data.home_emoji)
     away_field = "{} {} {}".format(data.away_emoji, data.away_team, data.away_emoji)
@@ -23,15 +22,22 @@ async def game_state_embed(data, state):
         home_str, away_str = await get_stats_msg(data)
     em.add_field(name=home_field, value=home_str, inline=True)
     em.add_field(name=away_field, value=away_str, inline=True)
-    team = state if state != "all" else data.home_team
-    alt_team = [state for state in post_state if state != "all" and state != team][0]
-    em.colour = int(teams[team]["home"].replace("#", ""), 16)
-    logo = teams[team]["logo"]
-    alt_logo = teams[alt_team]["logo"]
-    team_url = teams[team]["team_url"]
-    em.set_author(name=title, url=team_url, icon_url=logo)
-    em.set_thumbnail(url=logo)
-    em.set_footer(text="Game start ", icon_url=alt_logo)
+    em.colour = int(teams[data.home_team]["home"].replace("#", ""), 16)
+    home_url = teams[data.home_team]["team_url"]
+    em.set_author(name=title, url=home_url, icon_url=data.home_logo)
+    em.set_thumbnail(url=data.home_logo)
+    em.set_footer(text="Game start ", icon_url=data.away_logo)
+    return em
+
+async def game_state_text(data):
+    post_state = ["all", data.home_team, data.away_team]
+    timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+    time_string = utc_to_local(timestamp).strftime("%I:%M %p %Z")
+    em = "{a_emoji}{away} @ {h_emoji}{home} {state}\n({time})".format(a_emoji=data.away_emoji, away=data.away_team, 
+             h_emoji= data.home_emoji, home=data.home_team, state=data.game_state, time=time_string)
+    if data.game_state != "Preview":
+        em = "**__Current Score__**\n{} {}: {}\n{} {}: {}".format(data.home_emoji, data.home_team, data.home_score,
+               data.away_emoji, data.away_team, data.away_score)
     return em
 
 async def get_stats_msg(data):
@@ -112,6 +118,25 @@ async def goal_post_embed(goal, game_data):
         em.add_field(name=game_data.away_team, value=away_msg)
         em.set_footer(text="{} left in the {} period".format(period_time_left, game_data.period_ord), icon_url=logo)
         em.timestamp = datetime.strptime(goal["about"]["dateTime"], "%Y-%m-%dT%H:%M:%SZ")
+    return em
+
+async def goal_post_text(goal, game_data):
+    scoring_team = teams[goal["team"]["name"]]
+    h_emoji = game_data.home_emoji
+    a_emoji = game_data.away_emoji
+    period_time_left = goal["about"]["periodTimeRemaining"]
+    event = goal["result"]["event"]
+    shootout = False
+    if game_data.period_ord == "SO":
+        shootout = True
+    if not shootout:        
+        em = "{} {}: {}\n{} {}: {}\n ({} left in the {} period)".format(h_emoji, game_data.home_team, game_data.home_score,
+               a_emoji, game_data.away_team, game_data.away_score, period_time_left, game_data.period_ord)
+    else:
+        home_msg = await get_shootout_display(game_data.home_goals)
+        away_msg = await get_shootout_display(game_data.away_goals)
+        em = "{} {}: {}\n{} {}: {}\n ({} left in the {} period)".format(h_emoji, game_data.home_team, home_msg,
+               a_emoji, game_data.away_team, away_msg, period_time_left, game_data.period_ord)
     return em
 
 async def build_standing_embed(post_list, page=0):
