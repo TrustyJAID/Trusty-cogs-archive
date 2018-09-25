@@ -3,9 +3,7 @@ import aiohttp
 import asyncio
 import json
 from datetime import datetime
-from redbot.core import commands
-from redbot.core import checks
-from redbot.core import Config
+from redbot.core import commands, checks, Config
 from .teams import teams
 from .teamentry import TeamEntry
 from .menu import hockey_menu
@@ -20,7 +18,10 @@ try:
 except ImportError:
     pass
 
-class Hockey:
+__version__ = "2.1.0"
+__author__ = "TrustyJAID"
+
+class Hockeytest:
 
     def __init__(self, bot):
         self.bot = bot
@@ -33,7 +34,7 @@ class Hockey:
         default_global["teams"].append(team_entry.to_json())
         default_guild = {"standings_channel":None, "standings_type":None, "post_standings":False, "standings_msg":None,
                          "create_channels":False, "category":None, "gdc_team":None, "gdc":[], "delete_gdc":True}
-        default_channel = {"team":None, "to_delete":False}
+        default_channel = {"team":[], "to_delete":False}
 
         self.config = Config.get_conf(self, 13457745779)
         self.config.register_global(**default_global, force_registration=True)
@@ -41,23 +42,13 @@ class Hockey:
         self.teams = teams
         self.headshots = "https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg"
         self.loop = bot.loop.create_task(self.get_team_goals())
-        # self.new_loop = None
 
     def __unload(self):
         self.bot.loop.create_task(self.session.close())
         self.loop.cancel()
-        # self.new_loop.cancel()
 
     ##############################################################################
     # Here is all the logic for gathering game data and updating information
-
-    def get_season(self):
-        now = datetime.now()
-        if (now.month, now.day) < (7, 1):
-            return (now.year - 1, now.year)
-        if (now.month, now.day) >= (7, 1):
-            return (now.year, now.year + 1)
-
 
     async def get_day_games(self):
         """
@@ -67,7 +58,6 @@ class Hockey:
             data = await resp.json()
         game_list = []
         for link in data["dates"][0]["games"]:
-            # print(link)
             try:
                 async with self.session.get(self.url + link["link"]) as resp:
                     data = await resp.json()
@@ -77,12 +67,21 @@ class Hockey:
                 continue
         return game_list
 
+    async def refactor_data(self):
+        chan_list = await self.config.all_channels()
+        for channel_id in chan_list:
+            channel = self.bot.get_channel(id=channel_id)
+            teams = await self.config.channel(channel).team()
+            if type(teams) is not list:
+                await self.config.channel(channel).team.set([teams])
+
     async def get_team_goals(self):
         """
             This loop grabs the current games for the day then passes off to other functions as necessary
         """
         await self.bot.wait_until_ready()
-        while self is self.bot.get_cog("Hockey"):
+        while self is self.bot.get_cog("Hockeytest"):
+            await self.refactor_data()
             async with self.session.get(self.url + "/api/v1/schedule") as resp:
                 data = await resp.json()
 
@@ -92,14 +91,12 @@ class Hockey:
                 to_remove = []
                 games_playing = True
                 for link in games:
-                    # print(link)
                     try:
                         async with self.session.get(self.url + link) as resp:
                             data = await resp.json()
                     except Exception as e:
                         print(e)
                         continue
-                    # print(data)
                     game_data = await Game.from_json(data)
                     await self.check_game_state(game_data)
 
@@ -139,18 +136,19 @@ class Hockey:
             await self.config.teams.set(all_teams)
             await asyncio.sleep(300)
 
-    async def save_game_state(self, data, is_final=False):
+    async def save_game_state(self, data, time_to_game_start:str="0"):
         home = await self.get_team(data.home_team)
         away = await self.get_team(data.away_team)
-        # home = await self.config.teams.get_attr(data.home_team)
-        # away = await self.config.teams.get_attr(data.away_team)
         team_list = await self.config.teams()
         team_list.remove(home)
         team_list.remove(away)
-        # print("test")
         if data.game_state != "Final":
-            home["game_state"] = data.game_state
-            away["game_state"] = data.game_state
+            if data.game_state == "Preview" and time_to_game_start != "0":
+                home["game_state"] = data.game_state+time_to_game_start
+                away["game_state"] = data.game_state+time_to_game_start
+            else:
+                home["game_state"] = data.game_state
+                away["game_state"] = data.game_state
             home["period"] = data.period
             away["period"] = data.period
         else:
@@ -162,32 +160,67 @@ class Hockey:
         away["game_start"] = data.game_start
         team_list.append(home)
         team_list.append(away)
-        # print("here")
         await self.config.teams.set(team_list)
+
+    async def post_time_to_game_start(self, data, time_left):
+        """
+            Post when there is 60, 30, and 10 minutes until the game starts in all channels
+        """
+        post_state = ["all", data.home_team, data.away_team]
+            
+        for channels in await self.config.all_channels():
+            channel = self.bot.get_channel(id=channels)
+            if channel is None:
+                continue
+
+            should_post = await self.check_to_post(channel, post_state)
+            if should_post:
+                guild = channel.guild
+                msg = "{} minutes until {} {} @ {} {} starts".format(time_left, data.away_emoji, data.away_team,
+                       data.home_emoji, data.home_team)
+                try:
+                    await channel.send(msg)
+                except Exception as e:
+                    print("Problem posting in channel <#{}> : {}".format(channels, e))
 
     async def check_game_state(self, data):
         post_state = ["all", data.home_team, data.away_team]
-        # print("gamecheck")
         home = await self.get_team(data.home_team)
         away = await self.get_team(data.away_team)
         team_list = await self.config.teams()
         # Home team checking
-        # print(data.game_state)
+
         if data.game_state == "Preview":
             """Checks if the the game state has changes from Final to Preview
                Could be unnecessary since after Game Final it will check for next game
             """
-            if home["game_state"] != data.game_state:
+            time_now = datetime.utcnow()
+            game_time = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+            game_start = (game_time - time_now).total_seconds()/60
+            if "Preview" not in home["game_state"]:
                 
                 if not await self.config.created_gdc():
                     try:
                         await self.post_automatic_standings()
                     except Exception as e:
                         print(e)
-                    # await self.check_new_gdc()
+                    await self.check_new_gdc()
                     await self.config.created_gdc.set(True)
                 await self.post_game_state(data)
                 await self.save_game_state(data)
+            if game_start < 60 and game_start > 30 and home["game_state"] != "Preview60":
+                # Post 60 minutes until game start
+                await self.post_time_to_game_start(data, "60")
+                await self.save_game_state(data, "60")
+            if game_start < 30 and game_start >10 and home["game_state"] != "Preview30":
+                # Post 30 minutes until game start
+                await self.post_time_to_game_start(data, "30")
+                await self.save_game_state(data, "30")
+            if game_start < 10 and game_start > 0 and home["game_state"] != "Preview10":
+                # Post 10 minutes until game start
+                await self.post_time_to_game_start(data, "10")
+                await self.save_game_state(data, "10")
+
                 # Create channel and look for game day thread
 
         if data.game_state == "Live":
@@ -220,7 +253,7 @@ class Hockey:
         page_num = 0
         today = datetime.now()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
-              .format(base=self.url, year=self.get_season()[0], year2=self.get_season()[1])
+              .format(base=self.url, year=get_season()[0], year2=get_season()[1])
         url += "&teamId={}".format(self.teams[team]["id"])
         async with self.session.get(url) as resp:
             data = await resp.json()
@@ -256,13 +289,11 @@ class Hockey:
 
         home_goal_list = list(home_team_data["goal_id"])
         away_goal_list = list(away_team_data["goal_id"])
-        # all_goal_list = list(all_data["goal_id"])
 
         for goal in data.goals:
             goal_id = str(goal["result"]["eventCode"])
             team = goal["team"]["name"]
             team_data = await self.get_team(team)
-            # print(team_data)
             if goal_id not in team_data["goal_id"]:
                 # attempts to post the goal if there is a new goal
                 msg_list = await self.post_team_goal(goal, data)
@@ -318,7 +349,14 @@ class Hockey:
                 print(e)
                 return
         return
-                    
+
+    async def check_to_post(self, channel, post_state):
+        channel_teams = await self.config.channel(channel).team()
+        should_post = False
+        for team in channel_teams:
+            if team in post_state:
+                should_post = True
+        return should_post
 
     async def post_team_goal(self, goal, game_data):
         """
@@ -335,18 +373,21 @@ class Hockey:
                 await hue.oilersgoal2()
             except:
                 pass
-            # for channels in team_data["channel"]:
         for channels in await self.config.all_channels():
             role = None
             channel = self.bot.get_channel(id=channels)
             if channel is None:
                 continue
-            if await self.config.channel(channel).team() in post_state:
+            should_post = await self.check_to_post(channel, post_state)
+            if should_post:
                 try:
                     guild = channel.guild
                     game_day_channels = await self.config.guild(guild).gdc()
                     # Don't want to ping people in the game day channels
                     if not channel.permissions_for(guild.me).embed_links:
+                        em = await goal_post_text(goal, game_data)
+                        msg = await channel.send(em)
+                        msg_list[str(channel.id)] = msg.id
                         continue
                     for roles in guild.roles:
                         if roles.name == goal["team"]["name"] + " GOAL":
@@ -364,7 +405,6 @@ class Hockey:
                 except:
                     print("Could not post goal in {}".format(channels))
                     pass
-            # print(msg_list)
         return msg_list
 
     async def edit_team_goal(self, goal, game_data, og_msg):
@@ -380,6 +420,8 @@ class Hockey:
                 role = None
                 channel = self.bot.get_channel(id=int(channel_id))
                 if channel is None:
+                    continue
+                if not channel.permissions_for(channel.guild.me).embed_links:
                     continue
                 message = await channel.get_message(message_id)
                 guild = message.guild
@@ -402,9 +444,7 @@ class Hockey:
     async def check_new_gdc(self):
         print("Checking GDC")
         game_list = await self.get_day_games()
-        # print(game_list)
         for guilds in await self.config.all_guilds():
-            # print(guilds)
             guild = self.bot.get_guild(guilds)
             if guild is None:
                 continue
@@ -413,7 +453,7 @@ class Hockey:
             team = await self.config.guild(guild).gdc_team()
             if team != "all":
                 next_game = await self.get_next_game(team)
-                print(next_game)
+                # print(next_game)
                 chn_name = await get_chn_name(next_game)
                 try:
                     cur_channels = await self.config.guild(guild).gdc()
@@ -421,7 +461,6 @@ class Hockey:
                 except Exception as e:
                     print(e)
                     cur_channel = None
-                # print(cur_channel.name)
                 if cur_channel is None:
                     await self.create_gdc(guild)
                 elif cur_channel.name != chn_name.lower():
@@ -461,7 +500,7 @@ class Hockey:
         cur_channels.append(new_chn.id)
         await self.config.guild(guild).gdc.set(cur_channels)
         await self.config.guild(guild).create_channels.set(True)
-        await self.config.channel(new_chn).team.set(team)
+        await self.config.channel(new_chn).team.set([team])
         delete_gdc = await self.config.guild(guild).delete_gdc()
         await self.config.channel(new_chn).to_delete.set(delete_gdc)
         timestamp = datetime.strptime(next_game.game_start, "%Y-%m-%dT%H:%M:%SZ")
@@ -469,8 +508,11 @@ class Hockey:
                                                    next_game.home_team, next_game.home_emoji,\
                                                    timestamp.year, timestamp.month, timestamp.day)
         await new_chn.edit(topic=game_msg)
-        em = await game_state_embed(next_game, team)
-        preview_msg = await new_chn.send(embed=em)
+        if new_chn.permissions_for(guild.me).embed_links:
+            em = await game_state_embed(next_game)
+            preview_msg = await new_chn.send(embed=em)
+        else:
+            preview_msg = await new_chn.send(await game_state_text(next_game))
         if new_chn.permissions_for(guild.me).manage_messages:
             await preview_msg.pin()
         if new_chn.permissions_for(guild.me).add_reactions:
@@ -509,39 +551,45 @@ class Hockey:
             and post in all channels
         """
         post_state = ["all", data.home_team, data.away_team]
-        # print("test")
             
         for channels in await self.config.all_channels():
             channel = self.bot.get_channel(id=channels)
             if channel is None:
                 continue
 
-            state = await self.config.channel(channel).team()
-            if state in post_state:
-                em = await game_state_embed(data, state)
+            should_post = await self.check_to_post(channel, post_state)
+            if should_post:
                 guild = channel.guild
                 game_day_channels = await self.config.guild(guild).gdc()
-                # print(game_day_channels)
                 if data.game_state == "Live":
                     msg = "**{} Period starting {} at {}**"
                     home_role, away_role = await get_team_role(guild, data.home_team, data.away_team)
                     if game_day_channels is not None:
                         # We don't want to ping people in the game day channels twice
                         if channel.id in game_day_channels:
-                            home_role, away_role = data.home_team, data.away_team                        
+                            home_role, away_role = data.home_team, data.away_team
                     try:
-                        await channel.send(msg.format(data.period_ord, away_role, home_role), embed=em)
+                        if not channel.permissions_for(guild.me).embed_links:
+                            em = await game_state_text(data)
+                            await channel.send(msg.format(data.period_ord, away_role, home_role)+"\n{}".format(em))
+                        else:
+                            em = await game_state_embed(data)
+                            await channel.send(msg.format(data.period_ord, away_role, home_role), embed=em)
                     except Exception as e:
-                        print("Problem posting in channel <#{}> : {}".format(channels, e))
+                            print("Problem posting in channel <#{}> : {}".format(channels, e)) 
                 
                 else:
                     if data.game_state == "Preview":
+                        print(data.game_state)
                         if game_day_channels is not None:
                             # Don't post the preview message twice in the channel
                             if channel.id in game_day_channels:
                                 continue
                     try:
-                        await channel.send(embed=em)
+                        if not channel.permissions_for(guild.me).embed_links:
+                            await channel.send(await game_state_text(data))
+                        else:
+                            await channel.send(embed=await game_state_embed(data))
                     except Exception as e:
                         print("Problem posting in channel <#{}> : {}".format(channels, e))
 
@@ -553,7 +601,6 @@ class Hockey:
         """
         print("Updating Standings.")
         all_guilds = await self.config.all_guilds()
-        # print(all_guilds)
         for guilds in all_guilds:
             try:
                 guild = self.bot.get_guild(guilds)
@@ -561,7 +608,6 @@ class Hockey:
             except:
                 continue
             if await self.config.guild(guild).post_standings():
-                # print("hi there")
 
                 search = await self.config.guild(guild).standings_type()
                 if search is None:
@@ -593,7 +639,6 @@ class Hockey:
 
     async def get_team(self, team):
         for teams in await self.config.teams():
-            # print(team)
             if team == teams["team_name"]:
                 return teams
         return None
@@ -601,7 +646,7 @@ class Hockey:
     ##############################################################################
     # Here are all the command functions to set certain attributes and settings
 
-    @commands.group(pass_context=True, name="hockey", aliases=["nhl"])
+    @commands.group(name="hockey", aliases=["nhl"])
     async def hockey_commands(self, ctx):
         """Various Hockey related commands also aliased to `nhl`"""
         pass
@@ -635,17 +680,22 @@ class Hockey:
                     created_channels = "None"
             else:
                 created_channels = "None"
+            if not ctx.channel.permissions_for(guild.me).embed_links:
+                msg = """GDC settings for {}\nCreate Game Day Channels:**{}**\nDelete Game Day Channels: **{}**\nTeam: **{}**\nCurrent Channels: {}
+                """.format(guild.name, create_channels, delete_gdc, team, created_channels)
+            if ctx.channel.permissions_for(guild.me).embed_links:
+                em = discord.Embed(title="GDC settings for {}".format(guild.name))
+                em.add_field(name="Create Game Day Channels", value=str(create_channels), inline=False)
+                em.add_field(name="Delete Game Day Channels", value=str(delete_gdc), inline=False)
+                em.add_field(name="Team", value=str(team), inline=False)
+                em.add_field(name="Current Channels", value=created_channels, inline=False)
+                await ctx.send(embed=em)
+            else:
+                await ctx.send(msg)
 
-            em = discord.Embed(title="GDC settings for {}".format(guild.name))
-            em.add_field(name="Create Game Day Channels", value=str(create_channels), inline=False)
-            em.add_field(name="Delete Game Day Channels", value=str(delete_gdc), inline=False)
-            em.add_field(name="Team", value=str(team), inline=False)
-            em.add_field(name="Current Channels", value=created_channels, inline=False)
-            await ctx.send(embed=em)
-
-    @commands.command(hidden=True, pass_context=True)
+    @hockey_commands.command(hidden=True)
     @checks.is_owner()
-    async def testgoallights(self, ctx):
+    async def lights(self, ctx):
         hue = Oilers(self.bot)
         await hue.oilersgoal2()
 
@@ -665,7 +715,7 @@ class Hockey:
         await ctx.send("Done.")
 
 
-    @commands.command(hidden=True, pass_context=True)
+    @hockey_commands.command(hidden=True)
     @checks.is_owner()
     async def add_team_data(self, ctx):
         all_teams = await self.config.teams()
@@ -679,7 +729,7 @@ class Hockey:
             all_teams.append(team_entry.to_json())
         await self.config.teams.set(all_teams)
 
-    @commands.command(hidden=True)
+    @hockey_commands.command(hidden=True)
     @checks.is_owner()
     async def testhockey(self, ctx):
         for channels in await self.config.all_channels():
@@ -691,7 +741,7 @@ class Hockey:
             chn = await self.config.channel(channel).team()
             print(chn)
 
-    @commands.command(hidden=True)
+    @hockey_commands.command(hidden=True)
     @checks.is_owner()
     async def cleargdc(self, ctx):
         guild = ctx.message.guild
@@ -706,7 +756,7 @@ class Hockey:
                 good_channels.append(channel.id)
         await self.config.guild(guild).gdc.set(good_channels)
 
-    @commands.command(hidden=True, pass_context=True)
+    @hockey_commands.command(hidden=True)
     @checks.is_owner()
     async def clear_broken_channels(self, ctx):
         for channels in await self.config.all_channels():
@@ -735,7 +785,7 @@ class Hockey:
 
     @hockey_commands.command(hidden=True)
     @checks.is_owner()
-    async def stats(self, ctx):
+    async def cogstats(self, ctx):
         all_channels = await self.config.all_channels()
         all_guilds = await self.config.all_guilds()
         guild_list = {}
@@ -748,6 +798,8 @@ class Hockey:
                 guild_list[channel.guild.name] = 1
             else:
                 guild_list[channel.guild.name] += 1
+        msg = "Servers:{}\nNumber of Channels: {}\nNumber of Servers: {}".format(
+               guild_list, len(all_channels), len(all_guilds))
         print(guild_list)
         print(len(all_channels))
         print(len(all_guilds))
@@ -914,7 +966,7 @@ class Hockey:
         await self.config.guild(guild).post_standings.set(cur_state)
         await ctx.send("Done.")
 
-    @hockey_commands.command(pass_context=True, name="add", aliases=["add_goals"])
+    @hockey_commands.command(name="add", aliases=["add_goals"])
     @checks.admin_or_permissions(manage_channels=True)
     async def add_goals(self, ctx, team, channel:discord.TextChannel=None):
         """Adds a hockey team goal updates to a channel do 'all' for all teams"""
@@ -938,7 +990,7 @@ class Hockey:
         await ctx.send("{} goals will be posted in {}".format(team_name, channel.mention))
 
 
-    @hockey_commands.command(pass_context=True, name="del", aliases=["remove", "rem"])
+    @hockey_commands.command(name="del", aliases=["remove", "rem"])
     @checks.admin_or_permissions(manage_channels=True)
     async def remove_goals(self, ctx, channel:discord.TextChannel=None):
         """Removes a teams goal updates from a channel"""
@@ -948,18 +1000,7 @@ class Hockey:
         await self.config.channel(channel).clear()
         await ctx.send("goals will stop being posted in {}".format(channel.mention))
 
-    @hockey_commands.command(pass_context=True, name="role")
-    async def team_role(self, ctx, *, team):
-        """Set your role to a team role"""
-        guild = ctx.message.guild
-        try:
-            role = [role for role in guild.roles if (team.lower() in role.name.lower() and "GOAL" not in role.name)][0]
-            await ctx.message.author.add_roles(role)
-            await ctx.message.channel.send( "Role applied.")
-        except:
-            await ctx.message.channel.send( "{} is not an available role!".format(team))
-
-    @hockey_commands.command(pass_context=True, name="goals")
+    @hockey_commands.command(name="goals")
     async def team_goals(self, ctx, *, team=None):
         """Subscribe to goal notifications"""
         guild = ctx.message.guild
@@ -979,7 +1020,7 @@ class Hockey:
             except:
                 await ctx.message.channel.send("{} is not an available role!".format(team))
 
-    @hockey_commands.command(pass_context=True)
+    @hockey_commands.command()
     async def standings(self, ctx, *, search=None):
         """Displays current standings for each division"""
         if search is None:
@@ -995,21 +1036,20 @@ class Hockey:
         else:
             search_r = search_r[0]
 
-        print(search_r)
         standings, page = await get_team_standings(search_r.lower())
         if search != "all":
             await hockey_menu(ctx, "standings", standings, None, page)
         else:
             await hockey_menu(ctx, "all", standings, None, page)
 
-    @hockey_commands.command(pass_context=True, aliases=["score"])
+    @hockey_commands.command(aliases=["score"])
     async def games(self, ctx, *, team=None):
         """Gets all NHL games this season or selected team"""
         games_list = []
         page_num = 0
         today = datetime.now()
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
-              .format(base=self.url, year=self.get_season()[0], year2=self.get_season()[1])
+              .format(base=self.url, year=get_season()[0], year2=get_season()[1])
         
         if team is not None:
             team_search = await check_valid_team(team)
@@ -1035,7 +1075,7 @@ class Hockey:
         else:
             await ctx.message.channel.send( "{} have no recent or upcoming games!".format(team))
 
-    @hockey_commands.command(pass_context=True)
+    @hockey_commands.command(aliases=["player"])
     async def players(self, ctx, *, search):
         """Gets the current team roster"""
         rosters = {}
@@ -1053,16 +1093,13 @@ class Hockey:
                 url = "{}/api/v1/teams/{}/roster".format(self.url, self.teams[team]["id"])
                 async with self.session.get(url) as resp:
                     data = await resp.json()
-                # print(data)
                 try:
                     rosters[team] = data["roster"]
                 except KeyError:
                     pass
             
             for team in rosters:
-                # print(team)
                 for player in rosters[team]:
-                    # print(player["person"])
                     if search.lower() in player["person"]["fullName"].lower():
                         players.append(player)
         
