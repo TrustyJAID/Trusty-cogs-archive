@@ -67,6 +67,21 @@ class Hockey:
                 continue
         return game_list
 
+    @commands.command() 
+    @checks.is_owner()
+    async def getgoals(self, ctx):  
+        """Loop to check what teams are playing and see if a goal was scored""" 
+        to_remove = []  
+        games_playing = True    
+        # print(link)   
+        with open("/mnt/e/github/Trusty-cogs/hockeytest/testgame.json", "r") as infile: 
+            data = json.loads(infile.read())    
+        # print(data)   
+        game_data = await Game.from_json(data)  
+        await self.check_game_state(game_data)                  
+        if (game_data.home_score + game_data.away_score) != 0:  
+            await self.check_team_goals(game_data)
+
     async def refactor_data(self):
         chan_list = await self.config.all_channels()
         for channel_id in chan_list:
