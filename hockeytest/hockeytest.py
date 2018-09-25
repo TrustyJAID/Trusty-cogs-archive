@@ -84,19 +84,23 @@ class Hockeytest:
                 continue
         return game_list
 
+    async def refactor_data(self):
+        chan_list = await self.config.all_channels()
+        for channel_id in chan_list:
+            channel = self.bot.get_channel(id=channel_id)
+            if channel is None:
+                continue
+            teams = await self.config.channel(channel).team()
+            if type(teams) is not list:
+                await self.config.channel(channel).team.set([teams])
+
     async def get_team_goals(self):
         """
             This loop grabs the current games for the day then passes off to other functions as necessary
         """
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("Hockeytest"):
-            chan_list = await self.config.all_channels()
-            for channel_id in chan_list:
-                channel = self.bot.get_channel(id=channel_id)
-                teams = await self.config.channel(channel).team()
-                if type(teams) is not list:
-
-                    await self.config.channel(channel).team.set([teams])
+            await self.refactor_data()
             async with self.session.get(self.url + "/api/v1/schedule") as resp:
                 data = await resp.json()
 
@@ -222,6 +226,7 @@ class Hockeytest:
             time_now = datetime.utcnow()
             game_time = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
             game_start = (game_time - time_now).total_seconds()/60
+            print(game_start)
             if "Preview" not in home["game_state"]:
                 
                 if not await self.config.created_gdc():

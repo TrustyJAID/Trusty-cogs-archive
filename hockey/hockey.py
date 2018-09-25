@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 __author__ = "TrustyJAID"
 
 class Hockey:
@@ -71,6 +71,8 @@ class Hockey:
         chan_list = await self.config.all_channels()
         for channel_id in chan_list:
             channel = self.bot.get_channel(id=channel_id)
+            if channel is None:
+                continue
             teams = await self.config.channel(channel).team()
             if type(teams) is not list:
                 await self.config.channel(channel).team.set([teams])
