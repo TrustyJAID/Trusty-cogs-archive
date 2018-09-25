@@ -191,7 +191,8 @@ class Hockey:
                 continue
 
             should_post = await self.check_to_post(channel, post_state)
-            if should_post:
+            team_to_post = await self.config.channel(channel).team()
+            if should_post and "all" not in team_to_post:
                 guild = channel.guild
                 msg = "{} minutes until {} {} @ {} {} starts".format(time_left, data.away_emoji, data.away_team,
                        data.home_emoji, data.home_team)
