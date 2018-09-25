@@ -83,7 +83,8 @@ rektlist = [
             "☑ Rektal Exam",
             "☑ Rektium for a Dream",
             "☑ www.Trekt.tv",
-            "☑ Erektile Dysfunction"
+            "☑ Erektile Dysfunction",
+            "☑ Jesus, stepping out the grave: 'Get ressurekt'"
             ]
 
 
