@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "TrustyJAID/Ivan Seidel/Bruno Lemos/João Pedro",
+    "SHORT" : "Make anything illegal on dsicord!",
+    "DESCRIPTION" : "Have trump declate anything illegal!",
+    "DISABLED" : false,
+    "NAME" : "Trump",
+    "TAGS" : ["general"],
+    "REQUIREMENTS" : ["pillow", "opencv-python", "numpy"],
+    "INSTALL_MSG" : "Type [p]trump to make anything illegal"
+}

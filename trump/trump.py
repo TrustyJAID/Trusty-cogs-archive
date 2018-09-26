@@ -3,24 +3,34 @@ import cv2
 import json
 import os
 import discord
+import functools
+import asyncio
 import numpy as np
+from io import BytesIO
 from redbot.core import commands
-from .utils.dataIO import dataIO
 from PIL import Image, ImageDraw, ImageFont
+from redbot.core.data_manager import bundled_data_path
 
 class Trump:
     """Code is from http://isnowillegal.com/ and made to work on redbot"""
 
     def __init__(self, bot):
         self.bot = bot
-        self.impact = ImageFont.truetype('data/trump/impact.ttf', 46)
         self.textFont = None
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def trump(self, ctx, *, message):
-        text = message
-        folder = "data/trump/template"
-        gifFile = "data/trump/temp.gif"
+        task = functools.partial(self.make_gif, text=message)        
+        task = self.bot.loop.run_in_executor(None, task)
+        try:
+            temp = await asyncio.wait_for(task, timeout=60)
+        except asyncio.TimeoutError:
+            return
+        image = discord.File(temp)
+        await ctx.send(file=image)
+
+    def make_gif(self, text):
+        folder = str(bundled_data_path(self))+"/template"
         jsonPath = os.path.join(folder, 'frames.json')
 
         # Load frames
@@ -28,7 +38,7 @@ class Trump:
 
         # Used to compute motion blur
         lastCorners = None
-        textImage = await self.generateText(text)
+        textImage = self.generateText(text)
 
         # Will store all gif frames
         frameImages = []
@@ -46,22 +56,24 @@ class Trump:
                 image = cv2.imread(filePath)
 
                 # Do rotoscope
-                image = await self.rotoscope(image, textImage, frame)
+                image = self.rotoscope(image, textImage, frame)
 
                 # Show final result
                 # cv2.imshow(name, image)
-                finalFrame = await self.cvImageToPillow(image)
+                finalFrame = self.cvImageToPillow(image)
             else:
                 finalFrame = Image.open(filePath)
 
             frameImages.append(finalFrame)
-            
-        # Saving...
-        frameImages[0].save(gifFile, save_all=True, append_images=frameImages, loop=0)
-        await self.bot.send_file(ctx.message.channel, "data/trump/temp.gif")
+        temp = BytesIO()
+            # Saving...
+        frameImages[0].save(temp, format="GIF", save_all=True, append_images=frameImages, duration=0, loop=0)
+        temp.name = "Trump.gif"
+        temp.seek(0)
+        return temp
 
 
-    async def rotoscope(self, dst, warp, properties):
+    def rotoscope(self, dst, warp, properties):
         if properties['show'] == False:
             return dst
 
@@ -91,7 +103,7 @@ class Trump:
         return dst
 
 
-    async def computeAndLoadTextFontForSize(self, drawer, text, maxWidth):
+    def computeAndLoadTextFontForSize(self, drawer, text, maxWidth):
         # global textFont
 
         # Measure text and find out position
@@ -99,21 +111,18 @@ class Trump:
         minSize = 6
         curSize = maxSize
         while curSize >= minSize:
-            self.textFont = ImageFont.truetype('data/trump/impact.ttf', size=curSize)
+            self.textFont = ImageFont.truetype(str(bundled_data_path(self))+'/impact.ttf', size=curSize)
             w, h = drawer.textsize(text, font=self.textFont)
             
             if w > maxWidth:
                 curSize -= 4
             else:
-                print('Best size: %d' % curSize)
                 return self.textFont
-        print('Could not find best size: %d' % curSize)
         return self.textFont
 
-    async def generateText(self, text):
+    def generateText(self, text):
         # global impact, textFont
 
-        # image = Image.open('text.png')
         txtColor = (20, 20, 20)
         bgColor = (224, 233, 237)
         # bgColor = (100, 0, 0)
@@ -127,15 +136,15 @@ class Trump:
 
         # Load font for text
         if self.textFont == None:
-            self.textFont = await self.computeAndLoadTextFontForSize(draw, text, imgSize[0])
+            self.textFont = self.computeAndLoadTextFontForSize(draw, text, imgSize[0])
             
         w, h = draw.textsize(text, font=self.textFont)
         xCenter = (imgSize[0] - w) / 2
         yCenter = (50 - h) / 2
         draw.text((xCenter, 10 + yCenter), text, font=self.textFont, fill=txtColor)
-
-        draw.text((12, 70), "IS NOW", font=self.impact, fill=txtColor)
-        draw.text((10, 130), "ILLEGAL", font=self.impact, fill=txtColor)
+        impact = ImageFont.truetype(str(bundled_data_path(self))+'/impact.ttf', 46)
+        draw.text((12, 70), "IS NOW", font=impact, fill=txtColor)
+        draw.text((10, 130), "ILLEGAL", font=impact, fill=txtColor)
         
         # Convert to CV2
         cvImage = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
@@ -144,9 +153,6 @@ class Trump:
         
         return cvImage
 
-    async def cvImageToPillow(self, cvImage):
+    def cvImageToPillow(self, cvImage):
         cvImage = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
         return Image.fromarray(cvImage)
-
-def setup(bot):
-    bot.add_cog(Trump(bot))
