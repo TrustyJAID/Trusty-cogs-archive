@@ -420,8 +420,8 @@ class Hockey:
                     else:  
                         msg = await channel.send(role.mention, embed=em)
                         msg_list[str(channel.id)] = msg.id
-                except:
-                    print("Could not post goal in {}".format(channels))
+                except Exception as e:
+                    print("Could not post goal in {}: {}".format(channels, e))
                     pass
         return msg_list
 
