@@ -29,6 +29,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | ServerStats | **Release** | This cog provides a ton of useful development functions for gathering channel data and user data as well as providing a way to setup a channel to monitor which servers are adding the bot. |
 | Runescape | **Beta** | a cog to grab Runescape 3 stats and profile information. |
 | Fun | **Release**| The fun cog from Appu's Selfbot rewritten for redbot V3 including adding reactions and other "fun" commands. |
+| Trump | **Release**| <details><summary>Make your own Declaration signed by Trump.</summary>Code is from http://isnowillegal.com/ and made to work on redbot</details> |
 
 ## Works in Progress
 *These Cogs are a work in progress and have limited to no functionality at the moment. Feel free to leave ideas or suggestions!*
@@ -38,7 +39,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Anime | **Alpha**| A cog that gets what current anime episodes are airing and posts them on discord when they start airing. |
 | Halo | **Work in Progress**| Cogs for accessing information from the Halo video games API systems. |
 | Notsobot | **Work in Progress**| Work on converting some notsobot commands to redbot. Hopefully avoiding Image Magick. |
-| Trump | **Alpha**| Make your own Declaration signed by Trump. |
+
 
 ## Rewritten Cogs Originally Made by others 
 *These cogs were originally written by others for V2. As they were used frequently on TrustyBot I ported them over quickly for V3. A better version may be available.*
