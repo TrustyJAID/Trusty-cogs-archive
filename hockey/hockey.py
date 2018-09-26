@@ -383,7 +383,6 @@ class Hockey:
         scorer = self.headshots.format(goal["players"][0]["player"]["id"])
         post_state = ["all", game_data.home_team, game_data.away_team]
         event = goal["result"]["event"]
-        em = await goal_post_embed(goal, game_data)
         msg_list = {}
         if "oilers" in goal["team"]["name"].lower() and "missed" not in event.lower():
             try:
@@ -415,9 +414,11 @@ class Hockey:
                         if channel.id in game_day_channels:
                             role = None
                     if role is None or "missed" in event.lower():
+                        em = await goal_post_embed(goal, game_data)
                         msg = await channel.send(embed=em)
                         msg_list[str(channel.id)] = msg.id
-                    else:  
+                    else:
+                        em = await goal_post_embed(goal, game_data)
                         msg = await channel.send(role.mention, embed=em)
                         msg_list[str(channel.id)] = msg.id
                 except Exception as e:
