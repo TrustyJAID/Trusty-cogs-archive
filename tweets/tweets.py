@@ -71,11 +71,9 @@ class Tweets:
         self.loop = bot.loop.create_task(self.start_stream())
 
     def __unload(self):
-        try:
-            self.mystream.disconnect()
-            self.loop.cancel()
-        except:
-            pass
+        self.mystream.disconnect()
+        self.loop.cancel()
+
 
     async def start_stream(self):
         await self.bot.wait_until_ready()
@@ -113,23 +111,7 @@ class Tweets:
         """menu control logic for this taken from
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
         s = post_list[page]
-        created_at = s.created_at
-        created_at = created_at.strftime("%Y-%m-%d %H:%M:%S")
-        post_url = \
-            "https://twitter.com/{}/status/{}".format(s.user.screen_name, s.id)
-        desc = "Created at: {}".format(created_at)
-        em = discord.Embed(description=s.text,
-                           colour=discord.Colour(value=self.random_colour()),
-                           url=post_url,
-                           timestamp=s.created_at)
-        try:
-            em.set_author(name=s.user.name, icon_url=s.user.profile_image_url)
-        except:
-            print(s.user.name + " could not get profile image!")
-        # em.add_field(name="Text", value=s.text)
-        em.set_footer(text="Retweet count: " + str(s.retweet_count))
-        if hasattr(s, "extended_entities"):
-            em.set_image(url=s.extended_entities["media"][0]["media_url_https"])
+        em = await self.build_tweet_embed(s)
         if not message:
             message = await ctx.send(embed=em)
             await message.add_reaction("⬅")
@@ -294,11 +276,47 @@ class Tweets:
                 await channel.send("Maybe you should unload the cog for a while...")
         return
 
+    async def build_tweet_embed(self, status):
+        username = status.user.screen_name
+        user_id = status.user.id
+        post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
+        em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
+                           url=post_url,
+                           timestamp=status.created_at)
+        print(status)
+        if hasattr(status, "retweeted_status"):
+            em.set_author(name=status.user.name + " Retweeted", url=post_url,
+                          icon_url=status.user.profile_image_url)
+            status = status.retweeted_status
+            if hasattr(status, "extended_entities"):
+                em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
+            if hasattr(status, "extended_tweet"):
+                text = status.extended_tweet["full_text"]
+                if "media" in status.extended_tweet["entities"]:
+                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
+            else:
+                text = status.text
+        else:
+            em.set_author(name=status.user.name, url=post_url, icon_url=status.user.profile_image_url)
+            if hasattr(status, "extended_entities"):
+                em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
+            if hasattr(status, "extended_tweet"):
+                text = status.extended_tweet["full_text"]
+                # print(status.extended_tweet)
+                if "media" in status.extended_tweet["entities"]:
+                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
+            else:
+                text = status.text
+        em.description = text.replace("&amp;", "\n\n")
+        em.set_footer(text="@" + username)
+        return em
+
     async def on_tweet_status(self, status):
         """Posts the tweets to the channel"""
         username = status.user.screen_name
         user_id = status.user.id
         account = None
+        post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
         for accounts in await self.get_followed_accounts():
             if accounts.twitter_id == user_id:
                 account = accounts
@@ -307,43 +325,7 @@ class Tweets:
         try:
             if status.in_reply_to_screen_name is not None and not account.replies:
                 return
-            post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-            em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
-                               url=post_url,
-                               timestamp=status.created_at)
-            if hasattr(status, "retweeted_status"):
-
-                try:
-                    em.set_author(name=status.user.name + " Retweeted", url=post_url,
-                                  icon_url=status.user.profile_image_url)
-                except:
-                    print(status.user.name + " could not get profile image!")
-                status = status.retweeted_status
-                if hasattr(status, "extended_entities"):
-                    em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
-                if hasattr(status, "extended_tweet"):
-                    text = status.extended_tweet["full_text"]
-                    # print(status.extended_tweet)
-                    if "media" in status.extended_tweet["entities"]:
-                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
-                else:
-                    text = status.text
-            else:
-                try:
-                    em.set_author(name=status.user.name, url=post_url, icon_url=status.user.profile_image_url)
-                except:
-                    print(status.user.name + " could not get profile image!")
-                if hasattr(status, "extended_entities"):
-                    em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
-                if hasattr(status, "extended_tweet"):
-                    text = status.extended_tweet["full_text"]
-                    # print(status.extended_tweet)
-                    if "media" in status.extended_tweet["entities"]:
-                        em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
-                else:
-                    text = status.text
-            em.description = text.replace("&amp;", "\n\n")
-            em.set_footer(text="@" + username)
+            em = await self.build_tweet_embed(status)
             channel_list = account.channel
             for channel in channel_list:
                 try:
@@ -358,7 +340,7 @@ class Tweets:
                     error_channel = self.bot.get_channel(await self.config.error_channel())
                     await error_channel.send("Removing {} from {}: {}".format(username, channel, e))
                     await self.del_account(channel, user_id, username)
-        except tw.TweepError as e:
+        except Exception as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
             if await self.config.error_channel() is not None:
