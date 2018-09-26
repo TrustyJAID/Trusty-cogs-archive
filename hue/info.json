@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Control your philips hue lights with redbot!",
+    "DESCRIPTION" : "Lets you control your philips hue lights with redbot.",
+    "DISABLED" : false,
+    "NAME" : "activity",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Type `[p]hue` to see available commands."
+}

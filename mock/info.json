@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "TrustyJAID",
+    "SHORT" : "Mock another user!",
+    "DESCRIPTION" : "Mock another user!",
+    "DISABLED" : false,
+    "NAME" : "activity",
+    "TAGS" : ["general"],
+    "INSTALL_MSG" : "Type `[p]mock` to mock the last user to post."
+}
