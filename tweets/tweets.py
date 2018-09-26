@@ -283,7 +283,6 @@ class Tweets:
         em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
                            url=post_url,
                            timestamp=status.created_at)
-        print(status)
         if hasattr(status, "retweeted_status"):
             em.set_author(name=status.user.name + " Retweeted", url=post_url,
                           icon_url=status.user.profile_image_url)
@@ -302,7 +301,6 @@ class Tweets:
                 em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
             if hasattr(status, "extended_tweet"):
                 text = status.extended_tweet["full_text"]
-                # print(status.extended_tweet)
                 if "media" in status.extended_tweet["entities"]:
                     em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
             else:
