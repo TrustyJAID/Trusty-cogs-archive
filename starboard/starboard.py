@@ -311,7 +311,11 @@ class Starboard:
             
         else:
             em = discord.Embed(timestamp=msg.created_at)
-            em.color = author.top_role.color
+            try:
+                em.color = author.top_role.color
+            except Exception as e:
+                print(e)
+                pass
             em.description = msg.content
             em.set_author(name=author.display_name, icon_url=author.avatar_url)
             if msg.attachments != []:
