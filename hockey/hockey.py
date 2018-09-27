@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 __author__ = "TrustyJAID"
 
 class Hockey:
@@ -522,10 +522,17 @@ class Hockey:
         await self.config.channel(new_chn).team.set([team])
         delete_gdc = await self.config.guild(guild).delete_gdc()
         await self.config.channel(new_chn).to_delete.set(delete_gdc)
+
+        # Gets the timezone to use for game day channel topic
         timestamp = datetime.strptime(next_game.game_start, "%Y-%m-%dT%H:%M:%SZ")
-        game_msg = "{} {} @ {} {} {}-{}-{}".format(next_game.away_team, next_game.away_emoji,\
+        guild_team = await self.config.guild(guild).gdc_team()
+        channel_team = guild_team if guild_team != "all" else next_game.home_team
+        timezone = self.teams[channel_team]["timezone"]
+        time_string = utc_to_local(timestamp, timezone).strftime("%A %B %d, %Y at %I:%M %p %Z")
+
+        game_msg = "{} {} @ {} {} {}".format(next_game.away_team, next_game.away_emoji,\
                                                    next_game.home_team, next_game.home_emoji,\
-                                                   timestamp.year, timestamp.month, timestamp.day)
+                                                   time_string)
         await new_chn.edit(topic=game_msg)
         if new_chn.permissions_for(guild.me).embed_links:
             em = await game_state_embed(next_game)
