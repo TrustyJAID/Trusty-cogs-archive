@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Mock another user!",
-    "DESCRIPTION" : "Mock another user!",
-    "DISABLED" : false,
-    "NAME" : "activity",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Type `[p]mock` to mock the last user to post."
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Mock another user!",
+    "install_msg" : "Type `[p]mock` to mock the last user to post.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "activity",
+    "permissions" : ["embed_links"],
+    "requirements" : [],
+    "short" : "Mock another user!",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }

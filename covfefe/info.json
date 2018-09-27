@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "General commands",
-    "DESCRIPTION" : "Covfefeify any words!",
-    "DISABLED" : false,
-    "NAME" : "Covfefe",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Use [p]covefy <word> to covefy a word"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Covfefeify any words!",
+    "install_msg" : "Use [p]covefy <word> to covefy a word",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Covfefe",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "General commands",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }
