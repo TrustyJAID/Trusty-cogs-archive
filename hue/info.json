@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Control your philips hue lights with redbot!",
-    "DESCRIPTION" : "Lets you control your philips hue lights with redbot.",
-    "DISABLED" : false,
-    "NAME" : "activity",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Type `[p]hue` to see available commands."
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Lets you control your philips hue lights with redbot.",
+    "install_msg" : "Type `[p]hue` to see available commands.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "activity",
+    "permissions" : [],
+    "requirements" : ["phue"],
+    "short" : "Control your philips hue lights with redbot!",
+    "tags" : [
+        "general",
+        "utility"
+    ]
 }

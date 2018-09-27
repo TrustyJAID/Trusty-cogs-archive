@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "General commands",
-    "DESCRIPTION" : "Japanese faces courtesy of the CIA",
-    "DISABLED" : false,
-    "NAME" : "Faces",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Find what your face is like!"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Japanese faces courtesy of the CIA",
+    "install_msg" : "Find what your face is like!",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Faces",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "General commands",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }

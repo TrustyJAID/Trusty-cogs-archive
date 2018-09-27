@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Various auto triggered images",
-    "DESCRIPTION" : "Post a screaming pepe, image of jupiter, or tank with the servers icon in various sizes based on specific trigger words.",
-    "DISABLED" : false,
-    "NAME" : "activity",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Type `[p]setreee`, `[p]setzio`, or `[p]settank`"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Post a screaming pepe, image of jupiter, or tank with the servers icon in various sizes based on specific trigger words.",
+    "install_msg" : "Type `[p]setreee`, `[p]setzio`, or `[p]settank`",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "activity",
+    "permissions" : ["attach_files"],
+    "requirements" : [],
+    "short" : "Various auto triggered images",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }

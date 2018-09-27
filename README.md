@@ -10,7 +10,6 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Tarot | **Release** | Find your tarot reading, your life reading, or pull a random tarot card! Can also search for a card. |
 | Faces | **Release** | Find your own Japanese style emoji face courtesy of the CIA. |
 | REKT | **Release** |  a command to see how rekt someone is. |
-| Pillconvert | **Release** | a cog to upload any colour pill image. |
 | Weather | **Release** | check the current weather in many cities around the world including in Kelvin. |
 | Starboad | **Release** | add a starboard channel with custom reaction's. |
 | Imgflip | **release** | A recreation of the meme generator from red V1. |
@@ -29,7 +28,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | ServerStats | **Release** | This cog provides a ton of useful development functions for gathering channel data and user data as well as providing a way to setup a channel to monitor which servers are adding the bot. |
 | Runescape | **Beta** | a cog to grab Runescape 3 stats and profile information. |
 | Fun | **Release**| The fun cog from Appu's Selfbot rewritten for redbot V3 including adding reactions and other "fun" commands. |
-| Trump | **Release**| <details><summary>Make your own Declaration signed by Trump.</summary>Code is from http://isnowillegal.com/ and made to work on redbot</details> |
+
 
 ## Works in Progress
 *These Cogs are a work in progress and have limited to no functionality at the moment. Feel free to leave ideas or suggestions!*

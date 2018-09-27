@@ -1,8 +1,17 @@
 {
-    "AUTHOR" : "R.Danny",
-    "DESCRIPTION" : "made the dev commands an importable cog using legacy sudo command",
-    "DISABLED" : false,
-    "INSTALL_MSG" : "Separate loadable dev functions instead of --dev startup command",
-    "NAME" : "Dev",
-    "SHORT" : "Developer commands"
+    "author" : [
+        "R.Danny"
+    ],
+    "description" : "made the dev commands an importable cog using legacy sudo command",
+    "install_msg" : "Separate loadable dev functions instead of --dev startup command",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Dev",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "Developer commands",
+    "tags" : []
 }
