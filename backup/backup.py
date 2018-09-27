@@ -17,9 +17,6 @@ class Backup:
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-
     def save_json(self, filename, data):
         """Atomically saves json file"""
         rnd = randint(1000, 9999)
@@ -115,3 +112,8 @@ class Backup:
                 await channel.send("0 messages saved from {}".format(chn.name))
                 pass
         await channel.send("{} messages saved from {}".format(total_msgs, guild.name))
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload

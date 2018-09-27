@@ -39,9 +39,6 @@ class QPosts:
         self.trips = ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE", "!CbboFOtcZs", "!A6yxsPKia.", "!2jsTvXXmX", "!!mG7VJxZNCI"]
         self.loop = bot.loop.create_task(self.get_q_posts())
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-        self.loop.cancel()
 
     async def authenticate(self):
         """Authenticate with Twitter's API"""
@@ -432,3 +429,8 @@ class QPosts:
         await self.config.twitter.set(api)
         await ctx.send('Set the access credentials!')
 
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+        self.loop.cancel()
+
+    __del__ = __unload

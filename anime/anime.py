@@ -29,11 +29,6 @@ class Anime:
         # self.airing = dataIO.load_json("data/anilist/airing.json")
         self.loop = bot.loop.create_task(self.check_airing_start())
 
-
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-        self.loop.cancel()
-
     @commands.group()
     async def anime(self, ctx):
         """Various anime related commands"""
@@ -353,3 +348,8 @@ class Anime:
         # dataIO.save_json("data/anilist/settings.json", self.settings)
         await ctx.send('Set the access credentials!')
 
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+        self.loop.cancel()
+
+    __del__ = __unload
