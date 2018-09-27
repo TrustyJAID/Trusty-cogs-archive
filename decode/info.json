@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "General commands",
-    "DESCRIPTION" : "DNA and binary encoding/decoding of messages",
-    "DISABLED" : false,
-    "NAME" : "decode",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Thanks for installing!"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "DNA and binary encoding/decoding of messages",
+    "install_msg" : "Thanks for installing!",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "decode",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "General commands",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }

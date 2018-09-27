@@ -1,9 +1,21 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "General commands",
-    "DESCRIPTION" : "Get your Tarot reading done!",
-    "DISABLED" : false,
-    "NAME" : "TarotReading",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Usage: `[p]tarots life` `[p]tarots reading` `[p]tarots card`"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Get your Tarot reading done!",
+    "install_msg" : "Usage: `[p]tarots life` `[p]tarots reading` `[p]tarots card`",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "TarotReading",
+    "permissions" : ["embed_links"],
+    "requirements" : [],
+    "short" : "General commands",
+    "tags" : [
+        "general",
+        "fun",
+        "tarot"
+    ]
 }
