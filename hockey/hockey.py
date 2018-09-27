@@ -43,10 +43,6 @@ class Hockey:
         self.headshots = "https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg"
         self.loop = bot.loop.create_task(self.get_team_goals())
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-        self.loop.cancel()
-
     ##############################################################################
     # Here is all the logic for gathering game data and updating information
 
@@ -1145,3 +1141,8 @@ class Hockey:
         else:
             await ctx.message.channel.send( "{} is not an NHL team or Player!".format(search))
 
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+        self.loop.cancel()
+
+    __del__ = __unload

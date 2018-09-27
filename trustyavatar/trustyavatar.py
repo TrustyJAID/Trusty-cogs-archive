@@ -24,9 +24,6 @@ class TrustyAvatar:
                     "angry": {"status":discord.Status.dnd, "game":["Hitchhickers May Be Escaping Inmates"], "type":self.activities},
                     "watching": {"status":discord.Status.dnd, "game":[" "], "type":[discord.ActivityType.watching]},
                    }
-    
-    def __unload(self):
-        self.loop.cancel()
 
     @commands.command()
     @checks.is_owner()
@@ -59,3 +56,8 @@ class TrustyAvatar:
                 print(e)
             
             await asyncio.sleep(randint(1000, 1500))
+
+    def __unload(self):
+        self.loop.cancel()
+
+    __del__ = __unload

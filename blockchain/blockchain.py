@@ -35,9 +35,6 @@ class blockchain:
                     ip=self.login_data["ip"],
                     port=self.login_data["port"])
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-
     async def get_block_height(self):
         params = json.dumps({"jsonrpc":"1.1","method":"getblockcount","id":self.request_id})
         async with self.session.post(self.url, data=params) as resp:
@@ -293,6 +290,11 @@ class blockchain:
                 data = None
                 print('Error: {}'.format(e), file=sys.stderr)
             return data
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload
 
 
 def setup(bot):

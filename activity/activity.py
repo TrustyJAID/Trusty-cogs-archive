@@ -26,9 +26,6 @@ class ActivityChecker():
         self.units = {"minute" : 60, "hour" : 3600, "day" : 86400, "week": 604800, "month": 2592000}
         self.activitycheck = bot.loop.create_task(self.activity_checker())
 
-    def __unload(self):
-        self.activitycheck.cancel()
-
     async def get_role(self, guild, role_id):
         role_return = None
         for role in guild.roles:
@@ -437,3 +434,8 @@ class ActivityChecker():
                 await self.config.guild(guild).members.set(member_list)
             else:
                 return
+
+    def __unload(self):
+        self.activitycheck.cancel()
+
+    __del__ = __unload
