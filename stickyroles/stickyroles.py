@@ -12,7 +12,7 @@ default = {
 
 
 class StickyRoles:
-    """Reapplies specific roles on join"""
+    """Reapplies specific roles on join. Rewritten for V3 from https://github.com/Twentysix26/26-Cogs/blob/master/stickyroles/stickyroles.py"""
 
     def __init__(self, bot):
         self.bot = bot

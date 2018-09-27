@@ -29,7 +29,7 @@ class OutdatedCredentials(CleverbotError):
 
 
 class Cleverbot():
-    """Cleverbot"""
+    """Cleverbot rewritten for V3 from https://github.com/Twentysix26/26-Cogs/tree/master/cleverbot"""
 
     def __init__(self, bot):
         self.bot = bot
