@@ -1,6 +1,7 @@
 {
     "author" : [
-        "Twentysix/TrustyJAID"
+        "Twentysix",
+        "TrustyJAID"
     ],
     "description" : "Recreation of Red v1 meme generator",
     "install_msg" : "Recreation of Red v1 meme generator cog!",
