@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageColor, ImageSequence
 import numpy as np
 import os
 import json
+from copy import copy
 
 
 try:
@@ -64,74 +65,57 @@ class ImageMaker:
         if not TRUMP:
             await ctx.send("The bot owner needs to run `pip3 install opencv-python` to run this command")
             return
-        task = functools.partial(self.make_trump_gif, text=message)        
-        task = self.bot.loop.run_in_executor(None, task)
-        try:
-            temp = await asyncio.wait_for(task, timeout=60)
-        except asyncio.TimeoutError:
-            return
-        image = discord.File(temp)
-        await ctx.send(file=image)
+        async with ctx.channel.typing():
+            task = functools.partial(self.make_trump_gif, text=message)        
+            task = self.bot.loop.run_in_executor(None, task)
+            try:
+                temp = await asyncio.wait_for(task, timeout=60)
+            except asyncio.TimeoutError:
+                return
+            image = discord.File(temp)
+            await ctx.send(file=image)
 
-    @commands.command(aliases=["rp"])
+    @commands.command()
     async def redpill(self, ctx):
         """Red Pill"""
-        pill_image = await self.make_colour("#FF0000")
-        if pill_image is None:
-                await ctx.send("Something went wrong sorry!")
-                return
-        image = discord.File(pill_image)
-        await ctx.send(file=image)
+        msg = copy(ctx.message)
+        msg.content = ctx.prefix + "pill #FF0000"
+        ctx.bot.dispatch("message", msg)
 
-    @commands.command(aliases=["bp"])
+    @commands.command()
     async def bluepill(self, ctx):
         """Blue Pill"""
-        pill_image = await self.make_colour("#0000FF")
-        if pill_image is None:
-                await ctx.send("Something went wrong sorry!")
-                return
-        image = discord.File(pill_image)
-        await ctx.send(file=image)
+        msg = copy(ctx.message)
+        msg.content = ctx.prefix + "pill #0000FF"
+        ctx.bot.dispatch("message", msg)
 
-    @commands.command(aliases=["blp"])
+    @commands.command()
     async def blackpill(self, ctx):
         """Black Pill"""
-        pill_image = await self.make_colour("#008000")
-        if pill_image is None:
-                await ctx.send("Something went wrong sorry!")
-                return
-        image = discord.File(pill_image)
-        await ctx.send(file=image)
+        msg = copy(ctx.message)
+        msg.content = ctx.prefix + "pill #000000"
+        ctx.bot.dispatch("message", msg)
 
-    @commands.command(aliases=["pp"])
+    @commands.command()
     async def purplepill(self, ctx):
         """Purple Pill"""
-        pill_image = await self.make_colour("#800080")
-        if pill_image is None:
-                await ctx.send("Something went wrong sorry!")
-                return
-        image = discord.File(pill_image)
-        await ctx.send(file=image)
+        msg = copy(ctx.message)
+        msg.content = ctx.prefix + "pill #800080"
+        ctx.bot.dispatch("message", msg)
 
-    @commands.command(aliases=["yp"])
+    @commands.command()
     async def yellowpill(self, ctx):
         """Yellow Pill"""
-        pill_image = await self.make_colour("#FFFF00")
-        if pill_image is None:
-                await ctx.send("Something went wrong sorry!")
-                return
-        image = discord.File(pill_image)
-        await ctx.send(file=image)
+        msg = copy(ctx.message)
+        msg.content = ctx.prefix + "pill #FFFF00"
+        ctx.bot.dispatch("message", msg)
 
-    @commands.command(aliases=["gp"])
+    @commands.command()
     async def greenpill(self, ctx):
         """Green Pill"""
-        pill_image = await self.make_colour("#008000")
-        if pill_image is None:
-                await ctx.send("Something went wrong sorry!")
-                return
-        image = discord.File(pill_image)
-        await ctx.send(file=image)
+        msg = copy(ctx.message)
+        msg.content = ctx.prefix + "pill #008000"
+        ctx.bot.dispatch("message", msg)
 
     async def make_colour(self, colour):
         task = functools.partial(self.colour_convert,colour=colour)
@@ -146,13 +130,13 @@ class ImageMaker:
     @commands.command()
     async def pill(self, ctx, colour="#FF0000"):
         """Converts the pill to any colour with hex codes like #FF0000"""
-        await ctx.trigger_typing()
-        pill_image = await self.make_colour(colour)
-        if pill_image is None:
-                await ctx.send("Something went wrong sorry!")
-                return
-        image = discord.File(pill_image)
-        await ctx.send(file=image)
+        async with ctx.channel.typing():
+            pill_image = await self.make_colour(colour)
+            if pill_image is None:
+                    await ctx.send("Something went wrong sorry!")
+                    return
+            image = discord.File(pill_image)
+            await ctx.send(file=image)
 
     def make_beautiful_gif(self, avatar):
         gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
