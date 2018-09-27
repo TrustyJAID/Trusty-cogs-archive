@@ -14,6 +14,7 @@
     "requirements" : [],
     "short" : "Backup all channel messages on a server.",
     "tags" : [
-        "utility"
+        "utility",
+        "tools"
     ]
 }

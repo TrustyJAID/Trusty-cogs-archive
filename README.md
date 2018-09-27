@@ -35,7 +35,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 | Name | Status | Description (Click to see full status)
 | --- | --- | --- |
-| Anime | **Alpha**| A cog that gets what current anime episodes are airing and posts them on discord when they start airing. |
+| Anime | **Alpha**| <details><summary>A cog that gets what current anime episodes are airing and posts them on discord when they start airing.</summary> There was an update to the API being used and I need to rewrite for the new API.</details> |
 | Halo | **Work in Progress**| Cogs for accessing information from the Halo video games API systems. |
 | Notsobot | **Work in Progress**| Work on converting some notsobot commands to redbot. Hopefully avoiding Image Magick. |
 
@@ -70,3 +70,5 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Unity4J | **Release** | Hard coded cog for one server. Do not use. |
 
 Any questions you can find me and TrustyBot over on https://discord.gg/wVVrqej
+
+Shout out to everyone who has given me ideas or helped me create these cogs!

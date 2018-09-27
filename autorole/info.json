@@ -1,0 +1,20 @@
+{
+    "author" : [
+        "Lunar Dust",
+        "TrustyJAID"
+    ],
+    "description" : "Automatically apply a role to new users",
+    "install_msg" : "autorole",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "autorole",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "Automatically apply a role to new users",
+    "tags" : [
+        "autorole"
+    ]
+}
