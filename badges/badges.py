@@ -29,9 +29,6 @@ class Badges:
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-
     def remove_white_barcode(self, img):
         """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
         img = img.convert("RGBA")
@@ -238,4 +235,7 @@ class Badges:
             em.add_field(name="Global Badges", value=", ".join(badge["badge_name"] for badge in guild_badges))
         await ctx.send(embed=em)
     
-    
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload

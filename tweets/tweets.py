@@ -70,11 +70,6 @@ class Tweets:
         self.mystream = None
         self.loop = bot.loop.create_task(self.start_stream())
 
-    def __unload(self):
-        self.mystream.disconnect()
-        self.loop.cancel()
-
-
     async def start_stream(self):
         await self.bot.wait_until_ready()
         while self is self.bot.get_cog("Tweets"):
@@ -647,3 +642,9 @@ class Tweets:
                'access_token': access_token, 'access_secret': access_secret}
         await self.config.api.set(api)
         await ctx.send('Set the access credentials!')
+
+    def __unload(self):
+        self.mystream.disconnect()
+        self.loop.cancel()
+
+    __del__ = __unload

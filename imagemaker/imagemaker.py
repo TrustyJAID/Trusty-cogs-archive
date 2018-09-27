@@ -26,9 +26,6 @@ class ImageMaker:
         self.textFont = None
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-
     async def dl_image(self, url):
         async with self.session.get(url) as resp:
             test = await resp.read()
@@ -402,3 +399,8 @@ class ImageMaker:
     def cvImageToPillow(self, cvImage):
         cvImage = cv2.cvtColor(cvImage, cv2.COLOR_BGR2RGB)
         return Image.fromarray(cvImage)
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload
