@@ -297,7 +297,9 @@ async def game_embed(post_list, page):
                 ordinal = goals
                 goal_msg = ""
                 for goal in list_goals[ordinal]:
-                    goal_msg += "{} Goal By {}\n\n".format(goal["team"]["name"], goal["result"]["description"])
+                    team = goal["team"]["name"]
+                    emoji = teams[team]["emoji"]
+                    goal_msg += "<:{}>{} Goal By {}\n\n".format(emoji, team, goal["result"]["description"])
                 if goal_msg != "":
                     em.add_field(name="{} Period Goals".format(ordinal), value=goal_msg)
         if data.game_state == "Live":
