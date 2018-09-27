@@ -28,9 +28,6 @@ class AddImage:
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-
     async def first_word(self, msg):
         return msg.split(" ")[0].lower()
 
@@ -310,3 +307,8 @@ class AddImage:
             if msg.content.lower().strip() == "exit":
                 await ctx.send("Image adding cancelled.")
                 break
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload

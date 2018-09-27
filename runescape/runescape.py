@@ -20,10 +20,6 @@ class Runescape:
         self.config.register_user(**default)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
-
-
     @commands.group(name="runescape", aliases=["rs"])
     async def runescape(self, ctx):
         """Search for a user account or profile"""
@@ -145,5 +141,7 @@ class Runescape:
             # em.set_footer(text="Offline", icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Red_pog.svg/64px-Red_pog.svg.png")
         return em
 
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
 
-
+    __del__ = __unload

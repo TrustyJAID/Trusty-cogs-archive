@@ -20,9 +20,6 @@ class Reee:
         default_guild = {"zio":False, "reee":False, "tank":False}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-
-    def __unload(self):
-        self.bot.loop.create_task(self.session.close())
     
     async def on_message(self, message):
         if message.guild is None:
@@ -121,3 +118,8 @@ class Reee:
         else:
             await self.config.guild(guild).tank.set(False)
             await ctx.send("I will not post tank images on this guild now.")
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload
