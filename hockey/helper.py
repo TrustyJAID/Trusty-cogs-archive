@@ -120,8 +120,8 @@ async def check_valid_team(team_name, standings=False):
             is_team.append(team)
     return is_team
 
-def utc_to_local(utc_dt):
-    eastern = pytz.timezone('US/Eastern')
+def utc_to_local(utc_dt, new_timezone='US/Eastern'):
+    eastern = pytz.timezone(new_timezone)
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=eastern)
 
 async def get_chn_name(game):
