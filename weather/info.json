@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Weather",
-    "DESCRIPTION" : "Gathers weather data for a city.",
-    "DISABLED" : false,
-    "NAME" : "weather",
-    "TAGS" : ["weather"],
-    "INSTALL_MSG" : "gathers weather data."
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Gathers weather data for a city.",
+    "install_msg" : "gathers weather data.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "weather",
+    "permissions" : ["embed_links"],
+    "requirements" : [],
+    "short" : "Weather",
+    "tags" : [
+        "weather",
+        "utility"
+    ]
 }
