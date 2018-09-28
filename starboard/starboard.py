@@ -4,6 +4,7 @@ from redbot.core import checks
 from redbot.core import commands
 from .message_entry import StarboardMessage
 import re
+from copy import copy
 
 class Starboard:
 
@@ -268,47 +269,14 @@ class Starboard:
         channel = msg.channel
         author = msg.author        
         if msg.embeds != []:
-            embed = msg.embeds[0].to_dict()
-            em = discord.Embed(timestamp=msg.created_at)
-            if "title" in embed:
-                em.title = embed["title"]
-            if "thumbnail" in embed:
-                em.set_thumbnail(url=embed["thumbnail"]["url"])
-            if "description" in embed:
-                em.description = "{} {}".format(msg.clean_content, embed["description"])
-            if "description" not in embed:
-                em.description = msg.clean_content
-            if "url" in embed:
-                em.url = embed["url"]
-            if "footer" in embed:
-                em.set_footer(text=embed["footer"]["text"])
-            if "author" in embed:
-                postauthor = embed["author"]
-                if "icon_url" in postauthor:
-                    em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
+            em = msg.embeds[0]
+            if msg.content != "":
+                if em.description != "Embed.Empty":
+                    em.description = "{}\n\n{}".format(msg.content, em.description)
                 else:
-                    em.set_author(name=postauthor["name"])
-            if "author" not in embed:
-                em.set_author(name=author.name, icon_url=author.avatar_url)
-            if "color" in embed:
-                em.color = embed["color"]
-            if "color" not in embed:
-                em.color = author.top_role.color
-            if "image" in embed:
-                em.set_image(url=embed["image"]["url"])
-            if embed["type"] == "image":
-                em.type = "image"
-                if ".png" in embed["url"] or ".jpg" in embed["url"]:
-                    em.set_thumbnail(url="")
-                    em.set_image(url=embed["url"])
-                else:
-                    em.set_thumbnail(url=embed["url"])
-                    em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
-            if embed["type"] == "gifv":
-                em.type = "gifv"
-                em.set_thumbnail(url=embed["url"])
-                em.set_image(url=embed["url"]+".gif")
-            
+                    em.description = msg.content
+                if not author.bot:
+                    em.set_author(name=author.display_name, icon_url=author.avatar_url)
         else:
             em = discord.Embed(timestamp=msg.created_at)
             try:
@@ -320,6 +288,7 @@ class Starboard:
             em.set_author(name=author.display_name, icon_url=author.avatar_url)
             if msg.attachments != []:
                 em.set_image(url=msg.attachments[0].url)
+        em.timestamp = msg.created_at
         em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
         return em
 
