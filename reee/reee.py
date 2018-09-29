@@ -53,8 +53,13 @@ class Reee:
             
     async def change_size_reee(self, size):
         length, width = self.smallest
-        im = Image.open(str(bundled_data_path(self)) + "/reee.png")
-        im.thumbnail((length*size, width*size), Image.ANTIALIAS)
+        if size <=10:
+            im = Image.open(str(bundled_data_path(self)) + "/reee.png")
+            im.thumbnail((length*size, width*size), Image.ANTIALIAS)
+        else:
+            size = size-10
+            im = Image.open(str(bundled_data_path(self)) + "/reee2.png")
+            im.thumbnail((length*size, width*size), Image.ANTIALIAS)
         # im.save("data/reee/newreee.png")
         byte_array = io.BytesIO()
         im.save(byte_array, format="PNG")
