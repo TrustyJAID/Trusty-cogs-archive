@@ -9,7 +9,7 @@
         6,
         6
     ],
-    "name" : "activity",
+    "name" : "Mock",
     "permissions" : ["embed_links"],
     "requirements" : [],
     "short" : "Mock another user!",
