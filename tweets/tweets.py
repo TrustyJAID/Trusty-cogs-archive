@@ -206,28 +206,30 @@ class Tweets:
     @_tweets.command(no_pm=True, name='getuser')
     async def get_user(self, ctx, username: str):
         """Get info about the specified user"""
-        message = ""
-        if username is not None:
+        try:
             api = await self.authenticate()
             user = api.get_user(username)
-            url = "https://twitter.com/" + user.screen_name
-            emb = discord.Embed(title=user.name,
-                                colour=discord.Colour(value=self.random_colour()),
-                                url=url,
-                                description=user.description)
-            emb.set_thumbnail(url=user.profile_image_url)
-            emb.add_field(name="Followers", value=user.followers_count)
-            emb.add_field(name="Friends", value=user.friends_count)
-            if user.verified:
-                emb.add_field(name="Verified", value="Yes")
-            else:
-                emb.add_field(name="Verified", value="No")
-            footer = "Created at " + user.created_at.strftime("%Y-%m-%d %H:%M:%S")
-            emb.set_footer(text=footer)
-            await ctx.send(ctx.message.channel, embed=emb)
-        else:
-            message = "Uh oh, an error occurred somewhere!"
-            await ctx.send(message)
+        except tw.error.TweepError as e:
+            await ctx.send(e)
+            return
+        profile_url = "https://twitter.com/" + user.screen_name
+        description = str(user.description)
+        for url in user.entities["description"]["urls"]:
+            if str(url["url"]) in description:
+                description = description.replace(url["url"], str(url["expanded_url"]))
+        emb = discord.Embed(colour=discord.Colour(value=self.random_colour()),
+                            url=profile_url,
+                            description=str(description),
+                            timestamp=user.created_at)
+        emb.set_author(name=user.name, url=profile_url, icon_url=user.profile_image_url)
+        emb.set_thumbnail(url=user.profile_image_url)
+        emb.add_field(name="Followers", value=user.followers_count)
+        emb.add_field(name="Friends", value=user.friends_count)
+        if user.verified:
+            emb.add_field(name="Verified", value="Yes")
+        footer = "Created at "
+        emb.set_footer(text=footer)
+        await ctx.send(embed=emb)
 
     @_tweets.command(no_pm=True, name='gettweets')
     async def get_tweets(self, ctx, username: str, count: int = 10):
