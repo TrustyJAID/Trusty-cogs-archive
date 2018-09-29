@@ -44,7 +44,8 @@ class ModLogs:
                 e.add_field(name="guild", value=str(await self.config.guild(guild).toggleguild()))
                 e.set_thumbnail(url=guild.icon_url)
                 await ctx.send(embed=e)
-            except KeyError:
+            except Exception as e:
+                print(e)
                 return
 
     @checks.admin_or_permissions(administrator=True)
