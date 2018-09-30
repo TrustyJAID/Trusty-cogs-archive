@@ -21,7 +21,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Mock | **Release** | Mock the user who last posted! |
 | Translate | **Release** | Add flag emojis to messages to translate to that language or translate messages by command. (Uses Google Translate and may incur some fees) |
 | AddImage | **Release** | <details><summary>Allows you to add images to be posted on command.</summary> Stores the image in the bot folder then uploads the image directly. Owners may add images globally.</details> |
-| Reee | **Release** | <details><summary>Posts various sized images based on specific triggered command lengths.</summary> May be customized manually for different images or by default express ones true rage.</details> |
+| Triggersize | **Release** | <details><summary>Posts various sized images based on specific triggered command lengths.</summary> May be customized manually for different images or by default express ones true rage.</details> |
 | Decode | **Release** | Allows one to encode or decode in Binary and DNA sequencing (ACGT). |
 | Compliment | **Release** | Compliment a user! |
 | Activity | **Release** |  Track users posting on a server and kick people who have been inactive for the set time. |
