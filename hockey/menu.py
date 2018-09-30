@@ -2,7 +2,6 @@ import asyncio
 import discord
 import aiohttp
 from redbot.core.commands import Context
-from redbot.core.utils.embed import randomize_colour
 from .embeds import *
 
 numbs = {

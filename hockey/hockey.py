@@ -3,6 +3,7 @@ import aiohttp
 import asyncio
 import json
 from datetime import datetime
+from io import BytesIO
 from redbot.core import commands, checks, Config
 from .teams import teams
 from .teamentry import TeamEntry
@@ -18,7 +19,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 __author__ = "TrustyJAID"
 
 class Hockey:
@@ -1073,7 +1074,8 @@ class Hockey:
         if search != "all":
             await hockey_menu(ctx, "standings", standings, None, page)
         else:
-            await hockey_menu(ctx, "all", standings, None, page)
+            await hockey_menu(ctx, "all", standings, None, page) 
+
 
     @hockey_commands.command(aliases=["score"])
     async def games(self, ctx, *, team=None):
@@ -1140,6 +1142,56 @@ class Hockey:
             await hockey_menu(ctx, "roster", players)
         else:
             await ctx.message.channel.send( "{} is not an NHL team or Player!".format(search))
+
+    @hockey_commands.command(aliases=["link", "invite"])
+    async def otherdiscords(self, ctx, team):
+        """Gets the Specified teams discord server link"""
+        if team not in ["all", "page"]:
+            team_search = await check_valid_team(team)
+            if team_search == []:
+                await ctx.message.channel.send( "{} Does not appear to be an NHL team!".format(team))
+                return
+            if len(team_search) > 1:
+                team = await pick_team(ctx, team_search)
+            else:
+                team = team_search[0]
+            await ctx.send(teams[team]["invite"])
+        else:
+            if not ctx.channel.permissions_for(ctx.message.author).manage_messages:
+                # Don't need everyone spamming this command
+                return
+            atlantic = [team for team in teams if teams[team]["division"] == "Atlantic"]
+            metropolitan = [team for team in teams if teams[team]["division"] == "Metropolitan"]
+            central = [team for team in teams if teams[team]["division"] == "Central"]
+            pacific = [team for team in teams if teams[team]["division"] == "Pacific"]
+            team_list = {"Atlantic":atlantic, "Metropolitan":metropolitan, "Central":central, "Pacific":pacific}
+            msg1 = "__**Hockey Discord Master List**__\n```fix\n- Do not join other discords to troll.\n- Respect their rules & their members (Yes even the leafs & habs unfortunately).\n- We don't control the servers below. If you get banned we can not get you unbanned.\n- Don't be an asshole because then we all look like assholes. They won't see it as one asshole fan they will see it as a toxic fanbase.\n- Salt levels may vary. Your team is the best here but don't go on another discord and preach it to an angry mob after we just won.\n- Not following the above rules will result in appropriate punishments ranging from a warning to a ban. ```\n\nhttps://discord.gg/reddithockey"
+            eastern_conference = "https://i.imgur.com/CtXvcCs.png"
+            western_conference = "https://i.imgur.com/UFYJTDF.png"
+            async with self.session.get(eastern_conference) as resp:
+                data = await resp.read()
+            logo = BytesIO()
+            logo.write(data)
+            logo.seek(0)
+            image = discord.File(logo, filename="eastern_logo.png")
+            await ctx.send(msg1, file=image)
+            for division in team_list:
+                if division == "Central":
+                    async with self.session.get(western_conference) as resp:
+                        data = await resp.read()
+                    logo = BytesIO()
+                    logo.write(data)
+                    logo.seek(0)
+                    image = discord.File(logo, filename="western_logo.png")
+                    await ctx.send(file=image)
+                div_emoji = "<:" + teams["Team {}".format(division)]["emoji"] + ">"
+                msg = "{0} __**{1} DIVISION**__ {0}".format(div_emoji, division.upper())
+                await ctx.send(msg)
+                for team in team_list[division]:
+                    team_emoji = "<:" + teams[team]["emoji"] + ">"
+                    team_link = teams[team]["invite"]
+                    msg = "{0} {1} {0}".format(team_emoji, team_link)
+                    await ctx.send(msg)
 
     def __unload(self):
         self.bot.loop.create_task(self.session.close())
