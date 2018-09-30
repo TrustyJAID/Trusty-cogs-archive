@@ -9,7 +9,7 @@ from PIL import Image
 
 
 
-class Reee:
+class Triggersize:
 
     def __init__(self, bot):
         self.bot = bot
@@ -17,7 +17,7 @@ class Reee:
         self.start_size = (1024, 1024)
         self.smallest = (32, 32)
         self.config = Config.get_conf(self, 1545234853)
-        default_guild = {"zio":False, "reee":False, "tank":False}
+        default_guild = {"zio":False, "reee":False, "tank":False, "christian":False}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
     
@@ -50,6 +50,10 @@ class Reee:
                     await channel.trigger_typing()
                     file = await self.change_size_tank(len(word)-3, guild)
                     await message.channel.send(file=file)
+        if "fuck" in msg.lower() and await self.config.guild(guild).christian():
+            async with channel.typing():
+                file = discord.File(str(bundled_data_path(self)) + "/christian.jpg")
+                await channel.send(file=file)
             
     async def change_size_reee(self, size):
         length, width = self.smallest
@@ -111,6 +115,18 @@ class Reee:
         else:
             await self.config.guild(guild).zio.set(False)
             await ctx.send("I will not post zio images on this guild now.")
+
+    @commands.command(pass_context=True)
+    @checks.mod_or_permissions(manage_channels=True)
+    async def setchristian(self, ctx):
+        """Posts various sized zio's when zioo isposted"""
+        guild = ctx.message.guild
+        if not await self.config.guild(guild).christian():
+            await self.config.guild(guild).christian.set(True)
+            await ctx.send("I will post this is a christian server images on this guild now.")
+        else:
+            await self.config.guild(guild).christian.set(False)
+            await ctx.send("I will not post this is a christian server images on this guild now.")
 
     @commands.command(pass_context=True)
     @checks.mod_or_permissions(manage_channels=True)
