@@ -41,7 +41,8 @@ async def game_state_text(data):
 async def make_rules_embed(guild, team, rules):
     warning = "***Any violation of the [discord TOS](https://discordapp.com/terms) or [Community Guidelines](https://discordapp.com/guidelines) will result in immediate banning and possibly reported to discord.***"
     em = discord.Embed(colour=int(teams[team]["home"].replace("#", ""), 16))
-    em.add_field(name="__RULES__", value=rules)
+    em.description = rules
+    em.title = "__RULES__"
     em.add_field(name="__**WARNING**__", value=warning)
     em.set_thumbnail(url=guild.icon_url)
     em.set_author(name=guild.name, icon_url=guild.icon_url)
