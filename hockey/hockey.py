@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.1.3"
+__version__ = "2.1.4"
 __author__ = "TrustyJAID"
 
 class Hockey:
@@ -1147,18 +1147,24 @@ class Hockey:
     @hockey_commands.command(hidden=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def rules(self, ctx):
+        if not ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            return
         rules = await self.config.guild(ctx.guild).rules()
         team = await self.config.guild(ctx.guild).team_rules()
         if rules == "":
             return
         em = await make_rules_embed(ctx.guild, team, rules)
-        await ctx.message.delete()
+        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+            await ctx.message.delete()
         await ctx.send(embed=em)
 
     @hockey_commands.command(hidden=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def setrules(self, ctx, team, *, rules):
         """Set the main rules page for the nhl rules command"""
+        if not ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            await ctx.send("I need embed_links for this to work.")
+            return
         team_search = await check_valid_team(team)
         if team_search == []:
             await ctx.message.channel.send( "{} Does not appear to be an NHL team!".format(team))
