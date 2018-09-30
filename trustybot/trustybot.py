@@ -98,13 +98,6 @@ class TrustyBot:
         msg = message.content
         channel = message.channel
         guild = message.guild
-        if "fuck" in msg.lower():
-            if guild is not None:
-                if guild.id in [321105104931389440, 402161292644712468]:
-                    async with channel.typing():
-                        file = discord.File(str(bundled_data_path(self)) + "/christian.jpg")
-                        await channel.send(file=file)
-
         try:
             prefix = await self.get_prefix(message)
         except ValueError:
