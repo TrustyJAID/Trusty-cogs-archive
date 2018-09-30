@@ -50,28 +50,6 @@ class TrustyBot:
         await ctx.send(embed=em)
 
     @commands.command(hidden=True)
-    @checks.is_owner()
-    async def oilersrules(self, ctx):
-        rules = """1. Don't be a *complete* jerk - We're here to have fun and discuss the <@&381573564408791040> and their Triumphs and Defeats!\n
-2. No sharing of personal or confidential information of others - This is a [discord Terms of Service](https://discordapp.com/terms) violation and can result in immediate ban.\n
-3. Anything deemed NSFW by a <@&381578067304251404> can and will be deleted as per discords [Community Guidelines](https://discordapp.com/guidelines).\n
-4. Do not harass or threaten other memebers, this extends to other discord servers - This is another [discord TOS](https://discordapp.com/terms) violation.\n
-5. <@&381578067304251404> action is at the discretion of a <@&381578067304251404> and changes may be made without warning to your privliges. Don't get any penalty's.\n
-***Any violation of the [discord TOS](https://discordapp.com/terms) or [Community Guidelines](https://discordapp.com/guidelines) will result in immediate banning and possible report to discord.***\n
-"""
-        roles = """Type `;hockey role <teamname, division, or conference>` in <#381582160710205441> to get the specified team role and colour and access to live goal update channels\n
-Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on team goals
-"""
-        em = discord.Embed(colour=int("FF4C00", 16))
-        em.add_field(name="__RULES__", value=rules)
-        em.add_field(name="__Teams/Roles__", value=roles)
-        # em.set_image(url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
-        em.set_thumbnail(url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
-        em.set_author(name=ctx.guild.name, icon_url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
-        await ctx.message.delete()
-        await ctx.send(embed=em)
-
-    @commands.command(hidden=True)
     async def warfarerules(self, ctx):
         rules = """1. **Meme Warfare** is your "*File Cabinet*" for members to *deposit* and *withdraw* memes. If you would like to post memes, ask an <@&402164942192640001> for the *Poster* role.\n
 2. The meme channels are ***ONLY*** for Memes. We would like to keep the channels free from conversations as we need to grab the memes and "go fast".\n
