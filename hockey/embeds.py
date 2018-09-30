@@ -1,8 +1,6 @@
-import asyncio
 import discord
 import aiohttp
 from datetime import datetime
-from redbot.core.commands import Context
 from .teams import teams
 from .game import Game
 from .helper import *

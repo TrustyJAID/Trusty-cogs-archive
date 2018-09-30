@@ -1,8 +1,3 @@
-from typing import Tuple
-from redbot.core import commands
-
-import discord
-default_team = {"channel":[], "created_channel":[], "goal_id":{}, "game_state":"Null", "period":0, "game_start":""}
 class TeamEntry:
     def __init__(self, game_state:str, team_name: str, period:int,
                  channel: list, goal_id: dict, created_channel:list, game_start:str):
