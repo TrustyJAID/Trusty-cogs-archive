@@ -34,7 +34,8 @@ class Hockey:
         team_entry = TeamEntry("Null", "all", 0, [], {}, [], "")
         default_global["teams"].append(team_entry.to_json())
         default_guild = {"standings_channel":None, "standings_type":None, "post_standings":False, "standings_msg":None,
-                         "create_channels":False, "category":None, "gdc_team":None, "gdc":[], "delete_gdc":True}
+                         "create_channels":False, "category":None, "gdc_team":None, "gdc":[], "delete_gdc":True,
+                         "rules":"", "team_rules":""}
         default_channel = {"team":[], "to_delete":False}
 
         self.config = Config.get_conf(self, 13457745779)
@@ -1142,6 +1143,34 @@ class Hockey:
             await hockey_menu(ctx, "roster", players)
         else:
             await ctx.message.channel.send( "{} is not an NHL team or Player!".format(search))
+
+    @hockey_commands.command(hidden=True)
+    @checks.mod_or_permissions(manage_messages=True)
+    async def rules(self, ctx):
+        rules = await self.config.guild(ctx.guild).rules()
+        team = await self.config.guild(ctx.guild).team_rules()
+        if rules == "":
+            return
+        em = await make_rules_embed(ctx.guild, team, rules)
+        await ctx.message.delete()
+        await ctx.send(embed=em)
+
+    @hockey_commands.command(hidden=True)
+    @checks.mod_or_permissions(manage_messages=True)
+    async def setrules(self, ctx, team, *, rules):
+        """Set the main rules page for the nhl rules command"""
+        team_search = await check_valid_team(team)
+        if team_search == []:
+            await ctx.message.channel.send( "{} Does not appear to be an NHL team!".format(team))
+            return
+        if len(team_search) > 1:
+            team = await pick_team(ctx, team_search)
+        else:
+            team = team_search[0]
+        await self.config.guild(ctx.guild).rules.set(rules)
+        await self.config.guild(ctx.guild).team_rules.set(team)
+        em = await make_rules_embed(ctx.guild, team, rules)
+        await ctx.send("Done, here's how it will look.", embed=em)
 
     @hockey_commands.command(aliases=["link", "invite"])
     async def otherdiscords(self, ctx, team):
