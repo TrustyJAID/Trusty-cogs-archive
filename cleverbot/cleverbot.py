@@ -116,7 +116,7 @@ class Cleverbot(commands.Cog):
             payload["key"] = await self.get_credentials()
             payload["cs"] = self.instances.get(str(author.id), "")
             payload["input"] = text
-            return await self.get_cleverbotcom_response(payload)
+            return await self.get_cleverbotcom_response(payload, author)
         except NoCredentials:
             payload["user"], payload["key"] = await self.get_io_credentials()
             payload["nick"] = str("{}#{}".format(author.name, author.discriminator))
@@ -146,7 +146,7 @@ class Cleverbot(commands.Cog):
                 raise APIError()
         return data["response"]
 
-    async def get_cleverbotcom_response(self, payload):
+    async def get_cleverbotcom_response(self, payload, author):
         async with self.session.get(API_URL, params=payload) as r:
             # print(r.status)
             if r.status == 200:
