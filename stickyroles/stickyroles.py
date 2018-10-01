@@ -11,7 +11,7 @@ default = {
 }
 
 
-class StickyRoles:
+class StickyRoles(commands.Cog):
     """Reapplies specific roles on join. Rewritten for V3 from https://github.com/Twentysix26/26-Cogs/blob/master/stickyroles/stickyroles.py"""
 
     def __init__(self, bot):

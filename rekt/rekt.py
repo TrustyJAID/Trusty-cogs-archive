@@ -89,7 +89,7 @@ rektlist = [
             ]
 
 
-class Rekt:
+class Rekt(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 

@@ -20,7 +20,7 @@ https://github.com/Rapptz/RoboDanny/blob/master/cogs/repl.py
 _ = Translator("Dev", __file__)
 
 
-class Dev:
+class Dev(commands.Cog):
     """Various development focused utilities."""
 
     def __init__(self, bot):
