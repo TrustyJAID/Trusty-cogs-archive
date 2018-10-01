@@ -21,7 +21,7 @@ Join the official development guild                https://discord.gg/uekTNPj
 '''
 
 
-class Translate:
+class Translate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)

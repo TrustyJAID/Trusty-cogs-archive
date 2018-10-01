@@ -4,7 +4,7 @@ import random
 from redbot.core import commands
 from . import faceslist
 
-class Faces:
+class Faces(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot

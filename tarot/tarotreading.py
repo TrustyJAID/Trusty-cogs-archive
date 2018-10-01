@@ -9,7 +9,7 @@ from random import choice
 import time
 
 
-class TarotReading:
+class TarotReading(commands.Cog):
     """It's time to get your fortune!!!"""
 
     def __init__(self, bot):

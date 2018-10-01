@@ -21,7 +21,7 @@ numbs = {
     "back": "⬅",
     "exit": "❌"
 }
-class QPosts:
+class QPosts(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot

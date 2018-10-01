@@ -13,7 +13,7 @@ import time
 
 BASE_URL = "https://api.twitch.tv/helix"
 
-class Twitch:
+class Twitch(commands.Cog):
 
     global_defaults = {"client_id":"", "client_secret":"", "access_token":{}, "twitch_accounts":[]}
     user_defaults = {"id": "", "login":"", "display_name":""}

@@ -10,7 +10,7 @@ import json
 import time
 from datetime import timedelta
 
-class ActivityChecker():
+class ActivityChecker(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
