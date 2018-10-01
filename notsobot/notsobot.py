@@ -565,7 +565,8 @@ class NotSoBot():
             for image in imgs:
                 try:
                     im = wand.image.Image(filename=image)
-                except:
+                except Exception as e:
+                    print(e)
                     continue
                 i = im.clone()
                 i.transform(resize='800x800>')
@@ -600,8 +601,8 @@ class NotSoBot():
                 return
             x = await ctx.message.channel.send( "ok, processing (this might take a while for big gifs)")
             rand = self.random()
-            gifin = gif_dir+'1_{0}.gif'.format(rand)
-            gifout = gif_dir+'2_{0}.gif'.format(rand)
+            gifin = gif_dir+'/1_{0}.gif'.format(rand)
+            gifout = gif_dir+'/2_{0}.gif'.format(rand)
             await self.download(url, gifin)
             if os.path.getsize(gifin) > 5000000 and ctx.message.author.id != self.bot.owner.id:
                 await ctx.send(":no_entry: `GIF Too Large (>= 5 mb).`")
@@ -609,23 +610,26 @@ class NotSoBot():
                 return
             try:
                 result = await self.bot.loop.run_in_executor(None, self.do_gmagik, ctx, gifin, gif_dir, rand)
-            except CancelledError:
+            except Exception as e:
+                print("Failing here")
+                print(e)
                 await ctx.send(':warning: Gmagik failed...')
                 return
             if type(result) == str:
                 await ctx.send(result)
                 return
             if framerate != None:
-                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'%d_{0}.png'.format(rand), '-r', framerate, gifout]
+                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'/%d_{0}.png'.format(rand), '-r', framerate, gifout]
             else:
-                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'%d_{0}.png'.format(rand), gifout]
+                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'/%d_{0}.png'.format(rand), gifout]
+            print(gifout)
             await self.run_process(args)
             file = discord.File(gifout, filename='gmagik.gif')
             await ctx.send(file=file)
             for image in glob.glob(gif_dir+"*_{0}.png".format(rand)):
                 os.remove(image)
-            os.remove(gifin)
-            os.remove(gifout)
+            # os.remove(gifin)
+            # os.remove(gifout)
             await x.delete()
         except Exception as e:
             print(e)
@@ -944,7 +948,7 @@ class NotSoBot():
                 return
             for url in get_images:
                 rand = self.random()
-                gif_dir = str(bundled_data_path(self)/'gascii/')
+                gif_dir = str(bundled_data_path(self)/'/gascii/')
                 location = gif_dir+'1_{0}.gif'.format(rand)
                 location2 = gif_dir+'2_{0}.gif'.format(rand)
                 x = await ctx.message.channel.send( "ok, processing")
@@ -964,7 +968,7 @@ class NotSoBot():
                         os.remove(image)
                     os.remove(location)
                     return
-                await self.run_process(['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', str(bundled_data_path(self)/'gascii/')+'%d_{0}.png'.format(rand), location2])
+                await self.run_process(['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', str(bundled_data_path(self)/'/gascii/')+'%d_{0}.png'.format(rand), location2])
                 await x.delete()
                 file = discord.File(location2, filename='gascii.gif')
                 await ctx.send(file=file)
@@ -1574,7 +1578,8 @@ class NotSoBot():
                 txt = "vapor wave"
             b = await self.bytes_download(url)
             final = await self.bot.loop.run_in_executor(None, self.do_vw, b, txt)
-            await self.bot.send_file(ctx.message.channel, final, filename='vapewave.png')
+            file = discord.File(final, filename='vapewave.png')
+            await ctx.send(file=file)
 
     @commands.command(pass_context=True)
     async def jagroshisgay(self, ctx, *, txt:str):
