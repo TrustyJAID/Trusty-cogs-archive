@@ -20,8 +20,10 @@ async def game_state_embed(data):
         home_str, away_str = await get_stats_msg(data)
     em.add_field(name=home_field, value=home_str, inline=True)
     em.add_field(name=away_field, value=away_str, inline=True)
-    em.colour = int(teams[data.home_team]["home"].replace("#", ""), 16)
-    home_url = teams[data.home_team]["team_url"]
+    colour = int(teams[data.home_team]["home"].replace("#", ""), 16)  if data.home_team in teams else None
+    if colour is not None:
+        em.colour = colour
+    home_url = teams[data.home_team]["team_url"]  if data.home_team in teams else "https://nhl.com"
     em.set_author(name=title, url=home_url, icon_url=data.home_logo)
     em.set_thumbnail(url=data.home_logo)
     em.set_footer(text="Game start ", icon_url=data.away_logo)
@@ -77,7 +79,6 @@ async def get_shootout_display(goals):
     return msg
 
 async def goal_post_embed(goal, game_data):
-    scoring_team = teams[goal["team"]["name"]]
     h_emoji = game_data.home_emoji
     a_emoji = game_data.away_emoji
     period_time_left = goal["about"]["periodTimeRemaining"]
@@ -97,13 +98,15 @@ async def goal_post_embed(goal, game_data):
     except KeyError:
         pass
     description = goal["result"]["description"]
-    colour = int(teams[goal["team"]["name"]]["home"].replace("#", ""), 16)
+    colour = int(teams[goal["team"]["name"]]["home"].replace("#", ""), 16)  if goal["team"]["name"] in teams else None
     title = "🚨 {} {} {} 🚨".format(goal["team"]["name"], strength, event)
-    url = teams[goal["team"]["name"]]["team_url"]
-    logo = teams[goal["team"]["name"]]["logo"]
+    url = teams[goal["team"]["name"]]["team_url"] if goal["team"]["name"] in teams else "https://nhl.com"
+    logo = teams[goal["team"]["name"]]["logo"] if goal["team"]["name"] in teams else "https://nhl.com"
     if not shootout:
         
-        em = discord.Embed(description=description, colour=colour)
+        em = discord.Embed(description=description)
+        if colour is not None:
+            em.colour = colour
         em.set_author(name=title, url=url, icon_url=logo)
         home_str = "Goals: **{}** \nShots: **{}**".format(game_data.home_score, game_data.home_shots)
         away_str = "Goals: **{}** \nShots: **{}**".format(game_data.away_score, game_data.away_shots)
@@ -129,7 +132,6 @@ async def goal_post_embed(goal, game_data):
     return em
 
 async def goal_post_text(goal, game_data):
-    scoring_team = teams[goal["team"]["name"]]
     h_emoji = game_data.home_emoji
     a_emoji = game_data.away_emoji
     period_time_left = goal["about"]["periodTimeRemaining"]
@@ -275,12 +277,14 @@ async def game_embed(post_list, page):
         print("https://statsapi.web.nhl.com" + game["link"])
     else:
         data = game
-    team_url = teams[data.home_team]["team_url"]
+    team_url = teams[data.home_team]["team_url"] if data.home_team in teams else "https://nhl.com"
     timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
     title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
-    colour = int(teams[data.home_team]["home"].replace("#", ""), 16)
+    colour = int(teams[data.home_team]["home"].replace("#", ""), 16) if data.home_team in teams else None
 
-    em = discord.Embed(timestamp=timestamp, colour=colour)
+    em = discord.Embed(timestamp=timestamp)
+    if colour is not None:
+        em.colour = colour
     em.set_author(name=title, url=team_url, icon_url=data.home_logo)
     em.set_thumbnail(url=data.home_logo)
     em.set_footer(text="Game start ", icon_url=data.away_logo)
@@ -311,7 +315,10 @@ async def game_embed(post_list, page):
                 if goal_msg != "":
                     em.add_field(name="{} Period Goals".format(ordinal), value=goal_msg)
         if data.game_state == "Live":
-            em.description = data.plays[-1]["result"]["description"]
+            try:
+                em.description = data.plays[-1]["result"]["description"]
+            except:
+                pass
             period = data.period_ord
             if data.period_time_left[0].isdigit():
                 msg = "{} Left in the {} period".format(data.period_time_left, period)
