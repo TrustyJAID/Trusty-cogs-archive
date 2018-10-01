@@ -21,7 +21,8 @@
         "pillow",
         "lxml",
         "urbandict",
-        "git+https://github.com/Kareeeeem/jpglitch"
+        "git+https://github.com/Kareeeeem/jpglitch",
+        "wand"
         ],
     "short" : "Some working commands from NotSoBot",
     "tags" : [
