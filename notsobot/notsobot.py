@@ -1188,7 +1188,7 @@ class NotSoBot():
             await ctx.send("Error: Failed\n `Discord Failed To Upload or Waifu2x guilds Failed`")
 
 
-    @commands.command(aliases=['r'])
+    @commands.command()
     async def reverse(self, ctx, *, text:str):
         """Reverse Text\n.revese <text>"""
         text = text.replace('\u202E', '')
