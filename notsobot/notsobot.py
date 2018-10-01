@@ -2020,7 +2020,7 @@ class NotSoBot():
             await ctx.send(file=file)
 
     @commands.command(pass_context=True)
-    async def flip(self, ctx, *urls:str):
+    async def flipimg(self, ctx, *urls:str):
         get_images = await self.get_images(ctx, urls=urls, limit=5)
         if not get_images:
             return
