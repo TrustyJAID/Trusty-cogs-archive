@@ -5,7 +5,7 @@ import os
 from .compliments import compliments
 
 
-class Compliment:
+class Compliment(commands.Cog):
 
     """Airenkun's Insult Cog"""
     def __init__(self, bot):

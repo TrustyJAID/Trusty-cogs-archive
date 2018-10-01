@@ -11,7 +11,7 @@ numbs = {
     "exit": "❌"
 }
 
-class Halo():
+class Halo(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot

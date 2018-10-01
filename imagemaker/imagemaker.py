@@ -19,7 +19,7 @@ try:
 except ImportError:
     TRUMP = False
 
-class ImageMaker:
+class ImageMaker(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot

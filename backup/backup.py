@@ -11,7 +11,7 @@ import json
 import logging
 
 
-class Backup:
+class Backup(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot

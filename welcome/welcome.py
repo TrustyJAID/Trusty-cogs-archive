@@ -15,7 +15,7 @@ default_settings = {"GREETING": [default_greeting], "ON": False,
 settings_path = "data/welcome/settings.json"
 
 
-class Welcome:
+class Welcome(commands.Cog):
     """Welcomes new members to the guild in the default channel rewritten for V3 from https://github.com/irdumbs/Dumb-Cogs/blob/master/welcome/welcome.py"""
 
     def __init__(self, bot):
