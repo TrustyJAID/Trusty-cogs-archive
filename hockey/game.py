@@ -23,10 +23,10 @@ class Game:
         self.period_time_left = period_time_left
         self.plays = plays
         self.game_start = game_start
-        self.home_logo = teams[home_team]["logo"]
-        self.away_logo = teams[away_team]["logo"]
-        self.home_emoji = "<:{}>".format(teams[home_team]["emoji"])
-        self.away_emoji = "<:{}>".format(teams[away_team]["emoji"])
+        self.home_logo = teams[home_team]["logo"] if home_team in teams else "https://nhl.com"
+        self.away_logo = teams[away_team]["logo"] if away_team in teams else "https://nhl.com"
+        self.home_emoji = "<:{}>".format(teams[home_team]["emoji"]) if home_team in teams else None
+        self.away_emoji = "<:{}>".format(teams[away_team]["emoji"]) if away_team in teams else None
 
     def to_json(self) -> dict:
         return {
