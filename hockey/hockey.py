@@ -19,10 +19,10 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.1.4"
+__version__ = "2.1.5"
 __author__ = "TrustyJAID"
 
-class Hockey(commands.Cog):
+class Hockey: # (commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -662,10 +662,18 @@ class Hockey(commands.Cog):
         return []
 
     async def get_team(self, team):
-        for teams in await self.config.teams():
+        return_team = None
+        team_list = await self.config.teams()
+        for teams in team_list:
             if team == teams["team_name"]:
+                return_team = team
                 return teams
-        return None
+        if return_team is None:
+            # Add unknown teams to the config to track stats
+            return_team = TeamEntry("Null", team, 0, [], {}, [], "")
+            team_list.append(return_team.to_json())
+            await self.config.teams.set(team_list)
+            return await self.get_team(team)
 
     ##############################################################################
     # Here are all the command functions to set certain attributes and settings
