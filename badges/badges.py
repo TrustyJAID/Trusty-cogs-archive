@@ -18,7 +18,7 @@ import sys
 import functools
 import asyncio
 
-class Badges:
+class Badges(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot

@@ -15,7 +15,7 @@ from redbot.core.i18n import Translator
 
 _ = Translator("Alias", __file__)
 
-class AddImage:
+class AddImage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # self.images = dataIO.load_json("data/addimage/settings.json")

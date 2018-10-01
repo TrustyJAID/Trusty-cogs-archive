@@ -5,7 +5,7 @@ import os
 from .insults import insults
 
 
-class Insult:
+class Insult(commands.Cog):
 
     """Airenkun's Insult Cog"""
     def __init__(self, bot):

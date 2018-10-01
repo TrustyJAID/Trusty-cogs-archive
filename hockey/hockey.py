@@ -22,7 +22,7 @@ except ImportError:
 __version__ = "2.1.4"
 __author__ = "TrustyJAID"
 
-class Hockey:
+class Hockey(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot

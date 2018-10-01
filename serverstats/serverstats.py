@@ -16,7 +16,7 @@ numbs = {
 }
 
 
-class ServerStats:
+class ServerStats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         default_global = {"join_channel":None}

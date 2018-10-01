@@ -14,7 +14,7 @@ inv_settings = {"embed": False, "Channel": None, "toggleedit": False, "toggledel
                 "toggleguild": False}
 
 
-class ModLogs:
+class ModLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 154457677895)
