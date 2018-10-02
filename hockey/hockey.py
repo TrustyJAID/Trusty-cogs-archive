@@ -10,7 +10,9 @@ from .teamentry import TeamEntry
 from .menu import hockey_menu
 from .embeds import *
 from .helper import *
+from .errors import *
 from .game import Game
+from .pickems import Pickems
 from.standings import Standings
 
 
@@ -19,7 +21,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.1.5"
+__version__ = "2.2.0"
 __author__ = "TrustyJAID"
 
 class Hockey(commands.Cog):
@@ -35,7 +37,7 @@ class Hockey(commands.Cog):
         default_global["teams"].append(team_entry.to_json())
         default_guild = {"standings_channel":None, "standings_type":None, "post_standings":False, "standings_msg":None,
                          "create_channels":False, "category":None, "gdc_team":None, "gdc":[], "delete_gdc":True,
-                         "rules":"", "team_rules":""}
+                         "rules":"", "team_rules":"", "pickems": [], "leaderboard":[]}
         default_channel = {"team":[], "to_delete":False}
 
         self.config = Config.get_conf(self, 13457745779)
@@ -99,8 +101,10 @@ class Hockey(commands.Cog):
             await self.refactor_data()
             async with self.session.get(self.url + "/api/v1/schedule") as resp:
                 data = await resp.json()
-
-            games = [game["link"] for game in data["dates"][0]["games"] if game["status"]["abstractGameState"] != "Final"]
+            if data["dates"] != []:
+                games = [game["link"] for game in data["dates"][0]["games"] if game["status"]["abstractGameState"] != "Final"]
+            else:
+                games = []
             games_playing = False
             while games != []:
                 to_remove = []
@@ -263,11 +267,16 @@ class Hockey(commands.Cog):
                 await self.post_game_state(data)
                 await self.save_game_state(data)
 
-    async def get_next_game(self, team):
-        """Gets all NHL games this season or selected team"""
+    async def get_next_game(self, team, date=None):
+        """
+            Gets all NHL games this season or selected team
+        """
         games_list = []
         page_num = 0
-        today = datetime.now()
+        if date is None:
+            today = datetime.now()
+        else:
+            today = date
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
               .format(base=self.url, year=get_season()[0], year2=get_season()[1])
         url += "&teamId={}".format(self.teams[team]["id"])
@@ -537,29 +546,90 @@ class Hockey(commands.Cog):
             preview_msg = await new_chn.send(embed=em)
         else:
             preview_msg = await new_chn.send(await game_state_text(next_game))
+
+        # Create new pickems object for the game
+        pickems = await self.config.guild(guild).pickems()
+        if pickems is None:
+            pickems = []
+        new_pickem = Pickems(preview_msg.id, new_chn.id, next_game.game_start,
+                             next_game.home_team, next_game.away_team, [])
+        pickems.append(new_pickem.to_json())
+        await self.config.guild(guild).pickems.set(pickems)
+        
+
+
         if new_chn.permissions_for(guild.me).manage_messages:
             await preview_msg.pin()
         if new_chn.permissions_for(guild.me).add_reactions:
             try:
-                await preview_msg.add_reaction(self.teams[next_game.home_team]["emoji"])
-                await preview_msg.add_reaction(self.teams[next_game.away_team]["emoji"])
+                await preview_msg.add_reaction(next_game.home_emoji[2:-1])
+                await preview_msg.add_reaction(next_game.away_emoji[2:-1])
             except Exception as e:
                 print(e)
+
+    async def set_pickem_winner(self, pickems):
+        try:
+            # First try the home team games list
+            game = await self.get_next_game(pickems.home_team, pickems.game_start)
+        except:
+            try:
+                # Then try the away team game list
+                game = await self.get_next_game(pickems.away_team, pickems.game_start)
+            except:
+                raise NotAValidTeamError()
+        if game.home_score > game.away_score:
+            pickems.winner = pickems.home_team
+        if game.away_score > game.home_score:
+            pickems.winner = pickems.away_team
+        return pickems
+
+    async def tally_leaderboard(self, guild, channel_id):
+        """
+            This should be where the pickems is removed and tallies are added
+            to the leaderboard
+        """
+        pickem_list = [Pickems.from_json(p) for p in await self.config.guild(guild).pickems()]
+        pickems = None
+        for pickem in pickem_list:
+            if str(channel_id) == str(pickem.channel):
+                pickems = pickem
+                pickem_list.remove(pickems)
+        if pickems is None:
+            return
+        if pickems.winner is None:
+            # Tries to get the winner if it wasn't already set
+            try:
+                pickems = await self.set_pickem_winner(pickems)
+            except NotAValidTeamError:
+                pass
+        if pickems.winner is not None:
+            leaderboard = await self.config.guild(guild).leaderboard()
+            if leaderboard is None:
+                leaderboard = {}
+            for user, choice in pickems.votes:
+                if choice == pickems.winner:
+                    if str(user) not in leaderboard:
+                        leaderboard[str(user)] = 1
+                    else:
+                        leaderboard[str(user)] += 1
+            await self.config.guild(guild).leaderboard.set(leaderboard)
+        await self.config.guild(guild).pickems.set(pickem_list)
 
     async def delete_gdc(self, guild):
         """
             Deletes all game day channels in a given guild
         """
         channels = await self.config.guild(guild).gdc()
+        
         for channel in channels:
             chn = self.bot.get_channel(channel)
-            print(chn)
             if chn is None:
                 try:
                     await self.config._clear_scope(Config.CHANNEL, str(chn))
                 except:
                     pass
                 continue
+            await self.tally_leaderboard(guild, chn.id)
             if not await self.config.channel(chn).to_delete():
                 continue
             try:
@@ -675,6 +745,51 @@ class Hockey(commands.Cog):
             await self.config.teams.set(team_list)
             return await self.get_team(team)
 
+    async def on_raw_reaction_add(self, payload):
+        channel = self.bot.get_channel(id=payload.channel_id)
+        try:
+            guild = channel.guild
+        except:
+            return
+        pickems_list = await self.config.guild(guild).pickems()
+        pickems = [Pickems.from_json(p) for p in pickems_list]
+        if len(pickems) == 0:
+            return
+        try:
+            msg = await channel.get_message(id=payload.message_id)
+        except:
+            return        
+        user = guild.get_member(payload.user_id)
+        print(payload.user_id)
+        if user.bot:
+            return
+        is_pickems_vote = False
+        for pickem in pickems:
+            if str(pickem.message) == str(msg.id):
+                try:
+                    #print(payload.emoji)
+                    pickem.add_vote(user.id, payload.emoji)
+                except UserHasVotedError:
+                    print("User has already voted! Changing vote")
+                    try:
+                        emoji = pickem.home_emoji if str(payload.emoji.id) in pickem.away_emoji else pickem.away_emoji
+                        await msg.remove_reaction(emoji, user)
+                    except Exception as e:
+                        print(e)
+                except VotingHasEndedError:
+                    try:
+                        await msg.remove_reaction(payload.emoji, user)
+                    except:
+                        pass
+                    print("Voting has ended")
+        pickems_list = [p.to_json() for p in pickems]
+        await self.config.guild(guild).pickems.set(pickems_list)
+                
+
+
+
+
+
     ##############################################################################
     # Here are all the command functions to set certain attributes and settings
 
@@ -682,6 +797,11 @@ class Hockey(commands.Cog):
     async def hockey_commands(self, ctx):
         """Various Hockey related commands also aliased to `nhl`"""
         pass
+
+    @hockey_commands.command(hidden=True)
+    async def rempickem(self, ctx):
+        await self.config.guild(ctx.guild).pickems.set([])
+        await ctx.send("Done.")
 
     @commands.group()
     @checks.admin_or_permissions(manage_channels=True)
