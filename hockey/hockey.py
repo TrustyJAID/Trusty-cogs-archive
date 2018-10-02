@@ -763,7 +763,7 @@ class Hockey(commands.Cog):
         except:
             return        
         user = guild.get_member(payload.user_id)
-        print(payload.user_id)
+        # print(payload.user_id)
         if user.bot:
             return
         is_pickems_vote = False
