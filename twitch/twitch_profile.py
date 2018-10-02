@@ -1,4 +1,4 @@
-class twitch_profile:
+class TwitchProfile:
 
     def __init__(self, id:str, login:str, display_name:str, acc_type:str, broadcaster_type:str,
                  description:str, profile_image_url:str, offline_image_url:str, view_count:int):
