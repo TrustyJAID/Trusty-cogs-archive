@@ -31,7 +31,7 @@ class Pickems:
                 self.votes.remove((user, choice))
                 self.votes.append((user_id, team_choice))
                 raise UserHasVotedError("{} has already voted, removing prior vote".format(user_id))
-        if not user_voted:
+        if not user_voted and team_choice is not None:
             self.votes.append((user_id, team_choice))
 
                 
