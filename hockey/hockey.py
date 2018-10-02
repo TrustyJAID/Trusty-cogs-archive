@@ -752,6 +752,9 @@ class Hockey(commands.Cog):
         except:
             return
         pickems_list = await self.config.guild(guild).pickems()
+        
+        if pickem_list is None:
+            return
         pickems = [Pickems.from_json(p) for p in pickems_list]
         if len(pickems) == 0:
             return
