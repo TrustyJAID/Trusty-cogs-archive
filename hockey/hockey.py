@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 __author__ = "TrustyJAID"
 
 class Hockey(commands.Cog):
@@ -1074,39 +1074,20 @@ class Hockey(commands.Cog):
         if channel is None:
             channel = ctx.message.channel
         standings_list = ["metropolitan", "atlantic", "pacific", "central", "eastern", "western", "all"]
+        division = ["metropolitan", "atlantic", "pacific", "central"]
+
         if standings_type.lower() not in standings_list:
             await ctx.send("You must choose from {}".format(", ".join(s for s in standings_list)))
             return
+
+        standings, page = await get_team_standings(standings_type.lower())
+        if standings_type.lower() != "all":
+            em = await build_standing_embed(standings)
+        else:
+            em = await all_standing_embed(standings)
         await self.config.guild(guild).standings_type.set(standings_type)
         await self.config.guild(guild).standings_channel.set(channel.id)
         await ctx.send("Sending standings to {}".format(channel.mention))
-
-        async with self.session.get("https://statsapi.web.nhl.com/api/v1/standings") as resp:
-            data = await resp.json()
-        conference = ["eastern", "western"]
-        division = ["metropolitan", "atlantic", "pacific", "central"]
-        division_data = []
-        conference_data = []
-        eastern = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Eastern"]
-        western = [team for record in data["records"] for team in record["teamRecords"] if record["conference"]["name"] =="Western"]
-        conference_data.append(eastern)
-        conference_data.append(western)
-        division_data = [record for record in data["records"]]
-
-        if standings_type in division:
-            division_search = None
-            for record in division_data:
-                if standings_type.lower() == record["division"]["name"].lower():
-                    division_search = record
-            index = division_data.index(division_search)
-            em = await division_standing_embed(division_data, index)
-        elif standings_type.lower() in conference:
-            if standings_type.lower() == "eastern":
-                em = await conference_standing_embed(conference_data, 0)
-            else:
-                em = await conference_standing_embed(conference_data, 1)
-        elif standings_type == "all":
-            em = await all_standing_embed(division_data, 0)
         message = await channel.send(embed=em)
         await self.config.guild(guild).standings_msg.set(message.id)
         await ctx.send("{} standings will now be automatically updated in {}".format(standings_type, channel.mention))
