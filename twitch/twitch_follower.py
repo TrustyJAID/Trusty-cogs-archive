@@ -1,4 +1,4 @@
-class twitch_follower:
+class TwitchFollower:
 
     def __init__(self, from_id:int, to_id:int, followed_at:str):
         self.from_id = from_id
