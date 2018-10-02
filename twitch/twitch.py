@@ -1,8 +1,8 @@
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.commands import Context
-from .twitch_profile import twitch_profile
-from .twitch_follower import twitch_follower
+from .twitch_profile import TwitchProfile
+from .twitch_follower import TwitchFollower
 from .errors import *
 from datetime import datetime
 import asyncio
@@ -158,17 +158,17 @@ class Twitch(commands.Cog):
 
     async def get_profile_from_name(self, twitch_name):
         url = "{}/users?login={}".format(BASE_URL, twitch_name)
-        return twitch_profile.from_json(await self.get_response(url))
+        return TwitchProfile.from_json(await self.get_response(url))
 
     async def get_profile_from_id(self, twitch_id):
         url = "{}/users?id={}".format(BASE_URL, twitch_id)
-        return twitch_profile.from_json(await self.get_response(url))
+        return TwitchProfile.from_json(await self.get_response(url))
 
     async def get_new_followers(self, user_id):
         # Gets the last 100 followers from twitch
         url = "{}/users/follows?to_id={}&first=100".format(BASE_URL, user_id)
         data = await self.get_response(url)
-        follows = [twitch_follower.from_json(x) for x in data["data"]]
+        follows = [TwitchFollower.from_json(x) for x in data["data"]]
         total = data["total"]
         return follows, total        
 
@@ -320,7 +320,7 @@ class Twitch(commands.Cog):
             return
         new_url = "{}/users/follows?to_id={}&first=100".format(BASE_URL, profile.id)
         data = await self.get_response(new_url)
-        follows = [twitch_follower.from_json(x) for x in data["data"]]
+        follows = [TwitchFollower.from_json(x) for x in data["data"]]
         total = data["total"]
         await self.twitch_menu(ctx, follows, total)
 
@@ -350,7 +350,7 @@ class Twitch(commands.Cog):
         async with self.session.get(url, headers=header) as resp:
             data = await resp.json()
 
-        profile = twitch_profile.from_json(data)
+        profile = TwitchProfile.from_json(data)
         em = await self.make_user_embed(profile)
         em.timestamp = datetime.strptime(followed_at, "%Y-%m-%dT%H:%M:%SZ")
         

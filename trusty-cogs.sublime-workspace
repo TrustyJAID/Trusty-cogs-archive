@@ -4,6 +4,58 @@
 		"selected_items":
 		[
 			[
+				"get_cl",
+				"get_cleverbotio_response"
+			],
+			[
+				"get_cleve",
+				"get_cleverbotcom_response"
+			],
+			[
+				"div",
+				"div_emoji"
+			],
+			[
+				"check_",
+				"check_account_added"
+			],
+			[
+				"oaut",
+				"oauth_check"
+			],
+			[
+				"oau",
+				"oauth_check"
+			],
+			[
+				"twit",
+				"twitch_id"
+			],
+			[
+				"twitc",
+				"twitch_name"
+			],
+			[
+				"prof",
+				"profile_image_url"
+			],
+			[
+				"def",
+				"default_json"
+			],
+			[
+				"permiss",
+				"permissions_for"
+			],
+			[
+				"msg",
+				"msg_send"
+			],
+			[
+				"added",
+				"added_accounts"
+			],
+			[
 				"firema",
 				"firemaking_rank"
 			],
@@ -84,14 +136,28 @@
 	"buffers":
 	[
 		{
-			"contents": "import discord\nfrom discord.ext import commands\nfrom .utils.dataIO import dataIO\nimport aiohttp\nimport json\nimport random\nfrom random import sample\nfrom random import choice\nimport time\n\n\nclass Tarot:\n    \"\"\"It's time to get your fortune!!!\"\"\"\n\n    def __init__(self, bot):\n        self.bot = bot\n        self.tarot_cards = dataIO.load_json(\"data/tarot/tarot.json\")\n\n    def get_colour(self):\n        colour =''.join([choice('0123456789ABCDEF')for x in range(6)])\n        return int(colour, 16)\n\n    @commands.group(pass_context=True)\n    async def tarot(self, ctx):\n        if ctx.invoked_subcommand is None:\n            await self.bot.send_cmd_help(ctx)\n    \n    @tarot.command(name=\"life\", pass_context=True)\n    async def _life(self, ctx, user: discord.Member=None):\n        card_meaning = [\"Past\", \"Present\", \"Future\", \"Potential\", \"Reason\"]\n        if user is None:\n            user = ctx.message.author\n        userseed = user.id\n        \n        random.seed(int(userseed))\n        cards = []\n        cards = sample((range(1, 78)), 5)\n        \n        embed = discord.Embed(title=\"Tarot reading for {}\".format(user.display_name),\n                              colour=discord.Colour(value=self.get_colour()))\n        number = 0\n        for card in cards:\n            embed.add_field(name=\"{0}: {1}\".format(card_meaning[number], self.tarot_cards[str(card)][\"card_name\"]),\n                            value=self.tarot_cards[str(card)][\"card_meaning\"])\n            number += 1\n        await self.bot.send_message(ctx.message.channel, embed=embed)\n    \n    @tarot.command(name=\"reading\", pass_context=True)\n    async def _reading(self, ctx, user: discord.Member=None):\n        card_meaning = [\"Past\", \"Present\", \"Future\", \"Potential\", \"Reason\"]\n        if user is None:\n            user = ctx.message.author\n        \n        cards = []\n        cards = sample((range(1, 78)), 5)\n        \n        embed = discord.Embed(title=\"Tarot reading for {}\".format(user.display_name),\n                              colour=discord.Colour(value=self.get_colour()))\n        number = 0\n        for card in cards:\n            embed.add_field(name=\"{0}: {1}\".format(card_meaning[number], self.tarot_cards[str(card)][\"card_name\"]),\n                            value=self.tarot_cards[str(card)][\"card_meaning\"])\n            number += 1\n        await self.bot.send_message(ctx.message.channel, embed=embed)\n\n\n    @tarot.command(name=\"card\", pass_context=True)\n    async def _card(self, ctx, *, msg=None):\n        user = ctx.message.author.id\n        # msg = message.content\n        card = None\n\n        if msg is None:\n            card = self.tarot_cards[str(random.randint(1, 78))]\n\n        elif msg.isdigit() and int(msg) > 0 and int(msg) < 79:\n            card = self.tarot_cards[str(msg)]\n        \n        elif not msg.isdigit():\n            for cards in self.tarot_cards:\n                if msg.lower() in self.tarot_cards[cards][\"card_name\"].lower():\n                    card = self.tarot_cards[cards]\n            if card is None:\n                await self.bot.say(\"That card does not exist!\")\n                return\n\n        embed = discord.Embed(title=card[\"card_name\"],\n                              description=card[\"card_meaning\"],\n                              colour=discord.Colour(value=self.get_colour()),\n                              url=card[\"card_url\"])\n        embed.set_image(url=card[\"card_img\"])\n        await self.bot.send_message(ctx.message.channel, embed=embed)\n\n\ndef setup(bot):\n    bot.add_cog(Tarot(bot))",
-			"file": "tarot/tarot.py",
-			"file_size": 3611,
-			"file_write_time": 131766085755310147,
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     af1fa50 [Hockey] Re-add new commands.Cog class\n\n\nUntracked files:\n\tblizzard/\n\tconvertinfo.py\n\nChanges:\n\tModified   trusty-cogs.sublime-project\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 3516,
-				"encoding": "UTF-8",
+				"buffer_size": 1057,
+				"line_ending": "Windows",
+				"name": "*git-status*: Trusty-cogs",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"file": "hockey/hockey.py",
+			"settings":
+			{
+				"buffer_size": 55785,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"settings":
+			{
+				"buffer_size": 0,
 				"line_ending": "Windows"
 			}
 		}
@@ -107,6 +173,14 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"disco",
+				"Package Control: Discover Packages"
+			],
 			[
 				"git push",
 				"Git: Push"
@@ -185,120 +259,144 @@
 	"expanded_folders":
 	[
 		"/E/github/Trusty-cogs",
-		"/E/github/Trusty-cogs/addimage",
-		"/E/github/Trusty-cogs/anime",
-		"/E/github/Trusty-cogs/badges",
-		"/E/github/Trusty-cogs/compliment",
-		"/E/github/Trusty-cogs/faces",
+		"/E/github/Trusty-cogs/__pycache__",
 		"/E/github/Trusty-cogs/hockey",
-		"/E/github/Trusty-cogs/hue",
-		"/E/github/Trusty-cogs/pillconvert",
-		"/E/github/Trusty-cogs/pillconvert/data",
-		"/E/github/Trusty-cogs/serverwhitelist",
-		"/E/github/Trusty-cogs/tarot"
+		"/E/github/Trusty-cogs/welcome"
 	],
 	"file_history":
 	[
-		"/E/github/Trusty-cogs/stickyroles/stickyroles.py",
-		"/E/github/Trusty-cogs/compliment/compliment.py",
-		"/E/github/Trusty-cogs/compliment/info.json",
-		"/C/Users/Damez/Downloads/Revolution-Rotation-Calculator--master/Revolution Rotation Calculator.py",
-		"/E/github/Trusty-cogs/badges/badges.py",
-		"/E/github/Trusty-cogs/hockey/hockey.py",
 		"/E/github/Trusty-cogs/hockey/embeds.py",
-		"/E/github/Trusty-cogs/README.md",
-		"/E/github/Trusty-cogs/hue/hue.py",
-		"/E/github/Trusty-cogs/star/info.json",
-		"/E/github/Trusty-cogs/serverwhitelist/serverwhitelist.py",
-		"/E/github/Trusty-cogs/anime/anime.py",
-		"/E/github/Trusty-cogs/compliment/data/insults.json",
-		"/E/github/Trusty-cogs/chatter/chatter.py",
-		"/E/github/Trusty-cogs/pillconvert/pillconvert.py",
-		"/E/github/Trusty-cogs/pillconvert/__init__.py",
-		"/E/github/Trusty-cogs/insult/insult.py",
-		"/E/github/Trusty-cogs/insult/info.json",
-		"/E/github/Trusty-cogs/runescape/profile.py",
-		"/E/github/Trusty-cogs/runescape/info.json",
-		"/E/github/Trusty-cogs/compliment/compliments.py",
-		"/E/github/Trusty-cogs/compliment/__init__.py",
-		"/E/github/Trusty-cogs/insult/insults.py",
-		"/E/github/Trusty-cogs/insult/__init__.py",
-		"/E/github/Trusty-cogs/insult/compliments.py",
-		"/E/github/Trusty-cogs/runescape/runescape.py",
-		"/E/github/Trusty-cogs/imagemaker/imagemaker.py",
-		"/E/github/Trusty-cogs/acceptrules/acceptrules.py",
-		"/E/github/Trusty-cogs/star/star.py",
-		"/E/github/Trusty-cogs/addimage/addimage.py",
-		"/E/github/Trusty-cogs/serverwhitelist/info.json",
-		"/E/github/Trusty-cogs/activity/activity.py",
-		"/E/github/Trusty-cogs/translate/translate.py",
-		"/E/github/Trusty-cogs/chatterbot/chatterbot.py",
-		"/E/github/Trusty-cogs/modlogs/modlogs.py",
-		"/E/github/Trusty-cogs/qposts/qposts.py",
-		"/E/github/Trusty-cogs/autorole/autorole.py",
-		"/E/github/Trusty-cogs/trustybot/trustybot.py",
-		"/E/github/Trusty-cogs/conversions/conversions.py",
-		"/E/github/Trusty-cogs/imgflip/imgflip.py",
-		"/E/github/Trusty-cogs/serverwhitelist/__init__.py",
-		"/E/github/Trusty-cogs/runescape/__init__.py",
 		"/E/github/Trusty-cogs/hockey/game.py",
-		"/E/github/Trusty-cogs/tweets/tweets.py",
-		"/E/github/Trusty-cogs/emojireact/emojireact.py",
-		"/E/github/Trusty-cogs/starboard/starboard.py",
-		"/D/Games/Steam/steamapps/common/Beat Saber/CustomSongs/There Can Be A Way/Hard.json",
-		"/C/Users/Damez/Desktop/bancheck.py",
-		"/E/github/Trusty-cogs/emojireact/info.json",
-		"/E/github/Trusty-cogs/autorole/__init__.py",
-		"/E/github/Trusty-cogs/emojireact/unicode_codes.py",
-		"/C/Users/Damez/Downloads/1.44inch-LCD-HAT-Code/RaspberryPi/python/lcd_demo/main.py",
-		"/C/Users/Damez/Downloads/1.44inch-LCD-HAT-Code/RaspberryPi/python/lcd_demo/LCD_Config.py",
-		"/C/Users/Damez/Downloads/1.44inch-LCD-HAT-Code/RaspberryPi/python/lcd_demo/LCD_1in44.py",
-		"/C/Users/Damez/AppData/Local/Temp/fz3temp-2/rc.local",
-		"/C/Users/Damez/Google Drive/Pictures/Superintendant/main.py",
-		"/C/Users/Damez/Downloads/beethoven11_v1.0.0.0 (1).mdu",
-		"/C/Users/Damez/Downloads/1.44inch-LCD-HAT-Code/RaspberryPi/python/key_demo/LCD_1in44.py",
-		"/C/Users/Damez/Downloads/1.44inch-LCD-HAT-Code/RaspberryPi/python/key_demo/LCD_Key.py",
-		"/D/github/Trusty-Bot/data/qposts/qposts.json",
-		"/E/github/Trusty-cogs/activity/__init__.py",
-		"/C/Users/Damez/Downloads/shitpost.py",
-		"/C/Users/Damez/Downloads/shitpost/__init__.py",
-		"/C/Users/Damez/Downloads/shitpost/shitpost.py",
-		"/E/github/Trusty-cogs/backup/info.json",
+		"/E/github/Trusty-cogs/hockey/hockey.py",
+		"/C/Users/Damez/AppData/Roaming/Sublime Text 3/Packages/Package Control/Package Control.sublime-settings",
+		"/E/github/Trusty-cogs/trusty-cogs.sublime-project",
+		"/C/Users/Damez/Desktop/Events.xml",
+		"/E/github/Trusty-cogs/cleverbot/cleverbot.py",
+		"/E/github/Trusty-cogs/activity/activity.py",
+		"/E/github/Trusty-cogs/addimage/addimage.py",
+		"/E/github/Trusty-cogs/anime/anime.py",
+		"/E/github/Trusty-cogs/autorole/autorole.py",
 		"/E/github/Trusty-cogs/backup/backup.py",
-		"/E/github/Trusty-cogs/hockey/__init__.py",
-		"/E/github/Trusty-cogs/hockey/teams.py",
+		"/E/github/Trusty-cogs/badges/badges.py",
+		"/E/github/Trusty-cogs/blockchain/blockchain.py",
+		"/E/github/Trusty-cogs/chatter/chatter.py",
+		"/E/github/Trusty-cogs/compliment/compliment.py",
+		"/E/github/Trusty-cogs/conversions/conversions.py",
+		"/E/github/Trusty-cogs/covfefe/covfefe.py",
+		"/E/github/Trusty-cogs/decode/decode.py",
+		"/E/github/Trusty-cogs/dev/dev.py",
+		"/E/github/Trusty-cogs/emojireact/emojireact.py",
+		"/E/github/Trusty-cogs/faces/faces.py",
+		"/E/github/Trusty-cogs/fun/fun.py",
+		"/E/github/Trusty-cogs/gab/gab.py",
 		"/E/github/Trusty-cogs/halo/halo.py",
-		"/C/Users/Damez/Desktop/printbox.py",
-		"/C/Users/Damez/Desktop/rps.py",
-		"/D/Videos/Movie.2017.HD-TS x264 -CPG/Password.txt",
-		"/E/github/Trusty-cogs/halo/info.json",
-		"/E/github/Trusty-Bot/cogs/activity.py",
-		"/E/github/Trusty-Bot/cogs/tweets.py",
-		"/E/github/Trusty-Bot/.gitignore",
-		"/E/github/Trusty-Bot/data/chatterbot/log.json",
-		"/E/github/Trusty-Bot/data/red/cogs.json",
-		"/E/github/Trusty-Bot/data/activity/settings.json",
-		"/E/github/Trusty-Bot/data/activity/log.json",
-		"/E/github/Trusty-Bot/data/RSS/feeds.json",
-		"/E/github/Trusty-Bot/cogs/acceptrules.py",
-		"/E/github/Trusty-Bot/cogs/remindme.py",
-		"/E/github/Trusty-cogs/activity/info.json",
-		"/E/github/Trusty-Bot/cogs/owner.py",
-		"/E/github/Trusty-Bot/cogs/lmao.py",
-		"/E/github/Trusty-Bot/cogs/emojireact.py",
-		"/E/github/Trusty-Bot/cogs/dnadecode.py",
-		"/E/github/Trusty-Bot/cogs/trustybot.py",
-		"/E/github/Trusty-Bot/cogs/reee.py",
-		"/E/github/Trusty-Bot/cogs/gab.py",
-		"/E/github/Trusty-Bot/cogs/badges.py",
-		"/E/github/Trusty-Bot/data/gab/settings.json",
-		"/E/github/Trusty-Bot/cogs/bartender.py",
-		"/E/github/Discord-Selfbot/requirements.txt",
-		"/E/github/Discord-Selfbot/cogs/getfortune.py"
+		"/E/github/Trusty-cogs/hue/hue.py",
+		"/E/github/Trusty-cogs/imagemaker/imagemaker.py",
+		"/E/github/Trusty-cogs/imgflip/imgflip.py",
+		"/E/github/Trusty-cogs/insult/insult.py",
+		"/E/github/Trusty-cogs/juche/juche.py",
+		"/E/github/Trusty-cogs/mock/mock.py",
+		"/E/github/Trusty-cogs/modlogs/modlogs.py",
+		"/E/github/Trusty-cogs/notsobot/notsobot.py",
+		"/E/github/Trusty-cogs/qposts/qposts.py",
+		"/E/github/Trusty-cogs/rekt/rekt.py",
+		"/E/github/Trusty-cogs/runescape/runescape.py",
+		"/E/github/Trusty-cogs/serverstats/serverstats.py",
+		"/E/github/Trusty-cogs/serverwhitelist/serverwhitelist.py",
+		"/E/github/Trusty-cogs/starboard/starboard.py",
+		"/E/github/Trusty-cogs/stickyroles/stickyroles.py",
+		"/E/github/Trusty-cogs/tarot/tarotreading.py",
+		"/E/github/Trusty-cogs/translate/translate.py",
+		"/E/github/Trusty-cogs/triggersize/triggersize.py",
+		"/E/github/Trusty-cogs/trustyavatar/trustyavatar.py",
+		"/E/github/Trusty-cogs/trustybot/trustybot.py",
+		"/E/github/Trusty-cogs/tweets/tweets.py",
+		"/E/github/Trusty-cogs/twitch/twitch.py",
+		"/E/github/Trusty-cogs/unity4j/unity4j.py",
+		"/E/github/Trusty-cogs/weather/weather.py",
+		"/E/github/Trusty-cogs/welcome/welcome.py",
+		"/E/github/Trusty-cogs/notsobot/vw/macintoshplus.py",
+		"/E/github/Trusty-cogs/badges/__init__.py",
+		"/E/github/NotSoBot-master/bot.py",
+		"/E/github/NotSoBot-master/utils/funcs.py",
+		"/E/github/NotSoBot-master/bot0.py",
+		"/E/github/NotSoBot-master/mods/Info.py",
+		"/E/github/NotSoBot-master/message_queue_bot.py",
+		"/E/github/NotSoBot-master/utils/checks.py",
+		"/E/github/NotSoBot-master/pixelsort/util.py",
+		"/E/github/NotSoBot-master/mods/Markov.py",
+		"/E/github/NotSoBot-master/mods/AI.py",
+		"/E/github/NotSoBot-master/mods/Chan.py",
+		"/E/github/NotSoBot-master/mods/Wc.py",
+		"/E/github/NotSoBot-master/mods/Utils.py",
+		"/E/github/NotSoBot-master/mods/Changes.py",
+		"/E/github/NotSoBot-master/mods/cog.py",
+		"/E/github/NotSoBot-master/message_queue_api.py",
+		"/E/github/Trusty-cogs/notsobot/info.json",
+		"/E/github/NotSoBot-master/vw/macintoshplus.py",
+		"/E/github/Trusty-cogs/notsobot/__init__.py",
+		"/E/github/Trusty-cogs/cleverbot/__init__.py",
+		"/E/github/Trusty-cogs/README.md",
+		"/E/github/Trusty-cogs/triggersize/__init__.py",
+		"/E/github/Trusty-cogs/triggersize/info.json",
+		"/E/github/Trusty-cogs/reee/__init__.py",
+		"/E/github/Trusty-cogs/reee/triggersize.py",
+		"/E/github/Trusty-cogs/reee/reee.py",
+		"/E/github/Trusty-cogs/hockey/menu.py",
+		"/E/github/Trusty-cogs/hockey/oilers.py",
+		"/E/github/Trusty-cogs/hockey/teams.py",
+		"/E/github/Trusty-cogs/hockey/teamentry.py",
+		"/E/github/Trusty-cogs/hockey/goal.py",
+		"/E/github/Trusty-cogs/hockey/helper.py",
+		"/E/github/Trusty-cogs/twitch/twitch_profile.py",
+		"/E/github/Trusty-cogs/twitch/twitch_follower.py",
+		"/D/dameznet-158219/www/index.html",
+		"/E/github/Trusty-cogs/twitch/info.json",
+		"/E/github/Trusty-cogs/twitch/errors.py",
+		"/E/github/Trusty-cogs/tarot/info.json",
+		"/E/github/Trusty-cogs/hue/info.json",
+		"/E/github/Trusty-cogs/imagemaker/info.json",
+		"/E/github/Trusty-cogs/juche/info.json",
+		"/E/github/Trusty-cogs/mock/info.json",
+		"/E/github/Trusty-cogs/reee/info.json",
+		"/E/github/Trusty-cogs/starboard/info.json",
+		"/E/github/yaml_output/hockey.yaml",
+		"/E/github/yaml_output/readyplayerone.yaml",
+		"/E/github/Trusty-cogs/blizzard/blizzard.py",
+		"/E/github/Trusty-cogs/info.json",
+		"/E/github/Trusty-cogs/backup/info.json",
+		"/E/github/Trusty-cogs/anime/info.json",
+		"/E/github/Trusty-cogs/imgflip/info.json",
+		"/E/github/Trusty-cogs/convertinfo.py",
+		"/E/github/Trusty-cogs/stickyroles/info.json",
+		"/E/github/Trusty-cogs/welcome/info.json",
+		"/E/github/Trusty-cogs/autorole/info.json",
+		"/E/github/Trusty-cogs/cleverbot/info.json",
+		"/E/github/Trusty-cogs/twitch/__init__.py",
+		"/E/github/Trusty-cogs/trump/trump.py",
+		"/E/github/Trusty-cogs/pillconvert/pillconvert.py",
+		"/E/github/Trusty-cogs/con",
+		"/E/github/Trusty-cogs/weather/info.json",
+		"/E/github/Trusty-cogs/tweets/info.json",
+		"/E/github/Trusty-cogs/trump/info.json",
+		"/E/github/Trusty-cogs/translate/info.json",
+		"/E/github/Trusty-cogs/serverwhitelist/info.json",
+		"/E/github/Trusty-cogs/runescape/info.json",
+		"/E/github/Trusty-cogs/rekt/info.json",
+		"/E/github/Trusty-cogs/modlogs/info.json",
+		"/E/github/Trusty-cogs/insult/info.json",
+		"/E/github/Trusty-cogs/hockey/info.json",
+		"/E/github/Trusty-cogs/gab/info.json",
+		"/E/github/Trusty-cogs/fun/info.json",
+		"/E/github/Trusty-cogs/faces/info.json",
+		"/E/github/Trusty-cogs/emojireact/info.json",
+		"/E/github/Trusty-cogs/decode/info.json",
+		"/E/github/Trusty-cogs/covfefe/info.json",
+		"/E/github/Trusty-cogs/conversions/info.json"
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 27.0
 	},
 	"find_in_files":
 	{
@@ -313,114 +411,158 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"invoke",
-			"utc",
-			"await self.bot.send_cmd_help(ctx)",
-			"send_cmd",
-			"user",
-			"await self.colorconvert(",
-			"self.bot.say",
-			"attack",
-			"[\"Attack\", p.attack[\"level\"], p.attack[\"xp\"], p.attack[\"rank\"]],",
-			"attack",
-			"Attack",
-			"attack",
-			"smithing",
-			"getroles",
-			"group",
-			"RedContext",
-			"case",
-			"self.direct",
-			"modlogset",
-			"modlog",
-			"pop",
-			"ctx.send(",
-			"guild",
-			"questscompleted",
-			":dict, ",
-			"default",
-			"replies\" : true",
-			"togglejoin",
-			"toggljoin",
-			"post",
-			"self.direct",
-			"if await",
-			"self.bot.send_message(ctx.message.channel, ",
+			"get_team",
+			"data.plays",
+			"teams",
+			"self.teams",
+			"teams",
+			"scoring_team",
+			"teams",
+			"bytes_download",
+			"run_process",
+			"download",
+			"isgif",
+			"check_func",
+			"check",
+			"check_func",
+			"command_check",
+			"self.cursor",
+			"check_func",
+			"bundled_data_path(self)",
+			"this command is for gifs",
+			"do_vw",
+			"bytes_download",
+			"/cogs/notsobot/vw",
+			"def r",
+			"'avatar'",
+			"avatar",
+			"aesthetics",
+			"bubbles",
+			"bubble",
+			"protocol",
+			"self.bot.run_process(",
+			"run_process",
+			"self.image_mimes",
+			"isimage",
+			"await self.bot.edit",
+			"await self.bot.edit_message(x, ",
+			"await self.bot.edit_message",
+			"await self.bot.delete_message(ctx.message)",
+			"await self.bot.delete_message(xx)",
+			"await self.bot.delete_message(msg)",
+			"aiohttp.Timeout(",
+			"isimage",
+			"str(bundled_data_path(self))(",
+			"b1",
+			"await file",
+			"file = discord.File(",
+			"await self.bot.upload(",
+			"self.bot.upload(",
+			"get_emote_image",
+			"get_json",
+			"uuid",
+			"self.bot.random",
+			"random",
+			"mention_regex",
 			"server",
-			"choices",
+			"find_member",
+			"attachment",
+			"attachment[",
+			"attachment",
+			"[\"url\"]",
+			"self.bot.send_message(channel, ",
+			"get_attachment_images",
+			"em = await self.make_embed(member)",
+			"get_welcome_channel",
+			"self.escape",
 			"get_text",
-			"trips",
-			"greatawakening",
-			"self.config[team][\"goals",
-			"server",
-			"self.settings",
-			"server",
-			"self.settings",
-			"raw_input"
+			"self.cursor",
+			"self.download",
+			"self.files_path",
+			"await await ",
+			"on_message",
+			"default_team",
+			"Context",
+			"asyncio",
+			"randomize_colour",
+			"teams",
+			"Tuple",
+			"teams",
+			"default_team",
+			"discord",
+			"division",
+			"\"\"\n",
+			"beemovie",
+			"print",
+			"functools",
+			"new mombasa",
+			"Tuple",
+			"commands",
+			"@twitch",
+			"maybe_get_twitch_name",
+			"twitch_user.",
+			"cmd_name_name",
+			"cmd",
+			"session",
+			"__unload",
+			"twitch_menu",
+			"hockey_menu",
+			"make_gif",
+			"sys",
+			"cv2",
+			"db",
+			"check_streams",
+			"stream_alerts",
+			"initialize",
+			"entities",
+			"url",
+			"media",
+			"when the covenant",
+			"full",
+			"extended_ent",
+			"format_patch",
+			"format_",
+			", pass_context=True",
+			"self.impact",
+			"giffile",
+			"show\":true",
+			"bundled_data",
+			"np",
+			"\t",
+			"goals",
+			"print(",
+			"print"
 		],
 		"highlight": true,
 		"in_selection": false,
-		"preserve_case": true,
+		"preserve_case": false,
 		"regex": false,
 		"replace_history":
 		[
-			"await ctx.send_help()",
-			"pill_image = await self.make_colour(",
-			"ctx.send",
-			"invention",
-			"divination",
-			"dungeoneering",
-			"summoning",
-			"construction",
-			"hunter",
-			"runecrafting",
-			"farming",
-			"slayer",
-			"thieving",
-			"agility",
-			"herblore",
-			"mining",
-			"smithing",
-			"[\"Attack\", p.attack[\"level\"], p.attack[\"xp\"], p.attack[\"rank\"]],",
-			"crafting",
-			"[\"Attack\", p.attack[\"level\"], p.attack[\"xp\"], p.attack[\"rank\"]],",
-			"fishing",
-			"fletching",
-			"woodcutting",
-			"cooking",
-			"magic",
-			"prayer",
-			"ranged",
-			"constitution",
-			"strength",
-			"defence",
-			"invention",
-			"divination",
-			"dungeoneering",
-			"summoning",
-			"construction",
-			"hunter",
-			"runecrafting",
-			"farming",
-			"slayer",
-			"thieving",
-			"agility",
-			"herblore",
-			"mining",
-			"modlogsetup",
-			"self.bot.send_message(ctx.message.channel, ",
-			"server",
-			"questscomplete",
-			" = get_skill()",
-			"get_skill()",
-			"ctx.send(",
+			"",
+			"self.run_process(",
+			"await x.edit(",
+			"await ctx.message.delete()",
+			"await xx.delete()",
+			"await msg.delete()",
+			"str(bundled_data_path(self)/",
+			"file = discord.File(",
+			"self.random",
 			"guild",
-			"get_text()",
-			"guild",
-			"self.config",
-			"guild",
-			"self.config",
-			""
+			"channel.send(",
+			"channel.send",
+			"em = await self.make_embed(member, msg)",
+			"str(bundled_data_path(self))",
+			"await ",
+			"await",
+			"@twitchhelp",
+			"twitch_profile.",
+			"cmd_name",
+			"twitch_menu",
+			"make_trump_gif",
+			"config",
+			"",
+			"    "
 		],
 		"reverse": false,
 		"show_context": true,
@@ -436,19 +578,53 @@
 			[
 				{
 					"buffer": 0,
-					"file": "tarot/tarot.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3516,
+						"buffer_size": 1057,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								909,
-								909
+								157,
+								157
+							]
+						],
+						"settings":
+						{
+							"__vi_external_disable": true,
+							"draw_white_space": "none",
+							"git_repo": "E:\\github\\Trusty-cogs",
+							"git_status": true,
+							"git_view": "status",
+							"syntax": "Packages/SublimeGit/syntax/SublimeGit Status.tmLanguage",
+							"translate_tabs_to_spaces": false,
+							"word_wrap": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "hockey/hockey.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 55785,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								435,
+								435
 							]
 						],
 						"settings":
@@ -461,14 +637,43 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
 		},
 		{
+			"selected": 0,
 			"sheets":
 			[
+				{
+					"buffer": 2,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -478,7 +683,7 @@
 	},
 	"input":
 	{
-		"height": 40.0
+		"height": 42.0
 	},
 	"layout":
 	{
@@ -500,7 +705,7 @@
 		"cols":
 		[
 			0.0,
-			0.5,
+			0.521150592217,
 			1.0
 		],
 		"rows":
@@ -534,7 +739,7 @@
 	"project": "trusty-cogs.sublime-project",
 	"replace":
 	{
-		"height": 73.0
+		"height": 50.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -554,7 +759,7 @@
 		[
 			[
 				"",
-				"E:\\github\\Red-DiscordBot\\TrustyBot.sublime-project"
+				"E:\\github\\Trusty-cogs\\trusty-cogs.sublime-project"
 			]
 		],
 		"width": 380.0
