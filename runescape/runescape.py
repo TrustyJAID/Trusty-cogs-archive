@@ -11,7 +11,7 @@ import asyncio
 from tabulate import tabulate
 from .profile import Profile
 
-class Runescape(commands.Cog):
+class Runescape(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

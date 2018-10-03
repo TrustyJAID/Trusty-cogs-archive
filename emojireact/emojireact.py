@@ -3,7 +3,7 @@ from redbot.core import commands
 from redbot.core import Config
 from .unicode_codes import UNICODE_EMOJI
 
-class EmojiReactions(commands.Cog):
+class EmojiReactions(getattr(commands, "Cog", object)):
     
     def __init__(self, bot):
         self.bot = bot

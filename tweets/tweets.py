@@ -58,7 +58,7 @@ class TweetListener(tw.StreamListener):
         return True
 
 
-class Tweets(commands.Cog):
+class Tweets(getattr(commands, "Cog", object)):
     """Cog for displaying info from Twitter's API"""
 
     def __init__(self, bot):

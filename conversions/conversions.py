@@ -7,7 +7,7 @@ import json
 import re
 
 
-class Conversions(commands.Cog):
+class Conversions(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

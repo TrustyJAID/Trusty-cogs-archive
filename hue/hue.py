@@ -9,7 +9,7 @@ import os
 import asyncio
 from phue import Bridge
 
-class Hue(commands.Cog):
+class Hue(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

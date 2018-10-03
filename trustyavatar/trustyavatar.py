@@ -8,7 +8,7 @@ import aiohttp
 import glob
 
 
-class TrustyAvatar(commands.Cog):
+class TrustyAvatar(getattr(commands, "Cog", object)):
     """Changes the bot's image every so often"""
 
     def __init__(self, bot):
