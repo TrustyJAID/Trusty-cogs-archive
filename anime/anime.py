@@ -15,7 +15,7 @@ numbs = {
     "back": "⬅",
     "exit": "❌"
 }
-class Anime(commands.Cog):
+class Anime(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

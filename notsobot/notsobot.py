@@ -84,7 +84,7 @@ class DataProtocol(asyncio.SubprocessProtocol):
         except:
             pass
 
-class NotSoBot(commands.Cog):
+class NotSoBot(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         try:

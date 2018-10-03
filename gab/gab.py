@@ -9,7 +9,7 @@ import aiohttp
 import json
 from bs4 import BeautifulSoup
 
-class Gab(commands.Cog):
+class Gab(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
