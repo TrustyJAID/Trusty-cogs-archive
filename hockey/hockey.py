@@ -54,7 +54,7 @@ class Hockey(commands.Cog):
         """
             Gets all current games for the day as a list of game objects
         """
-        async with self.session.get(self.url + "/api/v1/schedule") as resp:
+        async with self.session.get(self.url + "/api/v1/schedule?startDate=2018-10-3&endDate=2018-10-3") as resp:
             data = await resp.json()
         game_list = []
         for link in data["dates"][0]["games"]:
@@ -534,7 +534,7 @@ class Hockey(commands.Cog):
         timestamp = datetime.strptime(next_game.game_start, "%Y-%m-%dT%H:%M:%SZ")
         guild_team = await self.config.guild(guild).gdc_team()
         channel_team = guild_team if guild_team != "all" else next_game.home_team
-        timezone = self.teams[channel_team]["timezone"]
+        timezone = self.teams[channel_team]["timezone"] if channel_team in self.teams else self.teams[next_game.away_team]["timezone"]
         time_string = utc_to_local(timestamp, timezone).strftime("%A %B %d, %Y at %I:%M %p %Z")
 
         game_msg = "{} {} @ {} {} {}".format(next_game.away_team, next_game.away_emoji,\
@@ -613,7 +613,7 @@ class Hockey(commands.Cog):
                     else:
                         leaderboard[str(user)] += 1
             await self.config.guild(guild).leaderboard.set(leaderboard)
-        await self.config.guild(guild).pickems.set(pickem_list)
+        await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list])
 
     async def delete_gdc(self, guild):
         """
