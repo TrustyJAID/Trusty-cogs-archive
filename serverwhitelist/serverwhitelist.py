@@ -2,7 +2,7 @@ import discord
 from redbot.core import commands
 from redbot.core import Config, checks
 
-class ServerWhitelist(commands.Cog):
+class ServerWhitelist(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

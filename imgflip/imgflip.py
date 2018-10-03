@@ -5,7 +5,7 @@ from random import choice
 import asyncio
 import aiohttp
 
-class Imgflip(commands.Cog):
+class Imgflip(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

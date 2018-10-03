@@ -9,7 +9,7 @@ import functools
 import asyncio
 
 
-class Chatter(commands.Cog):
+class Chatter(getattr(commands, "Cog", object)):
     """Chatterbot"""
 
     def __init__(self, bot):

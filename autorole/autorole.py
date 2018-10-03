@@ -13,7 +13,7 @@ default_settings = {
             "AGREE_MSG": None
         }
 
-class Autorole(commands.Cog):
+class Autorole(getattr(commands, "Cog", object)):
     """Autorole commands. Rewritten for V3 from https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/autorole/autorole.py"""
 
     def __init__(self, bot):

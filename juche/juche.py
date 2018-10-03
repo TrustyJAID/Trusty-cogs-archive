@@ -1,6 +1,6 @@
 import discord
 
-class Juche(commands.Cog):
+class Juche(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

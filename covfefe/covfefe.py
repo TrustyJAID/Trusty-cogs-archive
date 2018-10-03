@@ -2,7 +2,7 @@ import discord
 from redbot.core import commands
 import re
 
-class Covfefe(commands.Cog):
+class Covfefe(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

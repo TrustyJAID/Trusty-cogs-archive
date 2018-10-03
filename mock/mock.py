@@ -2,7 +2,7 @@ import discord
 import random
 from redbot.core import commands
 
-class Mock(commands.Cog):
+class Mock(getattr(commands, "Cog", object)):
     """mock a user as spongebob"""
 
     def __init__(self, bot):

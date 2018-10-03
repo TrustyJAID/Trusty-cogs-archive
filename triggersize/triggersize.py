@@ -9,7 +9,7 @@ from PIL import Image
 
 
 
-class Triggersize(commands.Cog):
+class Triggersize(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

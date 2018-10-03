@@ -26,7 +26,7 @@ numbs = {
 }
 
 
-class TrustyBot(commands.Cog):
+class TrustyBot(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
