@@ -72,14 +72,14 @@ class Hockey(commands.Cog):
     async def getgoals(self, ctx):  
         """Loop to check what teams are playing and see if a goal was scored""" 
         to_remove = []  
-        games_playing = True    
+        games_playing = True
         # print(link)   
         with open("/mnt/e/github/Trusty-cogs/hockeytest/testgame.json", "r") as infile: 
-            data = json.loads(infile.read())    
+            data = json.loads(infile.read())
         # print(data)   
-        game_data = await Game.from_json(data)  
-        await self.check_game_state(game_data)                  
-        if (game_data.home_score + game_data.away_score) != 0:  
+        game_data = await Game.from_json(data)
+        await self.check_game_state(game_data)
+        if (game_data.home_score + game_data.away_score) != 0:
             await self.check_team_goals(game_data)
 
     async def refactor_data(self):
@@ -519,7 +519,11 @@ class Hockey(commands.Cog):
         if next_game is None:
             return
         chn_name = await get_chn_name(next_game)
-        new_chn = await guild.create_text_channel(chn_name, category=category)
+        try:
+            new_chn = await guild.create_text_channel(chn_name, category=category)
+        except Exception as e:
+            print("Error creating channels in {}: {}".format(guild.name, e))
+            return
         cur_channels = await self.config.guild(guild).gdc()
         if cur_channels is None:
             cur_channels = []
@@ -538,8 +542,8 @@ class Hockey(commands.Cog):
         time_string = utc_to_local(timestamp, timezone).strftime("%A %B %d, %Y at %I:%M %p %Z")
 
         game_msg = "{} {} @ {} {} {}".format(next_game.away_team, next_game.away_emoji,\
-                                                   next_game.home_team, next_game.home_emoji,\
-                                                   time_string)
+                                             next_game.home_team, next_game.home_emoji,\
+                                             time_string)
         await new_chn.edit(topic=game_msg)
         if new_chn.permissions_for(guild.me).embed_links:
             em = await game_state_embed(next_game)
@@ -798,6 +802,11 @@ class Hockey(commands.Cog):
 
     @commands.group(name="hockey", aliases=["nhl"])
     async def hockey_commands(self, ctx):
+        """Various Hockey related commands also aliased to `nhl`"""
+        pass
+
+    @commands.group(name="hockeyset", aliases=["nhlset"])
+    async def hockeyset_commands(self, ctx):
         """Various Hockey related commands also aliased to `nhl`"""
         pass
 
