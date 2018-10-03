@@ -29,6 +29,8 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
             em = await roster_embed(post_list, page)
         if display_type == "game":
             em = await game_embed(post_list, page)
+        if display_type == "leaderboard":
+            em = await make_leaderboard_embed(ctx.guild, post_list, page)
     else:
         await ctx.send("I need embed_links permission to use this command.")
         return

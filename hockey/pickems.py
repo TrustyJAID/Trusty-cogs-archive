@@ -4,6 +4,9 @@ from datetime import datetime
 
 
 class Pickems:
+    """
+        Pickems object for handling votes on games for the day
+    """
     def __init__(self, message:int, channel:int, game_start:str, home_team:str, away_team:str, votes:list, winner:str=None):
         super().__init__()
         self.message = message
