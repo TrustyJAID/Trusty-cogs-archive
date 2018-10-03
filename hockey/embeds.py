@@ -51,20 +51,24 @@ async def make_rules_embed(guild, team, rules):
     return em
 
 async def get_stats_msg(data):
-    stats, home_i = await get_team_standings(data.home_team)
+    
     msg = "GP:**{gp}** W:**{wins}** L:**{losses}\n**OT:**{ot}** PTS:**{pts}** S:**{streak}**\n"
     streak_types = {"wins":"W", "losses":"L", "ot":"OT"}
     home_str = "GP:**0** W:**0** L:**0\n**OT:**0** PTS:**0** S:**0**\n"
     away_str = "GP:**0** W:**0** L:**0\n**OT:**0** PTS:**0** S:**0**\n"
-    for team in stats:
-        if team.name == data.away_team:
-            streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
-            away_str = msg.format(wins=team.wins, losses=team.losses,\
-                         ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
-        if team.name == data.home_team:
-            streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
-            home_str = msg.format(wins=team.wins, losses=team.losses,\
-                         ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
+    try:
+        stats, home_i = await get_team_standings(data.home_team)
+        for team in stats:
+            if team.name == data.away_team:
+                streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
+                away_str = msg.format(wins=team.wins, losses=team.losses,\
+                             ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
+            if team.name == data.home_team:
+                streak = "{} {}".format(team.streak, streak_types[team.streak_type].upper())
+                home_str = msg.format(wins=team.wins, losses=team.losses,\
+                             ot=team.ot, pts=team.pts, gp=team.gp, streak=streak)
+    except:
+        pass
     return home_str, away_str
 
 async def get_shootout_display(goals):
