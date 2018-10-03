@@ -633,7 +633,11 @@ class Hockey(commands.Cog):
                 except:
                     pass
                 continue
-            await self.tally_leaderboard(guild, chn.id)
+            try:
+                await self.tally_leaderboard(guild, chn.id)
+            except Exception as e:
+                print(e)
+                pass
             if not await self.config.channel(chn).to_delete():
                 continue
             try:
