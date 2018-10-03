@@ -54,7 +54,7 @@ class Hockey(commands.Cog):
         """
             Gets all current games for the day as a list of game objects
         """
-        async with self.session.get(self.url + "/api/v1/schedule?startDate=2018-10-3&endDate=2018-10-3") as resp:
+        async with self.session.get(self.url + "/api/v1/schedule") as resp:
             data = await resp.json()
         game_list = []
         for link in data["dates"][0]["games"]:
