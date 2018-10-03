@@ -24,7 +24,7 @@ except ImportError:
 __version__ = "2.2.1"
 __author__ = "TrustyJAID"
 
-class Hockey(commands.Cog):
+class Hockey(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -37,7 +37,7 @@ class Hockey(commands.Cog):
         default_global["teams"].append(team_entry.to_json())
         default_guild = {"standings_channel":None, "standings_type":None, "post_standings":False, "standings_msg":None,
                          "create_channels":False, "category":None, "gdc_team":None, "gdc":[], "delete_gdc":True,
-                         "rules":"", "team_rules":"", "pickems": [], "leaderboard":[]}
+                         "rules":"", "team_rules":"", "pickems": [], "leaderboard":{}}
         default_channel = {"team":[], "to_delete":False}
 
         self.config = Config.get_conf(self, 13457745779)
@@ -613,9 +613,10 @@ class Hockey(commands.Cog):
             for user, choice in pickems.votes:
                 if choice == pickems.winner:
                     if str(user) not in leaderboard:
-                        leaderboard[str(user)] = 1
+                        leaderboard[str(user)] = {"season": 1, "weekly": 1}
                     else:
-                        leaderboard[str(user)] += 1
+                        leaderboard[str(user)]["season"] += 1
+                        leaderboard[str(user)]["weekly"] += 1
             await self.config.guild(guild).leaderboard.set(leaderboard)
         await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list])
 
@@ -819,6 +820,11 @@ class Hockey(commands.Cog):
         await self.config.guild(ctx.guild).pickems.set([])
         await ctx.send("Done.")
 
+    @hockey_commands.command(hidden=True)
+    async def remleaderboard(self, ctx):
+        await self.config.guild(ctx.guild).leaderboard.set({})
+        await ctx.send("Done.")
+
     @commands.group()
     @checks.admin_or_permissions(manage_channels=True)
     async def gdc(self, ctx):
@@ -867,7 +873,7 @@ class Hockey(commands.Cog):
         hue = Oilers(self.bot)
         await hue.oilersgoal2()
 
-    @hockey_commands.command(hidden=True)
+    @hockeyset_commands.command(hidden=True)
     @checks.is_owner()
     async def reset(self, ctx):
         all_teams = await self.config.teams()
@@ -883,7 +889,7 @@ class Hockey(commands.Cog):
         await ctx.send("Done.")
 
 
-    @hockey_commands.command(hidden=True)
+    @hockeyset_commands.command(hidden=True)
     @checks.is_owner()
     async def add_team_data(self, ctx):
         all_teams = await self.config.teams()
@@ -897,7 +903,7 @@ class Hockey(commands.Cog):
             all_teams.append(team_entry.to_json())
         await self.config.teams.set(all_teams)
 
-    @hockey_commands.command(hidden=True)
+    @hockeyset_commands.command(hidden=True)
     @checks.is_owner()
     async def testhockey(self, ctx):
         for channels in await self.config.all_channels():
@@ -909,7 +915,7 @@ class Hockey(commands.Cog):
             chn = await self.config.channel(channel).team()
             print(chn)
 
-    @hockey_commands.command(hidden=True)
+    @gdc.command(hidden=True)
     @checks.is_owner()
     async def cleargdc(self, ctx):
         guild = ctx.message.guild
@@ -924,7 +930,7 @@ class Hockey(commands.Cog):
                 good_channels.append(channel.id)
         await self.config.guild(guild).gdc.set(good_channels)
 
-    @hockey_commands.command(hidden=True)
+    @hockeyset_commands.command(hidden=True)
     @checks.is_owner()
     async def clear_broken_channels(self, ctx):
         for channels in await self.config.all_channels():
@@ -937,7 +943,7 @@ class Hockey(commands.Cog):
                 # await self.config._clear_scope(Config.CHANNEL, str(channels))
         await ctx.send("done")
 
-    @hockey_commands.command(hidden=True)
+    @hockeyset_commands.command(hidden=True)
     @checks.is_owner()
     async def remove_broken_guild(self, ctx):
         all_guilds = await self.config.all_guilds()
@@ -951,7 +957,7 @@ class Hockey(commands.Cog):
 
         await ctx.send("Done.")
 
-    @hockey_commands.command(hidden=True)
+    @hockeyset_commands.command(hidden=True)
     @checks.is_owner()
     async def cogstats(self, ctx):
         all_channels = await self.config.all_channels()
@@ -1080,7 +1086,7 @@ class Hockey(commands.Cog):
         await ctx.send("Game Day Channels for {} setup in the {} category".format(team, category.name))
 
 
-    @hockey_commands.command(name="poststandings", aliases=["poststanding"])
+    @hockeyset_commands.command(name="poststandings", aliases=["poststanding"])
     async def post_standings(self, ctx, standings_type:str, channel:discord.TextChannel=None):
         """Posts automatic standings when all games for the day are done"""
         guild = ctx.message.guild
@@ -1107,7 +1113,7 @@ class Hockey(commands.Cog):
         await self.config.guild(guild).post_standings.set(True)
 
 
-    @hockey_commands.command()
+    @hockeyset_commands.command()
     async def togglestandings(self, ctx):
         """Toggles the standings on or off."""
         guild = ctx.message.guild
@@ -1115,7 +1121,7 @@ class Hockey(commands.Cog):
         await self.config.guild(guild).post_standings.set(cur_state)
         await ctx.send("Done.")
 
-    @hockey_commands.command(name="add", aliases=["add_goals"])
+    @hockeyset_commands.command(name="add", aliases=["add_goals"])
     @checks.admin_or_permissions(manage_channels=True)
     async def add_goals(self, ctx, team, channel:discord.TextChannel=None):
         """Adds a hockey team goal updates to a channel do 'all' for all teams"""
@@ -1139,7 +1145,7 @@ class Hockey(commands.Cog):
         await ctx.send("{} goals will be posted in {}".format(team_name, channel.mention))
 
 
-    @hockey_commands.command(name="del", aliases=["remove", "rem"])
+    @hockeyset_commands.command(name="del", aliases=["remove", "rem"])
     @checks.admin_or_permissions(manage_channels=True)
     async def remove_goals(self, ctx, channel:discord.TextChannel=None):
         """Removes a teams goal updates from a channel"""
@@ -1282,6 +1288,36 @@ class Hockey(commands.Cog):
         if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
             await ctx.message.delete()
         await ctx.send(embed=em)
+
+    @hockey_commands.command(hidden=True)
+    async def vote(self, ctx, team):
+        """
+            Vote for current games
+        """
+        pass
+
+    @hockey_commands.command(hidden=True)
+    async def leaderboard(self, ctx):
+        """
+            Shows the current server leaderboard
+        """
+        leaderboard = await self.config.guild(ctx.guild).leaderboard()
+        if leaderboard == {} or leaderboard is None:
+            await ctx.send("There is no current leaderboard for this server!")
+            return
+        else:
+            print(leaderboard)
+            leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["season"], reverse=True)
+            msg_list = []
+            count = 1
+            for member_id in leaderboard:
+                member = ctx.guild.get_member(int(member_id[0]))
+                msg_list.append("#{}. {}: {}\n".format(count, member.mention, member_id[1]["season"]))
+                count += 1
+            leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
+            await hockey_menu(ctx, "leaderboard", leaderboard_list)
+
+
 
     @hockey_commands.command(hidden=True)
     @checks.mod_or_permissions(manage_messages=True)

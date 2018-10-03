@@ -7,6 +7,9 @@ from .helper import *
         
 
 async def game_state_embed(data):
+    """
+        Makes the game state embed based on the game data provided
+    """
     post_state = ["all", data.home_team, data.away_team]
     timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
     title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
@@ -41,6 +44,9 @@ async def game_state_text(data):
     return em
 
 async def make_rules_embed(guild, team, rules):
+    """
+        Builds the rule embed for the server
+    """
     warning = "***Any violation of the [Discord TOS](https://discordapp.com/terms) or [Community Guidelines](https://discordapp.com/guidelines) will result in immediate banning and possibly reported to discord.***"
     em = discord.Embed(colour=int(teams[team]["home"].replace("#", ""), 16))
     em.description = rules
@@ -50,8 +56,25 @@ async def make_rules_embed(guild, team, rules):
     em.set_author(name=guild.name, icon_url=guild.icon_url)
     return em
 
+async def make_leaderboard_embed(guild, post_list, page=0):
+    """
+        Makes the leaderboard embed
+    """
+    leaderboard = post_list[page]
+    em = discord.Embed(timestamp=datetime.utcnow())
+    description = ""
+    for msg in leaderboard:
+        description += msg
+    em.description = description
+    em.set_author(name="{} Pickems Leaderboard".format(guild.name), icon_url=guild.icon_url)
+    em.set_thumbnail(url=guild.icon_url)
+    em.set_footer(text="Page {}/{}".format(page+1, len(post_list)))
+    return em
+
 async def get_stats_msg(data):
-    
+    """
+        returns team stats on the season from standings object
+    """
     msg = "GP:**{gp}** W:**{wins}** L:**{losses}\n**OT:**{ot}** PTS:**{pts}** S:**{streak}**\n"
     streak_types = {"wins":"W", "losses":"L", "ot":"OT"}
     home_str = "GP:**0** W:**0** L:**0\n**OT:**0** PTS:**0** S:**0**\n"
@@ -72,6 +95,9 @@ async def get_stats_msg(data):
     return home_str, away_str
 
 async def get_shootout_display(goals):
+    """
+        Gets a string for the shootout display
+    """
     msg = ""
     score = "☑"
     miss = "❌"
@@ -83,6 +109,9 @@ async def get_shootout_display(goals):
     return msg
 
 async def goal_post_embed(goal, game_data):
+    """
+        Gets the embed for goal posts
+    """
     h_emoji = game_data.home_emoji
     a_emoji = game_data.away_emoji
     period_time_left = goal["about"]["periodTimeRemaining"]
@@ -136,6 +165,9 @@ async def goal_post_embed(goal, game_data):
     return em
 
 async def goal_post_text(goal, game_data):
+    """
+        Gets the text to send for goal posts
+    """
     h_emoji = game_data.home_emoji
     a_emoji = game_data.away_emoji
     period_time_left = goal["about"]["periodTimeRemaining"]
@@ -154,6 +186,9 @@ async def goal_post_text(goal, game_data):
     return em
 
 async def build_standing_embed(post_list, page=0):
+    """
+        Builds the standings type based on number of items in the list
+    """
     _teams = post_list[page]
     em = discord.Embed()
     if type(_teams) is not list:
@@ -210,6 +245,9 @@ async def build_standing_embed(post_list, page=0):
 
 
 async def all_standing_embed(post_standings, page=0):
+    """
+        Builds the standing embed when all teams are selected
+    """
     em = discord.Embed()
     new_dict = {}
     for team in post_standings:
@@ -227,6 +265,9 @@ async def all_standing_embed(post_standings, page=0):
     return em
 
 async def roster_embed(post_list, page):
+    """
+        Builds the embed for players by stats in the current season
+    """
     player_list = post_list[page]
     headshots = "https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg"
     url = "https://statsapi.web.nhl.com" + player_list["person"]["link"] + "?expand=person.stats&stats=yearByYear"
@@ -266,6 +307,9 @@ async def roster_embed(post_list, page):
     return em
 
 async def make_game_obj(url):
+    """
+        Makes the game object from provided URL
+    """
     async with aiohttp.ClientSession() as session:
         async with session.get("https://statsapi.web.nhl.com" + url) as resp:
             game_data = await resp.json()
@@ -274,6 +318,10 @@ async def make_game_obj(url):
 
 
 async def game_embed(post_list, page):
+    """
+        Builds the game embed when the command is called
+        provides as much data as possible
+    """
     game = post_list[page]
     
     if type(game) is dict:
