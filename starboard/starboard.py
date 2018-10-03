@@ -6,7 +6,7 @@ from .message_entry import StarboardMessage
 import re
 from copy import copy
 
-class Starboard(commands.Cog):
+class Starboard(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

@@ -9,7 +9,7 @@ import datetime
 import aiohttp
 import asyncio
 
-class Weather(commands.Cog):
+class Weather(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

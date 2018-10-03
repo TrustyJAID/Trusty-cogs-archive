@@ -7,7 +7,7 @@ from datetime import datetime
 import logging
 
 
-class Unity4J(commands.Cog):
+class Unity4J(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

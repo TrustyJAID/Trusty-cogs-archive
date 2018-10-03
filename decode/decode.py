@@ -6,7 +6,7 @@ import hashlib
 
 
 
-class Encoding(commands.Cog):
+class Encoding(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
