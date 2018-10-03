@@ -49,6 +49,12 @@ class Standings:
 
     @classmethod
     async def from_json(cls, data: dict, division:str, conference:str):
+        if "streak" in data:
+          streak_number = data["streak"]["streakNumber"]
+          streak_type = data["streak"]["streakType"]
+        else:
+          streak_number = 0
+          streak_type = 0
         return cls(data["team"]["name"],
                    division,
                    conference,
@@ -60,8 +66,8 @@ class Standings:
                    data["leagueRecord"]["ot"],
                    data["gamesPlayed"],
                    data["points"],
-                   data["streak"]["streakNumber"],
-                   data["streak"]["streakType"],
+                   streak_number,
+                   streak_type,
                    data["goalsScored"],
                    data["goalsAgainst"],
                    data["lastUpdated"]
