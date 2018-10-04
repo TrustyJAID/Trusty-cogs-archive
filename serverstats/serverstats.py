@@ -17,6 +17,7 @@ numbs = {
 
 
 class ServerStats(getattr(commands, "Cog", object)):
+
     def __init__(self, bot):
         self.bot = bot
         default_global = {"join_channel":None}
@@ -35,9 +36,11 @@ class ServerStats(getattr(commands, "Cog", object)):
         text_channels = len([x for x in guild.text_channels])
         voice_channels = len([x for x in guild.voice_channels])
         passed = (datetime.datetime.utcnow() - guild.created_at).days
-        created_at = ("{} is on {} servers now! \nServer created {}. That's over {} days ago!"
-                      "".format(channel.guild.me.mention, len(self.bot.guilds), guild.created_at.strftime("%d %b %Y %H:%M"),
-                                passed))
+        created_at = _("{} is on {} servers now! \nServer created {}. That's over {} days ago!".format(
+                        channel.guild.me.mention,
+                        len(self.bot.guilds),
+                        guild.created_at.strftime("%d %b %Y %H:%M"),
+                        passed))
 
         colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
         colour = int(colour, 16)
@@ -131,7 +134,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         for page in pagify(msg, ['\n']):
             await ctx.send(page)
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def topmembers(self, ctx, number:int=10, guild_id:int=None):
         """Lists top 10 members on the server by join date"""
@@ -147,7 +150,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         for page in pagify(new_msg, ['\n']):
             await ctx.send(page)
     
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def listchannels(self, ctx, guild_id:discord.guild=None):
         """Lists channels and their position and ID for a server"""
@@ -176,7 +179,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         text_channels = len([x for x in guild.text_channels])
         voice_channels = len([x for x in guild.voice_channels])
         passed = (ctx.message.created_at - guild.created_at).days
-        created_at = ("Since {}. That's over {} days ago!"
+        created_at = _("Since {}. That's over {} days ago!"
                       "".format(guild.created_at.strftime("%d %b %Y %H:%M"),
                                 passed))
 
@@ -250,7 +253,7 @@ class ServerStats(getattr(commands, "Cog", object)):
             else:
                 return await message.delete()
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def getguild(self, ctx, guild_name=None):
         """Menu to view info on all servers the bot is on"""
@@ -264,7 +267,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         await self.guild_menu(ctx, guilds, None, page)
 
     
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def nummembers(self, ctx, *, guild_name=None):
         """Checks the number of members on the server"""
@@ -276,7 +279,7 @@ class ServerStats(getattr(commands, "Cog", object)):
             guild = ctx.message.guild
             await ctx.send(len(guild.members))
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def getroles(self, ctx):
         guild = ctx.message.guild
@@ -287,7 +290,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         for page in pagify(msg, ["\n"]):
             await ctx.send(page)
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def rolestats(self, ctx):
         guild = ctx.message.guild
         em = discord.Embed()
@@ -306,6 +309,24 @@ class ServerStats(getattr(commands, "Cog", object)):
                 users = user
         return highest, users
 
+    @commands.command(name="getreactions", aliases=["getreaction"])
+    @checks.mod_or_permissions(manage_messages=True)
+    async def get_reactions(self, ctx, message_id:int, channel:discord.TextChannel=None):
+        """
+            Gets a list of all reactions from specified message and displays the user ID,
+            Username, and Discriminator and the emoji name.
+        """
+        if channel is None:
+            channel = ctx.message.channel
+        msg = await channel.get_message(message_id)
+        new_msg = ""
+        for reaction in msg.reactions:
+            async for user in reaction.users():
+                new_msg += "{} {}#{} {}\n".format(user.id, user.name, user.discriminator, reaction.emoji.name)
+        for page in pagify(new_msg):
+            await ctx.send("```py\n{}\n```".format(page))
+
+
     @commands.command(aliases=["serverstats"])
     @checks.mod_or_permissions(manage_messages=True)
     async def server_stats(self, ctx, *, guild_id:int=None):
@@ -320,7 +341,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         total_msgs = 0
         msg = ""
         total_contribution = {}
-        warning_msg = await ctx.send("This might take a while!")
+        warning_msg = await ctx.send(_("This might take a while!"))
         async with ctx.channel.typing():
             for chn in guild.channels:
                 channel_msgs = 0
@@ -415,7 +436,7 @@ class ServerStats(getattr(commands, "Cog", object)):
             else:
                 return await message.delete()
 
-    @commands.command(pass_context=True, aliases=["serveremojis"])
+    @commands.command(aliases=["serveremojis"])
     async def guildemojis(self, ctx, *, guildname=None):
         msg = ""
         guild = None
