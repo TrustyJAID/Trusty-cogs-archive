@@ -7,7 +7,7 @@ class Pickems:
     """
         Pickems object for handling votes on games for the day
     """
-    def __init__(self, message:int, channel:int, game_start:str, home_team:str, away_team:str, votes:list, winner:str=None):
+    def __init__(self, message:list, channel:list, game_start:str, home_team:str, away_team:str, votes:list, winner:str=None):
         super().__init__()
         self.message = message
         self.channel = channel
@@ -28,12 +28,15 @@ class Pickems:
             team_choice = self.home_team
         if str(team.id) in self.away_emoji:
             team_choice = self.away_team
+        if team_choice is None:
+            raise NotAValidTeamError()
         user_voted = False
         for user, choice in self.votes:
             if user_id == user:
                 self.votes.remove((user, choice))
                 self.votes.append((user_id, team_choice))
                 raise UserHasVotedError("{} has already voted, removing prior vote".format(user_id))
+
         if not user_voted and team_choice is not None:
             self.votes.append((user_id, team_choice))
 
