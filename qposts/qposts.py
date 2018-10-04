@@ -259,10 +259,13 @@ class QPosts(getattr(commands, "Cog", object)):
                 await channel.send(text[:1900])
             try:
                 role = "".join(role.mention for role in guild.roles if role.name == "QPOSTS")
-                await channel.send("{} <{}>".format(role, url), embed=em)
+                if role != "":
+                    await channel.send("{} <{}>".format(role, url), embed=em)
+                else:
+                    await channel.send("<{}>".format(url), embed=em)
             except Exception as e:
                 print(e)
-                await channel.send("<{}>".format(url), embed=em)
+                
 
 
     async def q_menu(self, ctx, post_list: list, board,
