@@ -95,6 +95,10 @@ class Hockey(getattr(commands, "Cog", object)):
         for guild_id in guild_list:
             guild = self.bot.get_guild(id=guild_id)
             if guild is None:
+                try:
+                    await self.config._clear_scope(Config.GUILD, str(guild_id))
+                except Exception as e:
+                    print(e)
                 continue
             pickems = await self.config.guild(guild).pickems()
             for p in pickems:
