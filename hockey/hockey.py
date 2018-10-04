@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.2.1"
+__version__ = "2.2.2"
 __author__ = "TrustyJAID"
 
 class Hockey(getattr(commands, "Cog", object)):
@@ -91,6 +91,18 @@ class Hockey(getattr(commands, "Cog", object)):
             teams = await self.config.channel(channel).team()
             if type(teams) is not list:
                 await self.config.channel(channel).team.set([teams])
+        guild_list = await self.config.all_guilds()
+        for guild_id in guild_list:
+            guild = self.bot.get_guild(id=guild_id)
+            if guild is None:
+                continue
+            pickems = await self.config.guild(guild).pickems()
+            for p in pickems:
+                if type(p["message"]) is not list:
+                    print("Changing {} @ {}".format(p["home_team"], p["away_team"]))
+                    p["message"] = [p["message"]]
+                    p["channel"] = [p["channel"]]
+            await self.config.guild(guild).pickems.set(pickems)
 
     async def get_team_goals(self):
         """
@@ -141,6 +153,11 @@ class Hockey(getattr(commands, "Cog", object)):
                         pass
                 await asyncio.sleep(60)
             print("Games Done Playing")
+            try:
+                await self.tally_leaderboard()
+            except Exception as e:
+                print("Error tallying leaderboard: {}".format(e))
+                pass
             if games_playing:
                 await self.config.created_gdc.set(False)
             all_teams = await self.config.teams()
@@ -552,15 +569,7 @@ class Hockey(getattr(commands, "Cog", object)):
             preview_msg = await new_chn.send(await game_state_text(next_game))
 
         # Create new pickems object for the game
-        pickems = await self.config.guild(guild).pickems()
-        if pickems is None:
-            pickems = []
-        new_pickem = Pickems(preview_msg.id, new_chn.id, next_game.game_start,
-                             next_game.home_team, next_game.away_team, [])
-        pickems.append(new_pickem.to_json())
-        await self.config.guild(guild).pickems.set(pickems)
-        
-
+        await self.create_pickem_object(guild, preview_msg, new_chn, next_game)
 
         if new_chn.permissions_for(guild.me).manage_messages:
             await preview_msg.pin()
@@ -570,6 +579,35 @@ class Hockey(getattr(commands, "Cog", object)):
                 await preview_msg.add_reaction(next_game.away_emoji[2:-1])
             except Exception as e:
                 print(e)
+
+    async def create_pickem_object(self, guild, message, channel, game):
+        """
+            Checks to see if a pickem object is already created for the game
+            if not it creates one or adds the message, channel to the current ones
+        """
+        pickems = await self.config.guild(guild).pickems()
+        if pickems is None:
+            pickems = []
+        old_pickem = None
+        for p in pickems:
+            if p["home_team"] == game.home_team and p["away_team"] == game.away_team:
+                print("Pickem already exists, adding channel")
+                old_pickem = p
+
+        if old_pickem is None:
+            pickems.append({"message":[message.id], 
+                            "channel":[channel.id],
+                            "game_start": game.game_start,
+                            "home_team":game.home_team,
+                            "away_team": game.away_team,
+                            "votes": [],
+                            "winner":None})
+        else:
+            pickems.remove(old_pickem)
+            old_pickem["message"].append(message.id)
+            old_pickem["channel"].append(channel.id)
+            pickems.append(old_pickem)
+        await self.config.guild(guild).pickems.set(pickems)
 
     async def set_pickem_winner(self, pickems):
         try:
@@ -587,38 +625,50 @@ class Hockey(getattr(commands, "Cog", object)):
             pickems.winner = pickems.away_team
         return pickems
 
-    async def tally_leaderboard(self, guild, channel_id):
+    async def tally_leaderboard(self):
         """
             This should be where the pickems is removed and tallies are added
             to the leaderboard
         """
-        pickem_list = [Pickems.from_json(p) for p in await self.config.guild(guild).pickems()]
-        pickems = None
-        for pickem in pickem_list:
-            if str(channel_id) == str(pickem.channel):
-                pickems = pickem
-                pickem_list.remove(pickems)
-        if pickems is None:
-            return
-        if pickems.winner is None:
-            # Tries to get the winner if it wasn't already set
+        for guild_id in await self.config.all_guilds():
+            guild = self.bot.get_guild(id=guild_id)
+            if guild is None:
+                continue
             try:
-                pickems = await self.set_pickem_winner(pickems)
-            except NotAValidTeamError:
-                pass
-        if pickems.winner is not None:
-            leaderboard = await self.config.guild(guild).leaderboard()
-            if leaderboard is None:
-                leaderboard = {}
-            for user, choice in pickems.votes:
-                if choice == pickems.winner:
-                    if str(user) not in leaderboard:
-                        leaderboard[str(user)] = {"season": 1, "weekly": 1}
-                    else:
-                        leaderboard[str(user)]["season"] += 1
-                        leaderboard[str(user)]["weekly"] += 1
-            await self.config.guild(guild).leaderboard.set(leaderboard)
-        await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list])
+                pickem_list = [Pickems.from_json(p) for p in await self.config.guild(guild).pickems()]
+                pickems = None
+                time_now = datetime.now()
+                for pickem in pickem_list:
+                    if str(channel_id) == str(pickem.channel):
+                        pickems = pickem
+                        pickem_list.remove(pickems)
+                if pickems is None:
+                    return
+                if pickems.winner is None:
+                    # Tries to get the winner if it wasn't already set
+                    try:
+                        pickems = await self.set_pickem_winner(pickems)
+                    except NotAValidTeamError:
+                        pass
+                if pickems.winner is not None:
+                    leaderboard = await self.config.guild(guild).leaderboard()
+                    if leaderboard is None:
+                        leaderboard = {}
+                    for user, choice in pickems.votes:
+                        if time_now.isoweekday() == 0:
+                            if str(user) not in leaderboard:
+                                leaderboard[str(user)] = {"season": 0, "weekly": 0}
+                            leaderboard[str(user)]["weekly"] = 0
+                        if choice == pickems.winner:
+                            if str(user) not in leaderboard:
+                                leaderboard[str(user)] = {"season": 1, "weekly": 1}
+                            else:
+                                leaderboard[str(user)]["season"] += 1
+                                leaderboard[str(user)]["weekly"] += 1
+                    await self.config.guild(guild).leaderboard.set(leaderboard)
+                await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list])
+            except Exception as e:
+                print("Error tallying leaderboard in {}".format(guild.name))
 
     async def delete_gdc(self, guild):
         """
@@ -634,11 +684,6 @@ class Hockey(getattr(commands, "Cog", object)):
                 except:
                     pass
                 continue
-            try:
-                await self.tally_leaderboard(guild, chn.id)
-            except Exception as e:
-                print(e)
-                pass
             if not await self.config.channel(chn).to_delete():
                 continue
             try:
@@ -690,9 +735,19 @@ class Hockey(getattr(commands, "Cog", object)):
                                 continue
                     try:
                         if not channel.permissions_for(guild.me).embed_links:
-                            await channel.send(await game_state_text(data))
+                            preview_msg = await channel.send(await game_state_text(data))
                         else:
-                            await channel.send(embed=await game_state_embed(data))
+                            preview_msg = await channel.send(embed=await game_state_embed(data))
+
+                        # Create new pickems object for the game
+                        guild = channel.guild
+                        await self.create_pickem_object(guild, preview_msg, channel, data)
+                        if channel.permissions_for(guild.me).add_reactions:
+                            try:
+                                await preview_msg.add_reaction(data.home_emoji[2:-1])
+                                await preview_msg.add_reaction(data.away_emoji[2:-1])
+                            except Exception as e:
+                                print(e)
                     except Exception as e:
                         print("Problem posting in channel <#{}> : {}".format(channels, e))
 
@@ -705,11 +760,10 @@ class Hockey(getattr(commands, "Cog", object)):
         print("Updating Standings.")
         all_guilds = await self.config.all_guilds()
         for guilds in all_guilds:
-            try:
-                guild = self.bot.get_guild(guilds)
-                print(guild.name)
-            except:
+            guild = self.bot.get_guild(guilds)
+            if guild is None:
                 continue
+            print(guild.name)
             if await self.config.guild(guild).post_standings():
 
                 search = await self.config.guild(guild).standings_type()
@@ -728,9 +782,9 @@ class Hockey(getattr(commands, "Cog", object)):
 
                 standings, page = await get_team_standings(search)
                 if search != "all":
-                    em = await build_standing_embed(await get_team_standings(search))
+                    em = await build_standing_embed(standings, page)
                 else:
-                    em = await all_standing_embed(await get_team_standings(search))
+                    em = await all_standing_embed(standings, page)
                 if message is not None:
                     await message.edit(embed=em)
 
@@ -777,28 +831,37 @@ class Hockey(getattr(commands, "Cog", object)):
             return
         is_pickems_vote = False
         for pickem in pickems:
-            if str(pickem.message) == str(msg.id):
+            if msg.id in pickem.message:
+                reply_message = ""
                 try:
                     #print(payload.emoji)
                     pickem.add_vote(user.id, payload.emoji)
                 except UserHasVotedError:
-                    print("User has already voted! Changing vote")
                     try:
                         emoji = pickem.home_emoji if str(payload.emoji.id) in pickem.away_emoji else pickem.away_emoji
                         await msg.remove_reaction(emoji, user)
                     except Exception as e:
                         print(e)
+                    reply_message = "You have already voted! Changing vote."
                 except VotingHasEndedError:
                     try:
                         await msg.remove_reaction(payload.emoji, user)
                     except:
                         pass
-                    print("Voting has ended")
+                    reply_message = "Voting has ended!"
+                except NotAValidTeamError:
+                    try:
+                        await msg.remove_reaction(payload.emoji, user)
+                    except:
+                        pass
+                    reply_message = "Don't clutter the votes box with emojis!"
+                if reply_message != "":
+                    try:
+                        await user.send(reply_message)
+                    except:
+                        pass
         pickems_list = [p.to_json() for p in pickems]
         await self.config.guild(guild).pickems.set(pickems_list)
-                
-
-
 
 
 
@@ -980,6 +1043,14 @@ class Hockey(getattr(commands, "Cog", object)):
 
 
         await ctx.send("Done.")
+
+    @hockeyset_commands.command(hidden=True)
+    @checks.is_owner()
+    async def teststandings(self, ctx):
+        try:
+            await self.post_automatic_standings()
+        except Exception as e:
+            print(e)
 
 
     @gdc.command(name="delete")
