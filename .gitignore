@@ -48,3 +48,4 @@ Temporary Items
 __pycache__/
 audiotest/
 trusty-cogs.sublime-workspace
+*.sublime-workspace
