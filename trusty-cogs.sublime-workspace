@@ -136,10 +136,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     baf12b3 [Hockey] Add leaderboard command to get pickems data\n\n\nUntracked files:\n\tblizzard/\n\tconvertinfo.py\n\nChanges:\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     2646650 [Hockey] Fix poststandings type selection\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 1031,
+				"buffer_size": 967,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -147,28 +147,10 @@
 			}
 		},
 		{
-			"file": "serverstats/serverstats.py",
-			"settings":
-			{
-				"buffer_size": 18659,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
 			"file": "hockey/hockey.py",
 			"settings":
 			{
-				"buffer_size": 61137,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "hockey/menu.py",
-			"settings":
-			{
-				"buffer_size": 3342,
+				"buffer_size": 64771,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -177,7 +159,24 @@
 			"file": "hockey/pickems.py",
 			"settings":
 			{
-				"buffer_size": 2220,
+				"buffer_size": 2294,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/helper.py",
+			"settings":
+			{
+				"buffer_size": 5363,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/embeds.py",
+			"settings":
+			{
+				"buffer_size": 19367,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -281,14 +280,18 @@
 	[
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
-		"/E/github/Trusty-cogs/notsobot",
-		"/E/github/Trusty-cogs/serverstats",
-		"/E/github/Trusty-cogs/starboard",
-		"/E/github/Trusty-cogs/twitch",
-		"/E/github/Trusty-cogs/unity4j"
+		"/E/github/Trusty-cogs/hockey"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/hockey/errors.py",
+		"/E/github/Trusty-cogs/notsobot/notsobot.py",
+		"/E/github/Trusty-cogs/notsobot/vw/macintoshplus.py",
+		"/E/github/Trusty-cogs/serverstats/serverstats.py",
+		"/E/github/Trusty-cogs/hockey/hockey.py",
+		"/E/github/Trusty-cogs/hockey/menu.py",
+		"/E/github/Trusty-cogs/qposts/qposts.py",
+		"/E/github/Trusty-cogs/hockey/pickems.py",
 		"/E/github/Trusty-cogs/hockey/embeds.py",
 		"/E/github/Trusty-cogs/hockey/helper.py",
 		"/E/github/Trusty-cogs/dev/dev.py",
@@ -303,11 +306,8 @@
 		"/E/github/Trusty-cogs/juche/juche.py",
 		"/E/github/Trusty-cogs/mock/mock.py",
 		"/E/github/Trusty-cogs/modlogs/modlogs.py",
-		"/E/github/Trusty-cogs/notsobot/notsobot.py",
-		"/E/github/Trusty-cogs/qposts/qposts.py",
 		"/E/github/Trusty-cogs/rekt/rekt.py",
 		"/E/github/Trusty-cogs/runescape/runescape.py",
-		"/E/github/Trusty-cogs/serverstats/serverstats.py",
 		"/E/github/Trusty-cogs/serverwhitelist/serverwhitelist.py",
 		"/E/github/Trusty-cogs/starboard/starboard.py",
 		"/E/github/Trusty-cogs/halo/halo.py",
@@ -338,16 +338,12 @@
 		"/E/github/Trusty-cogs/weather/weather.py",
 		"/E/github/Trusty-cogs/welcome/welcome.py",
 		"/E/github/Trusty-cogs/compliment/compliments.py",
-		"/E/github/Trusty-cogs/hockey/pickems.py",
-		"/E/github/Trusty-cogs/hockey/hockey.py",
 		"/E/github/Trusty-cogs/hockey/game.py",
-		"/E/github/Trusty-cogs/hockey/errors.py",
 		"/E/github/Trusty-cogs/twitch/twitch_follower.py",
 		"/E/github/Trusty-cogs/twitch/twitch_profile.py",
 		"/C/Users/Damez/AppData/Roaming/Sublime Text 3/Packages/Package Control/Package Control.sublime-settings",
 		"/E/github/Trusty-cogs/trusty-cogs.sublime-project",
 		"/C/Users/Damez/Desktop/Events.xml",
-		"/E/github/Trusty-cogs/notsobot/vw/macintoshplus.py",
 		"/E/github/Trusty-cogs/badges/__init__.py",
 		"/E/github/NotSoBot-master/bot.py",
 		"/E/github/NotSoBot-master/utils/funcs.py",
@@ -374,7 +370,6 @@
 		"/E/github/Trusty-cogs/reee/__init__.py",
 		"/E/github/Trusty-cogs/reee/triggersize.py",
 		"/E/github/Trusty-cogs/reee/reee.py",
-		"/E/github/Trusty-cogs/hockey/menu.py",
 		"/E/github/Trusty-cogs/hockey/oilers.py",
 		"/E/github/Trusty-cogs/hockey/teams.py",
 		"/E/github/Trusty-cogs/hockey/teamentry.py",
@@ -420,7 +415,7 @@
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 41.0
 	},
 	"find_in_files":
 	{
@@ -435,6 +430,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"main_dir",
+			"/cogs/notsobot/vw",
+			"/cogs/notsobot",
+			"created_at",
+			"pass_context=True",
+			"pass_context=True, ",
 			"\"\"",
 			"\" \"",
 			"\"  \"",
@@ -556,13 +557,7 @@
 			"make_gif",
 			"sys",
 			"cv2",
-			"db",
-			"check_streams",
-			"stream_alerts",
-			"initialize",
-			"entities",
-			"url",
-			"media"
+			"db"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -570,6 +565,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"",
 			"getattr(commands, \"Cog\", object)",
 			"    ",
 			"pinterest",
@@ -609,7 +605,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -617,15 +613,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1031,
+						"buffer_size": 967,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								190,
-								190
+								168,
+								168
 							]
 						],
 						"settings":
@@ -643,24 +639,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "serverstats/serverstats.py",
-					"semi_transient": true,
+					"file": "hockey/hockey.py",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 18659,
+						"buffer_size": 64771,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								49313,
+								49313
 							]
 						],
 						"settings":
@@ -670,57 +666,33 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2259.0,
+						"translation.y": 20248.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
-				},
+				}
+			]
+		},
+		{
+			"selected": 2,
+			"sheets":
+			[
 				{
 					"buffer": 2,
-					"file": "hockey/hockey.py",
+					"file": "hockey/pickems.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 61137,
+						"buffer_size": 2294,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								56046,
-								56046
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 15.0,
-						"translation.y": 22926.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "hockey/menu.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3342,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1312,
-								1312
+								1280,
+								1280
 							]
 						],
 						"settings":
@@ -737,20 +709,20 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "hockey/pickems.py",
+					"buffer": 3,
+					"file": "hockey/helper.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2220,
+						"buffer_size": 5363,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								824,
-								824
+								1945,
+								1945
 							]
 						],
 						"settings":
@@ -760,17 +732,42 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,
 					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "hockey/embeds.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 19367,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9868,
+								9868
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3294.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
 				}
-			]
-		},
-		{
-			"sheets":
-			[
 			]
 		}
 	],
@@ -836,9 +833,9 @@
 	"project": "trusty-cogs.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 73.0
 	},
-	"save_all_on_build": true,
+	"save_all_on_build": false,
 	"select_file":
 	{
 		"height": 0.0,
