@@ -101,12 +101,13 @@ class Hockey(getattr(commands, "Cog", object)):
                     print(e)
                 continue
             pickems = await self.config.guild(guild).pickems()
-            for p in pickems:
-                if type(p["message"]) is not list:
-                    print("Changing {} @ {}".format(p["home_team"], p["away_team"]))
-                    p["message"] = [p["message"]]
-                    p["channel"] = [p["channel"]]
-            await self.config.guild(guild).pickems.set(pickems)
+            if pickems is not None:
+                for p in pickems:
+                    if type(p["message"]) is not list:
+                        print("Changing {} @ {}".format(p["home_team"], p["away_team"]))
+                        p["message"] = [p["message"]]
+                        p["channel"] = [p["channel"]]
+                await self.config.guild(guild).pickems.set(pickems)
 
     async def get_team_goals(self):
         """
