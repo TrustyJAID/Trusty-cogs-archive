@@ -1172,9 +1172,9 @@ class Hockey(getattr(commands, "Cog", object)):
 
         standings, page = await get_team_standings(standings_type.lower())
         if standings_type.lower() != "all":
-            em = await build_standing_embed(standings)
+            em = await build_standing_embed(standings, page)
         else:
-            em = await all_standing_embed(standings)
+            em = await all_standing_embed(standings, page)
         await self.config.guild(guild).standings_type.set(standings_type)
         await self.config.guild(guild).standings_channel.set(channel.id)
         await ctx.send("Sending standings to {}".format(channel.mention))
