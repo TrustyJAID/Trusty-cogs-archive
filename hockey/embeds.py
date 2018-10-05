@@ -60,15 +60,16 @@ async def make_leaderboard_embed(guild, post_list, page=0):
     """
         Makes the leaderboard embed
     """
-    leaderboard = post_list[page]
+    leaderboard = post_list["lists"][page]
+    style = post_list["type"]
     em = discord.Embed(timestamp=datetime.utcnow())
     description = ""
     for msg in leaderboard:
         description += msg
     em.description = description
-    em.set_author(name="{} Pickems Leaderboard".format(guild.name), icon_url=guild.icon_url)
+    em.set_author(name="{} Pickems {} Leaderboard".format(guild.name, style), icon_url=guild.icon_url)
     em.set_thumbnail(url=guild.icon_url)
-    em.set_footer(text="Page {}/{}".format(page+1, len(post_list)))
+    em.set_footer(text="Page {}/{}".format(page+1, len(post_list["lists"])))
     return em
 
 async def get_stats_msg(data):
