@@ -669,7 +669,7 @@ class Hockey(getattr(commands, "Cog", object)):
                                     leaderboard[str(user)]["season"] += 1
                                     leaderboard[str(user)]["weekly"] += 1
                         await self.config.guild(guild).leaderboard.set(leaderboard)
-                await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list])
+                await self.config.guild(guild).pickems.set([])
             except Exception as e:
                 print("Error tallying leaderboard in {}: {}".format(guild.name, e))
 
@@ -744,13 +744,14 @@ class Hockey(getattr(commands, "Cog", object)):
 
                         # Create new pickems object for the game
                         guild = channel.guild
-                        await self.create_pickem_object(guild, preview_msg, channel, data)
-                        if channel.permissions_for(guild.me).add_reactions:
-                            try:
-                                await preview_msg.add_reaction(data.home_emoji[2:-1])
-                                await preview_msg.add_reaction(data.away_emoji[2:-1])
-                            except Exception as e:
-                                print(e)
+                        if data.game_state == "Preview":
+                            await self.create_pickem_object(guild, preview_msg, channel, data)
+                            if channel.permissions_for(guild.me).add_reactions:
+                                try:
+                                    await preview_msg.add_reaction(data.home_emoji[2:-1])
+                                    await preview_msg.add_reaction(data.away_emoji[2:-1])
+                                except Exception as e:
+                                    print(e)
                     except Exception as e:
                         print("Problem posting in channel <#{}> : {}".format(channels, e))
 
