@@ -640,7 +640,10 @@ class Hockey(getattr(commands, "Cog", object)):
             if guild is None:
                 continue
             try:
-                pickem_list = [Pickems.from_json(p) for p in await self.config.guild(guild).pickems()]
+                pickem_list_json = await self.config.guild(guild).pickems()
+                if pickem_list_json is None:
+                    continue
+                pickem_list = [Pickems.from_json(p) for p in pickem_list_json]
                 time_now = datetime.now()
                 for pickems in pickem_list:
                     
@@ -1368,15 +1371,15 @@ class Hockey(getattr(commands, "Cog", object)):
         pass
 
     @hockey_commands.command(hidden=True)
-    async def leaderboard(self, ctx):
+    async def leaderboard(self, ctx, leaderboard_type:str="seasonal"):
         """
-            Shows the current server leaderboard
+            Shows the current server leaderboard either seasonal or weekly
         """
         leaderboard = await self.config.guild(ctx.guild).leaderboard()
         if leaderboard == {} or leaderboard is None:
             await ctx.send("There is no current leaderboard for this server!")
             return
-        else:
+        if leaderboard_type in ["seasonal", "season"]:
             print(leaderboard)
             leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["season"], reverse=True)
             msg_list = []
@@ -1386,7 +1389,17 @@ class Hockey(getattr(commands, "Cog", object)):
                 msg_list.append("#{}. {}: {}\n".format(count, member.mention, member_id[1]["season"]))
                 count += 1
             leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
-            await hockey_menu(ctx, "leaderboard", leaderboard_list)
+            await hockey_menu(ctx, "seasonal", leaderboard_list)
+        if leaderboard_type in ["weekly", "week"]:
+            leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["weekly"], reverse=True)
+            msg_list = []
+            count = 1
+            for member_id in leaderboard:
+                member = ctx.guild.get_member(int(member_id[0]))
+                msg_list.append("#{}. {}: {}\n".format(count, member.mention, member_id[1]["weekly"]))
+                count += 1
+            leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
+            await hockey_menu(ctx, "weekly", leaderboard_list)
 
 
 
