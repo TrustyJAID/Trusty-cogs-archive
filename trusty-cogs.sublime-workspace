@@ -136,7 +136,7 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     2646650 [Hockey] Fix poststandings type selection\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     c86bdb6 [Hockey] Not all servers have pickems yet\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
 				"buffer_size": 967,
@@ -150,7 +150,7 @@
 			"file": "hockey/hockey.py",
 			"settings":
 			{
-				"buffer_size": 64771,
+				"buffer_size": 65000,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -415,7 +415,7 @@
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 27.0
 	},
 	"find_in_files":
 	{
@@ -430,6 +430,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"pickem_object",
+			"post_automatic_standings",
 			"main_dir",
 			"/cogs/notsobot/vw",
 			"/cogs/notsobot",
@@ -555,9 +557,7 @@
 			"twitch_menu",
 			"hockey_menu",
 			"make_gif",
-			"sys",
-			"cv2",
-			"db"
+			"sys"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -605,7 +605,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -620,8 +620,8 @@
 						"selection":
 						[
 							[
-								168,
-								168
+								162,
+								162
 							]
 						],
 						"settings":
@@ -639,7 +639,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -648,15 +648,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 64771,
+						"buffer_size": 65000,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								49313,
-								49313
+								52144,
+								52144
 							]
 						],
 						"settings":
@@ -666,10 +666,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 20248.0,
+						"translation.y": 12601.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
@@ -751,8 +751,8 @@
 						"selection":
 						[
 							[
-								9868,
-								9868
+								10161,
+								10161
 							]
 						],
 						"settings":
@@ -833,7 +833,7 @@
 	"project": "trusty-cogs.sublime-project",
 	"replace":
 	{
-		"height": 73.0
+		"height": 50.0
 	},
 	"save_all_on_build": false,
 	"select_file":

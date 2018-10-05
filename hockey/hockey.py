@@ -641,39 +641,34 @@ class Hockey(getattr(commands, "Cog", object)):
                 continue
             try:
                 pickem_list = [Pickems.from_json(p) for p in await self.config.guild(guild).pickems()]
-                pickems = None
                 time_now = datetime.now()
-                for pickem in pickem_list:
-                    if str(channel_id) == str(pickem.channel):
-                        pickems = pickem
-                        pickem_list.remove(pickems)
-                if pickems is None:
-                    return
-                if pickems.winner is None:
-                    # Tries to get the winner if it wasn't already set
-                    try:
-                        pickems = await self.set_pickem_winner(pickems)
-                    except NotAValidTeamError:
-                        pass
-                if pickems.winner is not None:
-                    leaderboard = await self.config.guild(guild).leaderboard()
-                    if leaderboard is None:
-                        leaderboard = {}
-                    for user, choice in pickems.votes:
-                        if time_now.isoweekday() == 0:
-                            if str(user) not in leaderboard:
-                                leaderboard[str(user)] = {"season": 0, "weekly": 0}
-                            leaderboard[str(user)]["weekly"] = 0
-                        if choice == pickems.winner:
-                            if str(user) not in leaderboard:
-                                leaderboard[str(user)] = {"season": 1, "weekly": 1}
-                            else:
-                                leaderboard[str(user)]["season"] += 1
-                                leaderboard[str(user)]["weekly"] += 1
-                    await self.config.guild(guild).leaderboard.set(leaderboard)
+                for pickems in pickem_list:
+                    
+                    if pickems.winner is None:
+                        # Tries to get the winner if it wasn't already set
+                        try:
+                            pickems = await self.set_pickem_winner(pickems)
+                        except NotAValidTeamError:
+                            pass
+                    if pickems.winner is not None:
+                        leaderboard = await self.config.guild(guild).leaderboard()
+                        if leaderboard is None:
+                            leaderboard = {}
+                        for user, choice in pickems.votes:
+                            if time_now.isoweekday() == 0:
+                                if str(user) not in leaderboard:
+                                    leaderboard[str(user)] = {"season": 0, "weekly": 0}
+                                leaderboard[str(user)]["weekly"] = 0
+                            if choice == pickems.winner:
+                                if str(user) not in leaderboard:
+                                    leaderboard[str(user)] = {"season": 1, "weekly": 1}
+                                else:
+                                    leaderboard[str(user)]["season"] += 1
+                                    leaderboard[str(user)]["weekly"] += 1
+                        await self.config.guild(guild).leaderboard.set(leaderboard)
                 await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list])
             except Exception as e:
-                print("Error tallying leaderboard in {}".format(guild.name))
+                print("Error tallying leaderboard in {}: {}".format(guild.name, e))
 
     async def delete_gdc(self, guild):
         """
