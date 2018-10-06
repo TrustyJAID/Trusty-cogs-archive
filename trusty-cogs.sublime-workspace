@@ -136,10 +136,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     e25ba36 [Hockey] Fix NoneType object is not iterable in tally Added weekly leaderboard to leaderboard command\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     da57c3e [Hockey] Clear pickems list after tallying and create pickems only on preview games\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 1027,
+				"buffer_size": 1009,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -150,8 +150,16 @@
 			"file": "hockey/hockey.py",
 			"settings":
 			{
-				"buffer_size": 65676,
+				"buffer_size": 65729,
 				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/teams.py",
+			"settings":
+			{
+				"buffer_size": 15663,
 				"line_ending": "Windows"
 			}
 		},
@@ -622,15 +630,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1027,
+						"buffer_size": 1009,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								222,
-								222
+								204,
+								204
 							]
 						],
 						"settings":
@@ -657,15 +665,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 65676,
+						"buffer_size": 65729,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								59400,
-								59400
+								33676,
+								33676
 							]
 						],
 						"settings":
@@ -675,10 +683,40 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 11111.0,
+						"translation.y": 15605.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "hockey/teams.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15663,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4587,
+								4587
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1557.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -688,7 +726,7 @@
 			"sheets":
 			[
 				{
-					"buffer": 2,
+					"buffer": 3,
 					"file": "hockey/pickems.py",
 					"semi_transient": false,
 					"settings":
@@ -714,11 +752,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 4,
 					"file": "hockey/helper.py",
 					"semi_transient": false,
 					"settings":
@@ -744,11 +782,11 @@
 						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 5,
 					"file": "hockey/embeds.py",
 					"semi_transient": false,
 					"settings":
@@ -774,11 +812,11 @@
 						"translation.y": 486.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 6,
 					"file": "hockey/menu.py",
 					"semi_transient": false,
 					"settings":
@@ -804,7 +842,7 @@
 						"translation.y": 108.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				}
 			]
@@ -906,7 +944,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 1,
+	"selected_group": 0,
 	"settings":
 	{
 	},
