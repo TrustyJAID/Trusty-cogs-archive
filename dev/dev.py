@@ -8,9 +8,9 @@ from contextlib import redirect_stdout
 from copy import copy
 
 import discord
-from . import checks, commands
-from .i18n import Translator
-from .utils.chat_formatting import box, pagify
+from redbot.core import checks, commands
+from redbot.core.i18n import Translator
+from redbot.core.utils.chat_formatting import box, pagify
 
 """
 Notice:
@@ -28,8 +28,9 @@ START_CODE_BLOCK_RE = re.compile(r"^((```py)(?=\s)|(```))")
 class Dev(getattr(commands, "Cog", object)):
     """Various development focused utilities."""
 
-    def __init__(self):
+    def __init__(self, bot):
         super().__init__()
+        self.bot = bot
         self._last_result = None
         self.sessions = set()
 
