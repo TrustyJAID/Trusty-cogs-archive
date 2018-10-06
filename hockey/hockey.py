@@ -1387,7 +1387,11 @@ class Hockey(getattr(commands, "Cog", object)):
             count = 1
             for member_id in leaderboard:
                 member = ctx.guild.get_member(int(member_id[0]))
-                msg_list.append("#{}. {}: {}\n".format(count, member.mention, member_id[1]["season"]))
+                if member is None:
+                    member_mention = "User has left the server"
+                else:
+                    member_mention = member.mention
+                msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1]["season"]))
                 count += 1
             leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
             await hockey_menu(ctx, "seasonal", leaderboard_list)
@@ -1397,7 +1401,11 @@ class Hockey(getattr(commands, "Cog", object)):
             count = 1
             for member_id in leaderboard:
                 member = ctx.guild.get_member(int(member_id[0]))
-                msg_list.append("#{}. {}: {}\n".format(count, member.mention, member_id[1]["weekly"]))
+                if member is None:
+                    member_mention = "User has left the server"
+                else:
+                    member_mention = member.mention
+                msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1]["weekly"]))
                 count += 1
             leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
             await hockey_menu(ctx, "weekly", leaderboard_list)
