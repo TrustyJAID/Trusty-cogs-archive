@@ -320,16 +320,19 @@ class Star:
         if react in str(reaction.emoji):
 
             threshold = self.settings[server.id]["threshold"]
-            count = await self.get_count(server, msg)
+            try:
+                count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(payload.emoji)][0]
+            except IndexError:
+                count = 0
             if await self.check_is_posted(server, msg):
                 channel = self.bot.get_channel(self.settings[server.id]["channel"])
                 msg_id, count = await self.get_posted_message(server, msg)
                 if msg_id is not None:
                     msg_edit = await self.bot.get_message(channel, msg_id)
-                    await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count-1))
+                    await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count))
                     return
-            if count < threshold and threshold != 0:
-                store = {"original_message":msg.id, "new_message":None,"count":count+1}
+            if count < threshold:
+                store = {"original_message":msg.id, "new_message":None,"count":count}
                 has_message = None
                 for message in self.settings[server.id]["messages"]:
                     if msg.id == message["original_message"]:
@@ -342,12 +345,10 @@ class Star:
                     self.settings[server.id]["messages"].append(store)
                     dataIO.save_json("data/star/settings.json", self.settings)
                 return
-            if threshold == 0:
-                count = 2
             # else:
             channel2 = self.bot.get_channel(id=self.settings[server.id]["channel"])
             em = await self.build_embed(msg)
-            post_msg = await self.bot.send_message(channel2, "{} **#{}**".format(reaction.emoji, count-1), embed=em)
+            post_msg = await self.bot.send_message(channel2, "{} **#{}**".format(reaction.emoji, count), embed=em)
             past_message_list = self.settings[server.id]["messages"]
             past_message_list.append({"original_message":msg.id, "new_message":post_msg.id,"count":count})
             dataIO.save_json("data/star/settings.json", self.settings)
