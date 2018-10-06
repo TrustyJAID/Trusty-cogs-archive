@@ -320,10 +320,7 @@ class Star:
         if react in str(reaction.emoji):
 
             threshold = self.settings[server.id]["threshold"]
-            try:
-                count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(payload.emoji)][0]
-            except IndexError:
-                count = 0
+            count = reaction.count
             if await self.check_is_posted(server, msg):
                 channel = self.bot.get_channel(self.settings[server.id]["channel"])
                 msg_id, count = await self.get_posted_message(server, msg)
