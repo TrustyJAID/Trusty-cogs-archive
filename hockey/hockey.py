@@ -669,7 +669,7 @@ class Hockey(getattr(commands, "Cog", object)):
                                     leaderboard[str(user)]["season"] += 1
                                     leaderboard[str(user)]["weekly"] += 1
                         await self.config.guild(guild).leaderboard.set(leaderboard)
-                await self.config.guild(guild).pickems.set([])
+                await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list if p.winner is None])
             except Exception as e:
                 print("Error tallying leaderboard in {}: {}".format(guild.name, e))
 
