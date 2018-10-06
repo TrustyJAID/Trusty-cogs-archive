@@ -14,6 +14,7 @@ class Starboard(getattr(commands, "Cog", object)):
                          "role":[], "messages":[], "ignore":[], "threshold": 0}
         self.config = Config.get_conf(self, 356488795)
         self.config.register_guild(**default_guild)
+        self.message_list = []
 
     @commands.group(pass_context=True)
     @checks.admin_or_permissions(manage_channels=True)
@@ -252,6 +253,8 @@ class Starboard(getattr(commands, "Cog", object)):
         for past_message in await self.config.guild(guild).messages():
             if message.id == past_message["original_message"]:
                 is_posted = True
+        if (guild.id, message.id) in self.message_list:
+            is_posted = True
         return is_posted
 
     async def get_posted_message(self, guild, message):
@@ -331,14 +334,18 @@ class Starboard(getattr(commands, "Cog", object)):
                     await msg_edit.edit(content="{} **#{}**".format(payload.emoji, count))
                     return
 
+            self.message_list.append((guild.id, payload.message_id))
             if count < threshold:
-                    past_message_list = await self.config.guild(guild).messages()
-                    past_message_list.append(StarboardMessage(msg.id, None, count).to_json())
-                    await self.config.guild(guild).messages.set(past_message_list)
-                    return
+                past_message_list = await self.config.guild(guild).messages()
+                past_message_list.append(StarboardMessage(msg.id, None, count).to_json())
+                await self.config.guild(guild).messages.set(past_message_list)
+                self.message_list.remove((guild.id, payload.message_id))
+                return
+            
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
             em = await self.build_embed(guild, msg)
             post_msg = await channel2.send("{} **#{}**".format(payload.emoji, count), embed=em)
             past_message_list = await self.config.guild(guild).messages()
             past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
             await self.config.guild(guild).messages.set(past_message_list)
+            self.message_list.remove((guild.id, payload.message_id))
