@@ -1395,8 +1395,8 @@ class Hockey(getattr(commands, "Cog", object)):
         games_list = await self.get_day_games(date)
         await ctx.send(msg)
         for game in games_list:
-            new_msg = await ctx.send("__**{} {} @ {} {}**__".format(game.home_emoji, game.away_team,
-                                     game.away_emoji, game.home_team))
+            new_msg = await ctx.send("__**{} {} @ {} {}**__".format(game.away_emoji, game.away_team,
+                                     game.home_emoji, game.home_team))
             # Create new pickems object for the game
             await self.create_pickem_object(ctx.guild, new_msg, ctx.channel, game)
             if ctx.channel.permissions_for(ctx.guild.me).add_reactions:
