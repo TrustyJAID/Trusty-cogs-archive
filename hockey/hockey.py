@@ -50,11 +50,16 @@ class Hockey(getattr(commands, "Cog", object)):
     ##############################################################################
     # Here is all the logic for gathering game data and updating information
 
-    async def get_day_games(self):
+    async def get_day_games(self, date=None):
         """
             Gets all current games for the day as a list of game objects
         """
-        async with self.session.get(self.url + "/api/v1/schedule") as resp:
+        if date is None:
+            url = self.url + "/api/v1/schedule"
+        else:
+            url = "{base}/api/v1/schedule?startDate={year}-{month}-{day}&endDate={year}-{month}-{day}"\
+              .format(base=self.url, year=date.year, month=date.month, day=date.day)
+        async with self.session.get(url) as resp:
             data = await resp.json()
         game_list = []
         for link in data["dates"][0]["games"]:
@@ -301,7 +306,8 @@ class Hockey(getattr(commands, "Cog", object)):
             today = date
         url = "{base}/api/v1/schedule?startDate={year}-9-1&endDate={year2}-9-1"\
               .format(base=self.url, year=get_season()[0], year2=get_season()[1])
-        url += "&teamId={}".format(self.teams[team]["id"])
+        if team != "all":
+            url += "&teamId={}".format(self.teams[team]["id"])
         async with self.session.get(url) as resp:
             data = await resp.json()
         for dates in data["dates"]:
@@ -659,6 +665,7 @@ class Hockey(getattr(commands, "Cog", object)):
                             leaderboard = {}
                         for user, choice in pickems.votes:
                             if time_now.isoweekday() == 0:
+                                # Reset the weekly leaderboard if it's Sunday
                                 if str(user) not in leaderboard:
                                     leaderboard[str(user)] = {"season": 0, "weekly": 0}
                                 leaderboard[str(user)]["weekly"] = 0
@@ -840,13 +847,13 @@ class Hockey(getattr(commands, "Cog", object)):
                 try:
                     #print(payload.emoji)
                     pickem.add_vote(user.id, payload.emoji)
-                except UserHasVotedError:
+                except UserHasVotedError as team:
                     try:
                         emoji = pickem.home_emoji if str(payload.emoji.id) in pickem.away_emoji else pickem.away_emoji
                         await msg.remove_reaction(emoji, user)
                     except Exception as e:
                         print(e)
-                    reply_message = "You have already voted! Changing vote."
+                    reply_message = "You have already voted! Changing vote to {}.".format(team)
                 except VotingHasEndedError:
                     try:
                         await msg.remove_reaction(payload.emoji, user)
@@ -1372,6 +1379,55 @@ class Hockey(getattr(commands, "Cog", object)):
         pass
 
     @hockey_commands.command(hidden=True)
+    @checks.admin_or_permissions(manage_messages=True)
+    async def pickems_page(self, ctx, date:str=None):
+        """
+            Generates a pickems page for voting on a specified day must be "DD-MM-YYYY"
+        """
+        if date is None:
+            date = datetime.now()
+        else:
+            date = datetime.strptime(date, "%d-%m-%Y")
+        msg = """**Welcome to our daily Pick'ems challenge!  Below you will see today's games!  Vote for who you think will win!  You get one point for each correct prediction.  We will be tracking points over the course of the season and will be rewarding weekly, worst and full-season winners!**
+
+- Click the reaction for the team you think will win the day's match-up.
+- Anyone who votes for both teams will have their vote removed and will receive no points!\n\n\n\n   """
+        games_list = await self.get_day_games(date)
+        await ctx.send(msg)
+        for game in games_list:
+            new_msg = await ctx.send("__**{} {} @ {} {}**__".format(game.home_emoji, game.away_team,
+                                     game.away_emoji, game.home_team))
+            # Create new pickems object for the game
+            await self.create_pickem_object(ctx.guild, new_msg, ctx.channel, game)
+            if ctx.channel.permissions_for(ctx.guild.me).add_reactions:
+                try:
+                    await new_msg.add_reaction(game.home_emoji[2:-1])
+                    await new_msg.add_reaction(game.away_emoji[2:-1])
+                except Exception as e:
+                    print(e)
+
+    @hockey_commands.command(hidden=True)
+    @checks.is_owner()
+    async def pickems_tally(self, ctx):
+        await self.tally_leaderboard()
+        await ctx.send("Done.")
+
+    @hockeyset_commands.command(hidden=True)
+    @checks.admin_or_permissions(manage_messages=True)
+    async def leaderboardset(self, ctx, user:discord.Member, points):
+        """
+            Allows moderators to set a users points on the leaderboard
+        """
+        leaderboard = await self.config.guild(ctx.guild).leaderboard()
+        if leaderboard == {} or leaderboard is None:
+            await ctx.send("There is no current leaderboard for this server!")
+            return
+        if str(user.id) not in leaderboard:
+            leaderboard[str(user.id)] = {"season":points, "weekly":points}
+
+
+
+    @hockey_commands.command(hidden=True)
     async def leaderboard(self, ctx, leaderboard_type:str="seasonal"):
         """
             Shows the current server leaderboard either seasonal or weekly
@@ -1381,25 +1437,32 @@ class Hockey(getattr(commands, "Cog", object)):
             await ctx.send("There is no current leaderboard for this server!")
             return
         if leaderboard_type in ["seasonal", "season"]:
-            print(leaderboard)
             leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["season"], reverse=True)
             msg_list = []
             count = 1
+            user_position = None
             for member_id in leaderboard:
+                if str(member_id[0]) == str(ctx.author.id):
+                    user_position = leaderboard.index(member_id)
                 member = ctx.guild.get_member(int(member_id[0]))
                 if member is None:
-                    member_mention = "User has left the server"
+                    member_mention = "User has left the server {}".format(member_id)
                 else:
                     member_mention = member.mention
                 msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1]["season"]))
                 count += 1
             leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
+            if user_position is not None:
+                await ctx.send("{}, you're #{} on the seasonal leaderboard!".format(ctx.author.display_name, user_position+1))
             await hockey_menu(ctx, "seasonal", leaderboard_list)
         if leaderboard_type in ["weekly", "week"]:
             leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["weekly"], reverse=True)
             msg_list = []
             count = 1
+            user_position = None
             for member_id in leaderboard:
+                if str(member_id[0]) == str(ctx.author.id):
+                    user_position = leaderboard.index(member_id)
                 member = ctx.guild.get_member(int(member_id[0]))
                 if member is None:
                     member_mention = "User has left the server"
@@ -1408,6 +1471,8 @@ class Hockey(getattr(commands, "Cog", object)):
                 msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1]["weekly"]))
                 count += 1
             leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
+            if user_position is not None:
+                await ctx.send("{}, you're #{} on this weeks leaderboard!".format(ctx.author.display_name, user_position+1))
             await hockey_menu(ctx, "weekly", leaderboard_list)
 
 
