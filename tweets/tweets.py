@@ -217,7 +217,7 @@ class Tweets(getattr(commands, "Cog", object)):
         for url in user.entities["description"]["urls"]:
             if str(url["url"]) in description:
                 description = description.replace(url["url"], str(url["expanded_url"]))
-        emb = discord.Embed(colour=discord.Colour(value=self.random_colour()),
+        emb = discord.Embed(colour=discord.Colour(value=int(user.profile_link_color, 16)),
                             url=profile_url,
                             description=str(description),
                             timestamp=user.created_at)
@@ -277,7 +277,8 @@ class Tweets(getattr(commands, "Cog", object)):
         username = status.user.screen_name
         user_id = status.user.id
         post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-        em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
+        print(status)
+        em = discord.Embed(colour=discord.Colour(value=int(status.user.profile_link_color, 16)),
                            url=post_url,
                            timestamp=status.created_at)
         if hasattr(status, "retweeted_status"):
