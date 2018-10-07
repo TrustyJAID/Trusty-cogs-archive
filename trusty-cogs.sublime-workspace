@@ -136,10 +136,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     da57c3e [Hockey] Clear pickems list after tallying and create pickems only on preview games\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     5e92c0b [Hockey] Add check if user has left the guild\n\n\nNothing to commit (working directory clean)\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 1009,
+				"buffer_size": 971,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -147,53 +147,19 @@
 			}
 		},
 		{
+			"file": "juche/juche.py",
+			"settings":
+			{
+				"buffer_size": 882,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
 			"file": "hockey/hockey.py",
 			"settings":
 			{
-				"buffer_size": 65729,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "hockey/teams.py",
-			"settings":
-			{
-				"buffer_size": 15663,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "hockey/pickems.py",
-			"settings":
-			{
-				"buffer_size": 2294,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "hockey/helper.py",
-			"settings":
-			{
-				"buffer_size": 5363,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "hockey/embeds.py",
-			"settings":
-			{
-				"buffer_size": 19425,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "hockey/menu.py",
-			"settings":
-			{
-				"buffer_size": 3617,
+				"buffer_size": 66127,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -297,21 +263,27 @@
 	[
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
-		"/E/github/Trusty-cogs/hockey"
+		"/E/github/Trusty-cogs/juche"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/starboard/starboard.py",
+		"/E/github/Trusty-cogs/star/star.py",
+		"/E/github/Trusty-cogs/hockey/menu.py",
+		"/E/github/Trusty-cogs/hockey/embeds.py",
+		"/E/github/Trusty-cogs/hockey/helper.py",
+		"/E/github/Trusty-cogs/hockey/pickems.py",
+		"/E/github/Trusty-cogs/hockey/teams.py",
+		"/E/github/Trusty-cogs/serverstats/serverstats.py",
+		"/E/github/Trusty-cogs/hockey/hockey.py",
+		"/E/github/Trusty-cogs/dev/__init__.py",
+		"/E/github/Trusty-cogs/dev/dev.py",
+		"/E/github/Trusty-cogs/hockey/__init__.py",
+		"/E/github/Trusty-cogs/starboard/__init__.py",
 		"/E/github/Trusty-cogs/hockey/errors.py",
 		"/E/github/Trusty-cogs/notsobot/notsobot.py",
 		"/E/github/Trusty-cogs/notsobot/vw/macintoshplus.py",
-		"/E/github/Trusty-cogs/serverstats/serverstats.py",
-		"/E/github/Trusty-cogs/hockey/hockey.py",
-		"/E/github/Trusty-cogs/hockey/menu.py",
 		"/E/github/Trusty-cogs/qposts/qposts.py",
-		"/E/github/Trusty-cogs/hockey/pickems.py",
-		"/E/github/Trusty-cogs/hockey/embeds.py",
-		"/E/github/Trusty-cogs/hockey/helper.py",
-		"/E/github/Trusty-cogs/dev/dev.py",
 		"/E/github/Trusty-cogs/dev/info.json",
 		"/E/github/Trusty-cogs/hockey/standings.py",
 		"/E/github/Trusty-cogs/tarot/tarotreading.py",
@@ -326,7 +298,6 @@
 		"/E/github/Trusty-cogs/rekt/rekt.py",
 		"/E/github/Trusty-cogs/runescape/runescape.py",
 		"/E/github/Trusty-cogs/serverwhitelist/serverwhitelist.py",
-		"/E/github/Trusty-cogs/starboard/starboard.py",
 		"/E/github/Trusty-cogs/halo/halo.py",
 		"/E/github/Trusty-cogs/gab/gab.py",
 		"/E/github/Trusty-cogs/fun/fun.py",
@@ -388,7 +359,6 @@
 		"/E/github/Trusty-cogs/reee/triggersize.py",
 		"/E/github/Trusty-cogs/reee/reee.py",
 		"/E/github/Trusty-cogs/hockey/oilers.py",
-		"/E/github/Trusty-cogs/hockey/teams.py",
 		"/E/github/Trusty-cogs/hockey/teamentry.py",
 		"/E/github/Trusty-cogs/hockey/goal.py",
 		"/D/dameznet-158219/www/index.html",
@@ -424,15 +394,11 @@
 		"/E/github/Trusty-cogs/serverwhitelist/info.json",
 		"/E/github/Trusty-cogs/runescape/info.json",
 		"/E/github/Trusty-cogs/rekt/info.json",
-		"/E/github/Trusty-cogs/modlogs/info.json",
-		"/E/github/Trusty-cogs/insult/info.json",
-		"/E/github/Trusty-cogs/hockey/info.json",
-		"/E/github/Trusty-cogs/gab/info.json",
-		"/E/github/Trusty-cogs/fun/info.json"
+		"/E/github/Trusty-cogs/modlogs/info.json"
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 41.0
 	},
 	"find_in_files":
 	{
@@ -447,6 +413,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"bot",
 			"pickem_object",
 			"post_automatic_standings",
 			"main_dir",
@@ -573,8 +540,7 @@
 			"__unload",
 			"twitch_menu",
 			"hockey_menu",
-			"make_gif",
-			"sys"
+			"make_gif"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -622,7 +588,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -630,15 +596,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1009,
+						"buffer_size": 971,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								204,
-								204
+								166,
+								166
 							]
 						],
 						"settings":
@@ -656,90 +622,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "hockey/hockey.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 65729,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								33676,
-								33676
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 15605.0,
-						"zoom_level": 1.0
-					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "hockey/teams.py",
+					"buffer": 1,
+					"file": "juche/juche.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 15663,
+						"buffer_size": 882,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4587,
-								4587
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1557.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 3,
-			"sheets":
-			[
-				{
-					"buffer": 3,
-					"file": "hockey/pickems.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2294,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1280,
-								1280
+								47,
+								47
 							]
 						],
 						"settings":
@@ -752,24 +652,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "hockey/helper.py",
+					"buffer": 2,
+					"file": "hockey/hockey.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5363,
+						"buffer_size": 66127,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1945,
-								1945
+								61507,
+								61507
 							]
 						],
 						"settings":
@@ -779,72 +679,17 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 324.0,
+						"translation.y": 24502.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "hockey/embeds.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 19425,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3440,
-								3440
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 486.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "hockey/menu.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3617,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1710,
-								1710
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 108.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
+					"stack_index": 1,
 					"type": "text"
 				}
+			]
+		},
+		{
+			"sheets":
+			[
 			]
 		}
 	],
@@ -876,7 +721,7 @@
 		"cols":
 		[
 			0.0,
-			0.521150592217,
+			0.5,
 			1.0
 		],
 		"rows":

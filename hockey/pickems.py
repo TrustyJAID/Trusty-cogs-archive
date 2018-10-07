@@ -17,7 +17,7 @@ class Pickems:
         self.votes = votes
         self.home_emoji = "{}".format(teams[home_team]["emoji"]) if home_team in teams else "nhl:496510372828807178"
         self.away_emoji = "{}".format(teams[away_team]["emoji"]) if away_team in teams else "nhl:496510372828807178"
-        self.winner = winner
+        self.winner = None
 
     def add_vote(self, user_id, team):
         time_now = datetime.utcnow()
@@ -35,7 +35,7 @@ class Pickems:
             if user_id == user:
                 self.votes.remove((user, choice))
                 self.votes.append((user_id, team_choice))
-                raise UserHasVotedError("{} has already voted, removing prior vote".format(user_id))
+                raise UserHasVotedError(team_choice)
 
         if not user_voted and team_choice is not None:
             self.votes.append((user_id, team_choice))
