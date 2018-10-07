@@ -277,7 +277,6 @@ class Tweets(getattr(commands, "Cog", object)):
         username = status.user.screen_name
         user_id = status.user.id
         post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-        print(status)
         em = discord.Embed(colour=discord.Colour(value=int(status.user.profile_link_color, 16)),
                            url=post_url,
                            timestamp=status.created_at)
