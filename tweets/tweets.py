@@ -4,6 +4,8 @@ from datetime import datetime as dt
 from redbot.core import commands
 import discord
 import asyncio
+import aiohttp
+from io import BytesIO
 from redbot.core import Config
 from redbot.core import checks
 from redbot.core.utils.chat_formatting import pagify
@@ -163,8 +165,19 @@ class Tweets(getattr(commands, "Cog", object)):
     @checks.is_owner()
     async def send_tweet(self, ctx, *, message: str):
         """Allows the owner to send tweets through discord"""
-        api = await self.authenticate()
-        api.update_status(message)
+        try:
+            api = await self.authenticate()
+            if ctx.message.attachments != []:
+                temp = BytesIO()
+                filename = ctx.message.attachments[0].filename
+                file_send = await ctx.message.attachments[0].save(temp)
+                api.update_with_media(filename, status=message, file=temp)
+            else:
+                api.update_status(message)
+        except Exception as e:
+            print(e)
+            await ctx.send("An error has occured, check the console for more details.")
+            return
         await ctx.send("Tweet sent!")
 
     def random_colour(self):
@@ -332,9 +345,16 @@ class Tweets(getattr(commands, "Cog", object)):
                     else:
                         await channel_send.send(post_url)
                 except Exception as e:
-                    error_channel = self.bot.get_channel(await self.config.error_channel())
-                    await error_channel.send("Removing {} from {}: {}".format(username, channel, e))
-                    await self.del_account(channel, user_id, username)
+                    if "Cannot connect to host" in e:
+                        error_channel = self.bot.get_channel(await self.config.error_channel())
+                        await error_channel.send("{0} from <#{1}>({1}): {2}".format(username, channel, e))
+                    if "Errno" in e:
+                        error_channel = self.bot.get_channel(await self.config.error_channel())
+                        await error_channel.send("{0} from <#{1}>({1}): {2}".format(username, channel, e))
+                    else:
+                        error_channel = self.bot.get_channel(await self.config.error_channel())
+                        await error_channel.send("Removing {0} from <#{1}>({1}): {2}".format(username, channel, e))
+                        await self.del_account(channel, user_id, username)
         except Exception as e:
             print("Whoops! Something went wrong here. \
                 The error code is " + str(e) + username)
@@ -646,7 +666,8 @@ class Tweets(getattr(commands, "Cog", object)):
         await ctx.send('Set the access credentials!')
 
     def __unload(self):
-        self.mystream.disconnect()
-        self.loop.cancel()
+        if self.mystream is not None:
+            self.mystream.disconnect()
+            self.loop.cancel()
 
     __del__ = __unload
