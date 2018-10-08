@@ -180,6 +180,8 @@ class Cleverbot(getattr(commands, "Cog", object)):
         if not hasattr(message, "guild"):
             return
         guild = message.guild
+        if guild is None:
+            return
         author = message.author
         channel = message.channel
         
