@@ -165,7 +165,7 @@ class Tweets(getattr(commands, "Cog", object)):
         """Allows the owner to send tweets through discord"""
         api = await self.authenticate()
         api.update_status(message)
-        await ctx.send_message(ctx.message.channel, "Tweet sent!")
+        await ctx.send("Tweet sent!")
 
     def random_colour(self):
         """Returns a random hex colour for discord.Colour() objects"""
