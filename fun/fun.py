@@ -217,6 +217,26 @@ class Fun(getattr(commands, "Cog", object)):
             found_channel = discord.utils.get(channel_list, name=text)
         return found_channel
 
+    @commands.command()
+    async def oof(self, ctx, msg_id:int=None, channel:discord.TextChannel=None):
+        """
+            Oof a message
+        """
+        emojis = ["🅾", "🇴", "🇫"]
+        if channel is None:
+            channel = ctx.message.channel
+        if msg_id is None:
+            async for message in channel.history(limit=2):
+                msg = message
+        else:
+            msg = await channel.get_message(msg_id)
+        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+            await ctx.message.delete()
+        if channel.permissions_for(ctx.guild.me).add_reactions:
+            for emoji in emojis:
+                await msg.add_reaction(emoji)
+
+
     # given String react_me, return a list of emojis that can construct the string with no duplicates (for the purpose of reacting)
     # TODO make it consider reactions already applied to the message
     @commands.command(pass_context=True, aliases=['r'])
