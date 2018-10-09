@@ -130,3 +130,8 @@ class Translate(getattr(commands, "Cog", object)):
         """
         await self.config.api_key.set(api_key)
         await ctx.send("API key set.")
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload
