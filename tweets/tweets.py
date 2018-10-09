@@ -102,6 +102,12 @@ class Tweets(getattr(commands, "Cog", object)):
         return tw.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=10, retry_delay=5,
                       retry_errors=[500, 502, 503, 504])
 
+    async def autotweet_restart(self):
+        if self.mystream.running:
+            self.mystream.disconnect()
+            self.loop.cancel()
+        await self.start_stream()
+
     async def tweet_menu(self, ctx, post_list: list,
                          message: discord.Message = None,
                          page=0, timeout: int = 30):
@@ -399,14 +405,9 @@ class Tweets(getattr(commands, "Cog", object)):
     @_autotweet.command(name="restart")
     async def restart_stream(self, ctx):
         """Restarts the twitter stream if any issues occur."""
-        await self.autotweet_restart()
-        await ctx.send("Restarting the twitter stream.")
-
-    async def autotweet_restart(self):
-        if self.mystream.running:
-            self.mystream.disconnect()
-            self.loop.cancel()
-        await self.start_stream()
+        async with ctx.channel.typing():
+            await self.autotweet_restart()
+            await ctx.send("Restarting the twitter stream.")
 
     @_autotweet.command(name="replies")
     async def _replies(self, ctx, account):
@@ -467,11 +468,13 @@ class Tweets(getattr(commands, "Cog", object)):
             await ctx.send(
                 "I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(
                     channel.mention))
+        in_list = True if str(user_id) in [str(x["twitter_id"]) for x in await self.config.accounts()] else False
         added = await self.add_account(channel, user_id, screen_name)
         if added:
-            prefix_list = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send("{0} Added to {1}!\nNow do `{2}autotweet restart` when you've finished adding all accounts!".format(
-                           account, channel.mention, prefix_list[0]))
+            await ctx.send("{0} Added to {1}!".format(account, channel.mention))
+            if not in_list:
+                prefix_list = await self.bot.command_prefix(self.bot, ctx.message)
+                await ctx.send("Now do `{}autotweet restart` when you've finished adding all accounts!".format(prefix_list[0]))
         else:
             await ctx.send("I am already posting {} tweets in {}".format(screen_name, channel.mention))
         # await self.autotweet_restart()
