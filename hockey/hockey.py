@@ -665,16 +665,19 @@ class Hockey(getattr(commands, "Cog", object)):
                             leaderboard = {}
                         for user, choice in pickems.votes:
                             if str(user) not in leaderboard:
-                                    leaderboard[str(user)] = {"season": 0, "weekly": 0}
+                                    leaderboard[str(user)] = {"season": 0, "weekly": 0, "total":0}
                             if time_now.isoweekday() == 0:
                                 # Reset the weekly leaderboard if it's Sunday
                                 leaderboard[str(user)]["weekly"] = 0
                             if choice == pickems.winner:
                                 if str(user) not in leaderboard:
-                                    leaderboard[str(user)] = {"season": 1, "weekly": 1}
+                                    leaderboard[str(user)] = {"season": 1, "weekly": 1, "total":0}
                                 else:
                                     leaderboard[str(user)]["season"] += 1
                                     leaderboard[str(user)]["weekly"] += 1
+                            if "total" not in leaderboard[str(user)]:
+                                leaderboard[str(user)]["total"] = 0
+                            leaderboard[str(user)]["total"] += 1
                         await self.config.guild(guild).leaderboard.set(leaderboard)
                 await self.config.guild(guild).pickems.set([p.to_json() for p in pickem_list if p.winner is None])
             except Exception as e:

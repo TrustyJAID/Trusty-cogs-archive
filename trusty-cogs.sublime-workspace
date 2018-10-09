@@ -140,10 +140,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     c9133b7 [Tweets] Allow sending tweets with attachments No longer remove accounts from the list if discord has problems posting. Channels that have been deleted/bot removed from server/channel view will still be removed.\n\n\nChanges:\n\tModified   hockey/embeds.py\n\tModified   hockey/game.py\n\tModified   hockey/helper.py\n\tModified   hockey/hockey.py\n\tModified   hockey/pickems.py\n\tModified   hockey/standings.py\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     2a9df50 Update Readme\n\n\nChanges:\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 1321,
+				"buffer_size": 947,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -151,10 +151,19 @@
 			}
 		},
 		{
+			"file": "README.md",
+			"settings":
+			{
+				"buffer_size": 7001,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
 			"file": "hockey/hockey.py",
 			"settings":
 			{
-				"buffer_size": 69856,
+				"buffer_size": 69852,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -320,11 +329,10 @@
 	[
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
+		"/E/github/Trusty-cogs/addimage",
 		"/E/github/Trusty-cogs/badges",
-		"/E/github/Trusty-cogs/cleverbot",
-		"/E/github/Trusty-cogs/hockey",
-		"/E/github/Trusty-cogs/qposts",
-		"/E/github/Trusty-cogs/tweets"
+		"/E/github/Trusty-cogs/imagemaker",
+		"/E/github/Trusty-cogs/triggersize"
 	],
 	"file_history":
 	[
@@ -459,7 +467,7 @@
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 27.0
 	},
 	"find_in_files":
 	{
@@ -650,7 +658,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -658,15 +666,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1321,
+						"buffer_size": 947,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								560,
-								560
+								143,
+								143
 							]
 						],
 						"settings":
@@ -684,24 +692,52 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "hockey/hockey.py",
+					"file": "README.md",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 69856,
+						"buffer_size": 7001,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								32275,
-								32275
+								4946,
+								4946
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Markdown/Markdown.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1076.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "hockey/hockey.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 69852,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								485,
+								485
 							]
 						],
 						"settings":
@@ -711,14 +747,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 12469.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 3,
 					"file": "hockey/helper.py",
 					"semi_transient": false,
 					"settings":
@@ -744,11 +780,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 4,
 					"file": "hockey/game.py",
 					"semi_transient": false,
 					"settings":
@@ -771,14 +807,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 486.0,
+						"translation.y": 474.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 5,
 					"file": "hockey/embeds.py",
 					"semi_transient": false,
 					"settings":
@@ -804,11 +840,11 @@
 						"translation.y": 5616.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 6,
 					"file": "hockey/standings.py",
 					"semi_transient": false,
 					"settings":
@@ -834,7 +870,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 6,
 					"type": "text"
 				}
 			]
@@ -844,7 +880,7 @@
 			"sheets":
 			[
 				{
-					"buffer": 6,
+					"buffer": 7,
 					"file": "hockey/pickems.py",
 					"semi_transient": false,
 					"settings":
@@ -870,11 +906,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 8,
 					"file": "qposts/qposts.py",
 					"semi_transient": false,
 					"settings":
@@ -900,11 +936,11 @@
 						"translation.y": 432.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 9,
 					"file": "badges/badges.py",
 					"semi_transient": false,
 					"settings":
@@ -930,7 +966,7 @@
 						"translation.y": 1674.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 9,
 					"type": "text"
 				}
 			]
