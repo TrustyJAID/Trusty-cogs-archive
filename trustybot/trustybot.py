@@ -102,7 +102,7 @@ class TrustyBot(getattr(commands, "Cog", object)):
         except ValueError:
             return
         alias = await self.first_word(msg[len(prefix):])
-        if alias == "beemovie":
+        if alias in ["beemovie", "dreams", "memes"]:
             return
         if alias in messages:
             await channel.trigger_typing()
