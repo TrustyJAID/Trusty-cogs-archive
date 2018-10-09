@@ -4,6 +4,8 @@ import asyncio
 from redbot.core import commands
 from redbot.core import checks, bank, Config
 import datetime
+import aiohttp
+from io import BytesIO
 from redbot.core.i18n import Translator
 from redbot.core.utils.chat_formatting import pagify, box
 
@@ -23,6 +25,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         default_global = {"join_channel":None}
         self.config = Config.get_conf(self, 54853421465543)
         self.config.register_global(**default_global)
+        self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     async def on_guild_join(self, guild):
         channel_id = await self.config.join_channel()
@@ -65,6 +68,53 @@ class ServerStats(getattr(commands, "Cog", object)):
         else:
             em.set_author(name=guild.name) 
         await channel.send(embed=em)
+
+    @commands.command(pass_context=True)
+    async def emoji(self, ctx, emoji):
+        # print(emoji)
+        if emoji is discord.Emoji:
+            await ctx.channel.trigger_typing()
+            emoji_name = emoji.name
+            ext = emoji.url.split(".")[-1]
+            async with self.session.get(emoji.url) as resp:
+                data = await resp.read()
+            file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
+            await ctx.send(file=file)
+            # await self.bot.say(emoji.url)
+        else:
+            emoji_id = emoji.split(":")[-1].replace(">", "")
+            if not emoji_id.isdigit():
+                return
+            await ctx.channel.trigger_typing()
+            # print(emoji_id)
+            if emoji.startswith("<a"):
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
+                    data = await resp.read()
+                file = discord.File(BytesIO(data),filename="{}.gif".format(emoji_id))
+            else:
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
+                    data = await resp.read()
+                file = discord.File(BytesIO(data),filename="{}.png".format(emoji_id))
+            await ctx.send(file=file)
+
+    @commands.command(pass_context=True)
+    async def avatar(self, ctx, member:discord.Member=None):
+        if member is None:
+            member = ctx.message.author
+        guild = ctx.message.guild
+        if guild is not None:
+            colour = member.top_role.colour
+        else:
+            colour = discord.Embed.Empty
+        await ctx.channel.trigger_typing()
+        em = discord.Embed(title="**Avatar**", colour=colour)
+        if member.is_avatar_animated():
+            url = member.avatar_url_as(format="gif")
+        if not member.is_avatar_animated():
+            url = member.avatar_url_as(static_format="png")
+        em.set_image(url= url)
+        em.set_author(name="{}#{}".format(member.name, member.discriminator), icon_url=url, url=url)
+        await ctx.send(embed=em)
 
     @commands.command()
     @checks.is_owner()
@@ -466,3 +516,8 @@ class ServerStats(getattr(commands, "Cog", object)):
         # if animated != "":
             # embed.add_field(name="Animated Emojis", value=animated[:1023])
         await self.emoji_menu(ctx, x)
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload

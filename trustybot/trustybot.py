@@ -29,7 +29,6 @@ numbs = {
 class TrustyBot(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     @commands.command(hidden=True)
     @checks.is_owner()
@@ -166,35 +165,6 @@ class TrustyBot(getattr(commands, "Cog", object)):
         await ctx.send("pong: {}ms".format(round((t2-t1)*1000)))
 
     @commands.command(pass_context=True)
-    async def emoji(self, ctx, emoji):
-        # print(emoji)
-        if emoji is discord.Emoji:
-            await ctx.channel.trigger_typing()
-            emoji_name = emoji.name
-            ext = emoji.url.split(".")[-1]
-            async with self.session.get(emoji.url) as resp:
-                data = await resp.read()
-            file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
-            await ctx.send(file=file)
-            # await self.bot.say(emoji.url)
-        else:
-            emoji_id = emoji.split(":")[-1].replace(">", "")
-            if not emoji_id.isdigit():
-                return
-            await ctx.channel.trigger_typing()
-            # print(emoji_id)
-            if emoji.startswith("<a"):
-                async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.gif".format(emoji_id))
-            else:
-                async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.png".format(emoji_id))
-            await ctx.send(file=file)
-
-
-    @commands.command(pass_context=True)
     @checks.is_owner()
     async def testcu(self, ctx, *, category):
         guild = ctx.message.guild
@@ -204,23 +174,6 @@ class TrustyBot(getattr(commands, "Cog", object)):
                 break
         channel = await guild.create_text_channel("test", category=category)
         print(channel.id)
-
-
-    @commands.command(pass_context=True)
-    async def avatar(self, ctx, member:discord.Member=None):
-        async with ctx.channel.typing():
-            if member is None:
-                member = ctx.message.author
-            if member.is_avatar_animated():
-                async with self.session.get(member.avatar_url_as(format="gif")) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.gif".format(member.name))
-            if not member.is_avatar_animated():
-                async with self.session.get(member.avatar_url_as(static_format="png")) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.png".format(member.name))
-            await ctx.send(file=file)
-
 
     @commands.command(pass_context=True, aliases=["guildhelp", "serverhelp", "helpserver"])
     async def helpguild(self, ctx):
@@ -300,7 +253,7 @@ class TrustyBot(getattr(commands, "Cog", object)):
             msg += link + ", "
         await ctx.send("```" + msg[:len(msg)-2] + "```")
     
-    @commands.command(pass_context=True)
+    @commands.command()
     async def neat(self, ctx, number:int=None):
         """Neat"""
         files = str(cog_data_path(self)) + "/bundled_data/neat{}.gif"
@@ -311,7 +264,7 @@ class TrustyBot(getattr(commands, "Cog", object)):
             image = discord.File(files.format(number))
             await ctx.send(file=image)
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def reviewbrah(self, ctx):
         """Reviewbrah"""
         files = ["/bundled_data/revi.png", "/bundled_data/ew.png", "/bundled_data/brah.png"]
@@ -321,13 +274,13 @@ class TrustyBot(getattr(commands, "Cog", object)):
             await ctx.send(file=data)
 
 
-    @commands.command(pass_context=True,)
+    @commands.command()
     async def donate(self, ctx):
         """Donate to the development of TrustyBot!"""
         await ctx.send("Help support me  and development of TrustyBot by buying my album or donating bitcoin on my website :smile: https://trustyjaid.com/")
 
     
-    @commands.command(pass_context=True, aliases=["dnd"])
+    @commands.command(aliases=["dnd"])
     async def donotdo(self, ctx, number=None):
         if number is None:
             await ctx.send(choice(donotdo))
@@ -346,16 +299,16 @@ class TrustyBot(getattr(commands, "Cog", object)):
             await ctx.send(msg.format(user))
 
     @commands.command(hidden=False)
-    async def dreams(self):
+    async def dreams(self, ctx):
         """don't let your dreams be dreams"""
         await ctx.send(messages["dreams"].format("dreams"))
 
     @commands.command(hidden=False)
-    async def memes(self):
+    async def memes(self, ctx):
         """don't let your memes be dreams"""
         await ctx.send(messages["dreams"].format("memes"))
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def flipm(self, ctx, *, message):
         """Flips a message"""
         msg = ""
