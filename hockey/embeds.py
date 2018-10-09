@@ -11,9 +11,9 @@ async def game_state_embed(data):
         Makes the game state embed based on the game data provided
     """
     post_state = ["all", data.home_team, data.away_team]
-    timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+    # timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
     title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
-    em = discord.Embed(timestamp=timestamp)
+    em = discord.Embed(timestamp=data.game_start)
     home_field = "{} {} {}".format(data.home_emoji, data.home_team, data.home_emoji)
     away_field = "{} {} {}".format(data.away_emoji, data.away_team, data.away_emoji)
     if data.game_state != "Preview":
@@ -34,8 +34,8 @@ async def game_state_embed(data):
 
 async def game_state_text(data):
     post_state = ["all", data.home_team, data.away_team]
-    timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
-    time_string = utc_to_local(timestamp).strftime("%I:%M %p %Z")
+    # timestamp =  datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+    time_string = utc_to_local(data.game_start).strftime("%I:%M %p %Z")
     em = "{a_emoji}{away} @ {h_emoji}{home} {state}\n({time})".format(a_emoji=data.away_emoji, away=data.away_team, 
              h_emoji= data.home_emoji, home=data.home_team, state=data.game_state, time=time_string)
     if data.game_state != "Preview":
@@ -206,14 +206,14 @@ async def build_standing_embed(post_list, page=0):
         em.add_field(name="Goals Scored", value=_teams.goals)
         em.add_field(name="Goals Against", value=_teams.gaa)
         em.add_field(name="Current Streak", value="{} {}".format(_teams.streak, _teams.streak_type))
-        timestamp = datetime.strptime(_teams.last_updated, "%Y-%m-%dT%H:%M:%SZ")
-        em.timestamp = timestamp
+        # timestamp = datetime.strptime(_teams.last_updated, "%Y-%m-%dT%H:%M:%SZ")
+        em.timestamp = _teams.last_updated
         em.set_footer(text="Stats last Updated", icon_url=teams[_teams.name]["logo"])
         return em
 
     msg = ""
-    timestamp = datetime.strptime(_teams[0].last_updated, "%Y-%m-%dT%H:%M:%SZ")
-    em.timestamp = timestamp
+    # timestamp = datetime.strptime(_teams[0].last_updated, "%Y-%m-%dT%H:%M:%SZ")
+    em.timestamp = _teams[0].last_updated
 
     if len(_teams) <= 8:
         for team in _teams:
@@ -261,7 +261,7 @@ async def all_standing_embed(post_standings, page=0):
         em.add_field(name="{} Division".format(div), value=new_dict[div])
     em.set_author(name="NHL Standings", url="https://www.nhl.com/standings/2017/wildcard", icon_url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
     em.set_thumbnail(url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
-    em.timestamp = datetime.strptime(post_standings[0].last_updated, "%Y-%m-%dT%H:%M:%SZ")
+    em.timestamp = post_standings[0].last_updated # datetime.strptime(post_standings[0].last_updated, "%Y-%m-%dT%H:%M:%SZ")
     em.set_footer(text="Stats Last Updated", icon_url="https://cdn.bleacherreport.net/images/team_logos/328x328/nhl.png")
     return em
 
@@ -331,11 +331,11 @@ async def game_embed(post_list, page):
     else:
         data = game
     team_url = teams[data.home_team]["team_url"] if data.home_team in teams else "https://nhl.com"
-    timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+    # timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
     title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
     colour = int(teams[data.home_team]["home"].replace("#", ""), 16) if data.home_team in teams else None
 
-    em = discord.Embed(timestamp=timestamp)
+    em = discord.Embed(timestamp=data.game_start)
     if colour is not None:
         em.colour = colour
     em.set_author(name=title, url=team_url, icon_url=data.home_logo)

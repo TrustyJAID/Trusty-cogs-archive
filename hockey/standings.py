@@ -1,8 +1,6 @@
-from typing import Tuple
-from redbot.core import commands
 from .teams import teams
+from datetime import datetime
 
-import discord
 class Standings:
     def __init__(self, name:str, division:str, conference:str, division_rank:int, conference_rank:int,
                  league_rank:int, wins:int, losses:int, ot:int, gp:int, pts:int, streak:int, streak_type:str,
@@ -23,7 +21,7 @@ class Standings:
         self.streak_type = streak_type
         self.goals = goals
         self.gaa = gaa
-        self.last_updated = last_updated
+        self.last_updated = datetime.strptime(last_updated, "%Y-%m-%dT%H:%M:%SZ")
 
     def to_json(self) -> dict:
         return {
@@ -42,7 +40,7 @@ class Standings:
             "streak_type" : self.streak_type,
             "goals" : self.goals,
             "gaa" : self.gaa,
-            "last_updated": self.last_updated
+            "last_updated": self.last_updated.strftime("%Y-%m-%dT%H:%M:%SZ"),
 
         }
 
