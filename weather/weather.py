@@ -99,3 +99,8 @@ class Weather(getattr(commands, "Cog", object)):
         embed.add_field(name="🌇 **Sunset (UTC)**", value=sunset)
         embed.set_footer(text="Powered by https://openweathermap.org")
         await ctx.send(embed=embed)
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload
