@@ -90,72 +90,10 @@ class TrustyBot(getattr(commands, "Cog", object)):
     async def msg(self, ctx, *, msg):
         print(msg)
 
-    async def on_message(self, message):
-        if len(message.content) < 2:
-            return
-
-        msg = message.content
-        channel = message.channel
-        guild = message.guild
-        try:
-            prefix = await self.get_prefix(message)
-        except ValueError:
-            return
-        alias = await self.first_word(msg[len(prefix):])
-        if alias in ["beemovie", "dreams", "memes"]:
-            return
-        if alias in messages:
-            await channel.trigger_typing()
-            await channel.send(messages[alias])
-        if alias in links:
-            await channel.trigger_typing()
-            await channel.send(links[alias])
-        return
-
-    async def first_word(self, msg):
-        return msg.split(" ")[0].lower()
-
-    async def get_prefix(self, message: discord.Message) -> str:
-        """
-        From Redbot Alias Cog
-        Tries to determine what prefix is used in a message object.
-            Looks to identify from longest prefix to smallest.
-            Will raise ValueError if no prefix is found.
-        :param message: Message object
-        :return:
-        """
-        content = message.content
-        prefix_list = await self.bot.command_prefix(self.bot, message)
-        prefixes = sorted(prefix_list,
-                          key=lambda pfx: len(pfx),
-                          reverse=True)
-        for p in prefixes:
-            if content.startswith(p):
-                return p
-        raise ValueError(_("No prefix found."))
-
     @commands.command(hidden=True)
     async def say(self, ctx, *, msg):
         print(ctx.message.content)
         await ctx.send(msg)
-
-    @commands.command()
-    async def oof(self, ctx):
-        emojis = ["🅾", "🇴", "🇫"]
-        channel = ctx.message.channel
-        guild = ctx.message.guild
-        if not channel.permissions_for(guild.me).manage_messages:
-            async for message in channel.history(limit=2):
-                msg = message
-            for emoji in emojis:
-                await message.add_reaction(emoji)
-        else:
-            await ctx.message.delete()
-            async for message in channel.history(limit=1):
-                msg = message
-            for emoji in emojis:
-                await message.add_reaction(emoji)
-
 
     @commands.command()
     async def pingtime(self, ctx):
@@ -164,70 +102,9 @@ class TrustyBot(getattr(commands, "Cog", object)):
         t2 = time.perf_counter()
         await ctx.send("pong: {}ms".format(round((t2-t1)*1000)))
 
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def testcu(self, ctx, *, category):
-        guild = ctx.message.guild
-        for cat in guild.categories:
-            if category.lower() == cat.name.lower():
-                category = cat
-                break
-        channel = await guild.create_text_channel("test", category=category)
-        print(channel.id)
-
     @commands.command(pass_context=True, aliases=["guildhelp", "serverhelp", "helpserver"])
     async def helpguild(self, ctx):
         await ctx.send("https://discord.gg/wVVrqej")
-
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def createchannel(self, ctx, name:str, position:int):
-        chn = await self.bot.create_channel(ctx.message.guild, name)
-        await self.bot.move_channel(chn, position)
-        await ctx.send(chn.position)
-
-    
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def makeinvite(self, ctx, guild_id:int):
-        guild = self.bot.get_guild(id=guild_id)
-        invites = None
-        for channel in guild.text_channels:
-            if invites is not None:
-                break
-            try:
-                invite = await self.bot.create_invite(channel)
-                invites = invite.url
-            except:
-                pass
-        if invites is not None:
-            await ctx.send(invites)
-        else:
-            await ctx.send("Can't make any invites")
-
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def massinvite(self, ctx, guild_id=None):
-
-        invites = []
-        for guild in self.bot.guilds:
-            made_invite = False
-            members = [member.id for member in guild.members]
-            if "218773382617890828" not in members:
-                print(guild.name)
-                for channel in guild.channels:
-                    if made_invite:
-                        continue
-                    if channel.type == discord.ChannelType.text:
-                        try:
-                            invite = await self.bot.create_invite(channel, unique=False)
-                            invites.append(invite.url)
-                            made_invite = True
-                        except:
-                            made_invite = False
-                            pass
-
-        await ctx.send(invites)
 
     @commands.command()
     @commands.cooldown(1, 3600, commands.BucketType.guild)
@@ -235,23 +112,6 @@ class TrustyBot(getattr(commands, "Cog", object)):
         msg = "<a:bm1_1:394355466022551552><a:bm1_2:394355486625103872><a:bm1_3:394355526496026624><a:bm1_4:394355551859113985><a:bm1_5:394355549581606912><a:bm1_6:394355542849617943><a:bm1_7:394355537925373952><a:bm1_8:394355511912300554>\n<a:bm2_1:394355541616361475><a:bm2_2:394355559719239690><a:bm2_3:394355587409772545><a:bm2_4:394355593567272960><a:bm2_5:394355578337624064><a:bm2_6:394355586067726336><a:bm2_7:394355558104432661><a:bm2_8:394355539716472832>\n<a:bm3_1:394355552626409473><a:bm3_2:394355572381843459><a:bm3_3:394355594955456532><a:bm3_4:394355578253737984><a:bm3_5:394355579096793098><a:bm3_6:394355586411528192><a:bm3_7:394355565788397568><a:bm3_8:394355551556861993>\n<a:bm4_1:394355538181488640><a:bm4_2:394355548944072705><a:bm4_3:394355568669884426><a:bm4_4:394355564504809485><a:bm4_5:394355567843606528><a:bm4_6:394355577758679040><a:bm4_7:394355552655900672><a:bm4_8:394355527867564032>"
         em = discord.Embed(title="The Entire Bee Movie", description=msg)
         await ctx.send(embed=em)
-
-    
-    @commands.command()
-    async def listtext(self):
-        """List phrases added to bot"""
-        msg = ""
-        for text in messages.keys():
-            msg += text + ", "
-        await ctx.send("```" + msg[:len(msg)-2] + "```")
-    
-    @commands.command()
-    async def listlinks(self):
-        """List links added to bot"""
-        msg = ""
-        for link in links.keys():
-            msg += link + ", "
-        await ctx.send("```" + msg[:len(msg)-2] + "```")
     
     @commands.command()
     async def neat(self, ctx, number:int=None):
@@ -273,12 +133,10 @@ class TrustyBot(getattr(commands, "Cog", object)):
             data = discord.File(str(cog_data_path(self))+file)
             await ctx.send(file=data)
 
-
     @commands.command()
     async def donate(self, ctx):
         """Donate to the development of TrustyBot!"""
         await ctx.send("Help support me  and development of TrustyBot by buying my album or donating bitcoin on my website :smile: https://trustyjaid.com/")
-
     
     @commands.command(aliases=["dnd"])
     async def donotdo(self, ctx, number=None):
@@ -297,16 +155,6 @@ class TrustyBot(getattr(commands, "Cog", object)):
             await ctx.send(msg.format(""))
         else:
             await ctx.send(msg.format(user))
-
-    @commands.command(hidden=False)
-    async def dreams(self, ctx):
-        """don't let your dreams be dreams"""
-        await ctx.send(messages["dreams"].format("dreams"))
-
-    @commands.command(hidden=False)
-    async def memes(self, ctx):
-        """don't let your memes be dreams"""
-        await ctx.send(messages["dreams"].format("memes"))
 
     @commands.command()
     async def flipm(self, ctx, *, message):
