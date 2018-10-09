@@ -106,7 +106,7 @@ class Tweets(getattr(commands, "Cog", object)):
         if self.mystream.running:
             self.mystream.disconnect()
             self.loop.cancel()
-        await self.start_stream()
+        self.loop = self.bot.loop.create_task(self.start_stream())
 
     async def tweet_menu(self, ctx, post_list: list,
                          message: discord.Message = None,
@@ -405,9 +405,9 @@ class Tweets(getattr(commands, "Cog", object)):
     @_autotweet.command(name="restart")
     async def restart_stream(self, ctx):
         """Restarts the twitter stream if any issues occur."""
-        async with ctx.channel.typing():
-            await self.autotweet_restart()
-            await ctx.send("Restarting the twitter stream.")
+        await ctx.channel.trigger_typing()
+        await self.autotweet_restart()
+        await ctx.send("Restarting the twitter stream.")
 
     @_autotweet.command(name="replies")
     async def _replies(self, ctx, account):
