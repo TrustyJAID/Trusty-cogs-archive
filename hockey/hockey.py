@@ -202,8 +202,8 @@ class Hockey(getattr(commands, "Cog", object)):
             away["game_state"] = "Null"
             home["period"] = 0
             away["period"] = 0
-        home["game_start"] = data.game_start
-        away["game_start"] = data.game_start
+        home["game_start"] = data.game_start.strftime("%Y-%m-%dT%H:%M:%SZ")
+        away["game_start"] = data.game_start.strftime("%Y-%m-%dT%H:%M:%SZ")
         team_list.append(home)
         team_list.append(away)
         await self.config.teams.set(team_list)
@@ -242,8 +242,8 @@ class Hockey(getattr(commands, "Cog", object)):
                Could be unnecessary since after Game Final it will check for next game
             """
             time_now = datetime.utcnow()
-            game_time = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
-            game_start = (game_time - time_now).total_seconds()/60
+            # game_time = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
+            game_start = (data.game_start - time_now).total_seconds()/60
             if "Preview" not in home["game_state"]:
                 
                 if not await self.config.created_gdc():
@@ -563,11 +563,11 @@ class Hockey(getattr(commands, "Cog", object)):
         await self.config.channel(new_chn).to_delete.set(delete_gdc)
 
         # Gets the timezone to use for game day channel topic
-        timestamp = datetime.strptime(next_game.game_start, "%Y-%m-%dT%H:%M:%SZ")
+        # timestamp = datetime.strptime(next_game.game_start, "%Y-%m-%dT%H:%M:%SZ")
         guild_team = await self.config.guild(guild).gdc_team()
         channel_team = guild_team if guild_team != "all" else next_game.home_team
         timezone = self.teams[channel_team]["timezone"] if channel_team in self.teams else self.teams[next_game.away_team]["timezone"]
-        time_string = utc_to_local(timestamp, timezone).strftime("%A %B %d, %Y at %I:%M %p %Z")
+        time_string = utc_to_local(next_game.game_start, timezone).strftime("%A %B %d, %Y at %I:%M %p %Z")
 
         game_msg = "{} {} @ {} {} {}".format(next_game.away_team, next_game.away_emoji,\
                                              next_game.home_team, next_game.home_emoji,\
@@ -586,8 +586,8 @@ class Hockey(getattr(commands, "Cog", object)):
             await preview_msg.pin()
         if new_chn.permissions_for(guild.me).add_reactions:
             try:
-                await preview_msg.add_reaction(next_game.home_emoji[2:-1])
                 await preview_msg.add_reaction(next_game.away_emoji[2:-1])
+                await preview_msg.add_reaction(next_game.home_emoji[2:-1])
             except Exception as e:
                 print(e)
 
@@ -608,7 +608,7 @@ class Hockey(getattr(commands, "Cog", object)):
         if old_pickem is None:
             pickems.append({"message":[message.id], 
                             "channel":[channel.id],
-                            "game_start": game.game_start,
+                            "game_start": game.game_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
                             "home_team":game.home_team,
                             "away_team": game.away_team,
                             "votes": [],
@@ -664,10 +664,10 @@ class Hockey(getattr(commands, "Cog", object)):
                         if leaderboard is None:
                             leaderboard = {}
                         for user, choice in pickems.votes:
+                            if str(user) not in leaderboard:
+                                    leaderboard[str(user)] = {"season": 0, "weekly": 0}
                             if time_now.isoweekday() == 0:
                                 # Reset the weekly leaderboard if it's Sunday
-                                if str(user) not in leaderboard:
-                                    leaderboard[str(user)] = {"season": 0, "weekly": 0}
                                 leaderboard[str(user)]["weekly"] = 0
                             if choice == pickems.winner:
                                 if str(user) not in leaderboard:
@@ -755,8 +755,8 @@ class Hockey(getattr(commands, "Cog", object)):
                             await self.create_pickem_object(guild, preview_msg, channel, data)
                             if channel.permissions_for(guild.me).add_reactions:
                                 try:
-                                    await preview_msg.add_reaction(data.home_emoji[2:-1])
                                     await preview_msg.add_reaction(data.away_emoji[2:-1])
+                                    await preview_msg.add_reaction(data.home_emoji[2:-1])
                                 except Exception as e:
                                     print(e)
                     except Exception as e:
@@ -843,6 +843,7 @@ class Hockey(getattr(commands, "Cog", object)):
         is_pickems_vote = False
         for pickem in pickems:
             if msg.id in pickem.message:
+                is_pickems_vote = True
                 reply_message = ""
                 try:
                     #print(payload.emoji)
@@ -871,8 +872,9 @@ class Hockey(getattr(commands, "Cog", object)):
                         await user.send(reply_message)
                     except:
                         pass
-        pickems_list = [p.to_json() for p in pickems]
-        await self.config.guild(guild).pickems.set(pickems_list)
+        if is_pickems_vote:
+            pickems_list = [p.to_json() for p in pickems]
+            await self.config.guild(guild).pickems.set(pickems_list)
 
 
 
@@ -1094,11 +1096,11 @@ class Hockey(getattr(commands, "Cog", object)):
             Toggles the game day channel creation on this server
         """
         guild = ctx.message.guild
-        cur_setting = await self.config.guild(guild).create_channels()
+        cur_setting = not await self.config.guild(guild).create_channels()
 
         msg = "Okay, game day channels {} be created on this server."
-        verb = "won't" if cur_setting else "will"
-        await self.config.guild(guild).create_channels.set(not cur_setting)
+        verb = "will" if cur_setting else "won't"
+        await self.config.guild(guild).create_channels.set(cur_setting)
         await ctx.send(msg.format(verb))
 
     @gdc.command(name="category")
@@ -1200,8 +1202,10 @@ class Hockey(getattr(commands, "Cog", object)):
         """Toggles the standings on or off."""
         guild = ctx.message.guild
         cur_state = not await self.config.guild(guild).post_standings()
+        msg = "Okay, standings {} be updated automatically."
+        verb = "will" if cur_state else "won't"
         await self.config.guild(guild).post_standings.set(cur_state)
-        await ctx.send("Done.")
+        await ctx.send(msg.format(verb))
 
     @hockeyset_commands.command(name="add", aliases=["add_goals"])
     @checks.admin_or_permissions(manage_channels=True)
@@ -1395,14 +1399,14 @@ class Hockey(getattr(commands, "Cog", object)):
         games_list = await self.get_day_games(date)
         await ctx.send(msg)
         for game in games_list:
-            new_msg = await ctx.send("__**{} {} @ {} {}**__".format(game.away_emoji, game.away_team,
+            new_msg = await ctx.send("__**{} {}**__ @ __**{} {}**__".format(game.away_emoji, game.away_team,
                                      game.home_emoji, game.home_team))
             # Create new pickems object for the game
             await self.create_pickem_object(ctx.guild, new_msg, ctx.channel, game)
             if ctx.channel.permissions_for(ctx.guild.me).add_reactions:
                 try:
-                    await new_msg.add_reaction(game.home_emoji[2:-1])
                     await new_msg.add_reaction(game.away_emoji[2:-1])
+                    await new_msg.add_reaction(game.home_emoji[2:-1])
                 except Exception as e:
                     print(e)
 

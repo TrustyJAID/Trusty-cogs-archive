@@ -1,4 +1,5 @@
 from .teams import teams
+from datetime import datetime
 
 
 class Game:
@@ -22,7 +23,7 @@ class Game:
         self.period_ord = period_ord
         self.period_time_left = period_time_left
         self.plays = plays
-        self.game_start = game_start
+        self.game_start = datetime.strptime(game_start, "%Y-%m-%dT%H:%M:%SZ")
         self.home_logo = teams[home_team]["logo"] if home_team in teams else "https://www-league.nhlstatic.com/images/logos/league-light/133.svg"
         self.away_logo = teams[away_team]["logo"] if away_team in teams else "https://www-league.nhlstatic.com/images/logos/league-light/133.svg"
         self.home_emoji = "<:{}>".format(teams[home_team]["emoji"]) if home_team in teams else "<:nhl:496510372828807178>"
@@ -46,7 +47,7 @@ class Game:
             "period_ord" : self.period_ord,
             "period_time_left" : self.period_time_left,
             "plays" : self.plays,
-            "game_start" : self.game_start,
+            "game_start" : self.game_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "home_logo" : self.home_logo,
             "away_logo" : self.away_logo,
             "home_emoji" : self.home_emoji,
