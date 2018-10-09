@@ -13,11 +13,11 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Weather | **Release** | check the current weather in many cities around the world including in Kelvin. |
 | Starboad | **Release** | add a starboard channel with custom reaction's. |
 | Imgflip | **release** | A recreation of the meme generator from red V1. |
-| Imagemaker | **Release** | A cog to paste avatars onto images like beautiful and pepe |
+| Imagemaker | **Release** | <details><summary>A cog to paste avatars onto images like beautiful and pepe.</summary> Requirements: pillow, opencv-python, and numpy</details> |
 | Conversions | **Release** | Currency, crypto, and stocks commands. |
 | Emojireact | **Release** | Have your bot react to emojis in messages with the emoji! |
-| Badges | **Release** | <details><summary>Create your own badge with from discord information.</summary> Includes templates for fake CIA, NSA, FBI, Discord, and every NHL hockey team.</details> |
-| Tweets | **Release** | A modified version of Palm's twitter cog utilising twitter streams to setup a twitter channel to post user tweets. |
+| Badges | **Release** | <details><summary>Create your own badge with from discord information.</summary> Includes templates for fake CIA, NSA, FBI, Discord, and every NHL hockey team. Requirements: pillow, pybarcode</details> |
+| Tweets | **Release** | <details><summary>A modified version of Palmtree5's twitter cog utilising twitter streams to setup a twitter channel to post user tweets.</summary> Requirements: tweepy</details> |
 | Mock | **Release** | Mock the user who last posted! |
 | Translate | **Release** | Add flag emojis to messages to translate to that language or translate messages by command. (Uses Google Translate and may incur some fees) |
 | AddImage | **Release** | <details><summary>Allows you to add images to be posted on command.</summary> Stores the image in the bot folder then uploads the image directly. Owners may add images globally.</details> |
@@ -69,6 +69,20 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Blockchain | **Alpha** | a cog to download and the bitcoin blockchain for hidden files and data. Requires bitcoin RPC connection and complicated setup **don't use** unless you know what you're doing. |
 | Unity4J | **Release** | Hard coded cog for one server. Do not use. |
 
-Any questions you can find me and TrustyBot over on https://discord.gg/wVVrqej
+Any questions you can find me and TrustyBot over on [my server](https://discord.gg/wVVrqej) or on the [Redbot Cog Support server](https://discord.gg/GET4DVk)
 
-Shout out to everyone who has given me ideas or helped me create these cogs!
+## Credits
+
+* Twentysix - Cleverbot cog, imgflip cog, Stickyroles cog
+* Lunar Dust - Autorole cog
+* Arien - Compliments cog, Insult cog
+* JennJenn - Compliments cog, Insult cog
+* Appu - Fun cog
+* Ivan Seidel (isnowillegal.com) - Trump command
+* Bruno Lemos (isnowillegal.com) - Trump command
+* Jo\u00e3o Pedro (isnowillegal.com) - Trump command
+* RePulsR - Modlogs cog
+* NotSoSuper - Notsobot cog
+* Aziz - Translate cog
+* Palmtree5 - Tweets cog
+* irdumb - Welcome cog
