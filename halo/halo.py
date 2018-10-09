@@ -211,3 +211,8 @@ class Halo(getattr(commands, "Cog", object)):
         await self.config.api_token.token.set(subscription_key)
         await self.config.api_token.language.set(language)
         await ctx.send("Halo API credentials set!")
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload

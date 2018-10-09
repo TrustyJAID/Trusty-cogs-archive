@@ -209,3 +209,8 @@ class Conversions(getattr(commands, "Cog", object)):
         except:
             return None
         """TODO: add feeder cattle, coffee, and sugar"""
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload

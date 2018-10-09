@@ -92,3 +92,8 @@ class Imgflip(getattr(commands, "Cog", object)):
         await self.config.username.set(username)
         await self.config.password.set(password)
         await ctx.send("Credentials set!")
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload
