@@ -33,9 +33,11 @@ class Pickems:
         user_voted = False
         for user, choice in self.votes:
             if user_id == user:
-                self.votes.remove((user, choice))
-                self.votes.append((user_id, team_choice))
-                raise UserHasVotedError(team_choice)
+                user_voted = True
+                if choice != team_choice:
+                    self.votes.remove((user, choice))
+                    self.votes.append((user_id, team_choice))
+                    raise UserHasVotedError("{} {}".format(team, team_choice))
 
         if not user_voted and team_choice is not None:
             self.votes.append((user_id, team_choice))
