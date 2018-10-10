@@ -410,4 +410,4 @@ class Twitch(getattr(commands, "Cog", object)):
             self.loop.cancel()
         self.bot.loop.create_task(self.session.close())
 
-    __del__ = self.__unload
+    __del__ = __unload
