@@ -1432,57 +1432,43 @@ class Hockey(getattr(commands, "Cog", object)):
         if str(user.id) not in leaderboard:
             leaderboard[str(user.id)] = {"season":points, "weekly":points}
 
-
+    async def post_leaderboard(self, ctx, leaderboard_type):
+        """
+            Posts the leaderboard based on specific style
+        """
+        leaderboard = await self.config.guild(ctx.guild).leaderboard()
+        if leaderboard == {} or leaderboard is None:
+            await ctx.send("There is no current leaderboard for this server!")
+            return
+        leaderboard = sorted(leaderboard.items(), key=lambda i: i[1][leaderboard_type], reverse=True)
+        msg_list = []
+        count = 1
+        user_position = None
+        for member_id in leaderboard:
+            if str(member_id[0]) == str(ctx.author.id):
+                user_position = leaderboard.index(member_id)
+            member = ctx.guild.get_member(int(member_id[0]))
+            if member is None:
+                member_mention = "User has left the server {}".format(member_id[0])
+            else:
+                member_mention = member.mention
+            msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1][leaderboard_type]))
+            count += 1
+        leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
+        if user_position is not None:
+            await ctx.send("{}, you're #{} on the {} leaderboard!".format(
+                           ctx.author.display_name, user_position+1, leaderboard_type))
+        await hockey_menu(ctx, leaderboard_type, leaderboard_list)
 
     @hockey_commands.command(hidden=True)
     async def leaderboard(self, ctx, leaderboard_type:str="seasonal"):
         """
             Shows the current server leaderboard either seasonal or weekly
         """
-        leaderboard = await self.config.guild(ctx.guild).leaderboard()
-        if leaderboard == {} or leaderboard is None:
-            await ctx.send("There is no current leaderboard for this server!")
-            return
         if leaderboard_type in ["seasonal", "season"]:
-            leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["season"], reverse=True)
-            msg_list = []
-            count = 1
-            user_position = None
-            for member_id in leaderboard:
-                if str(member_id[0]) == str(ctx.author.id):
-                    user_position = leaderboard.index(member_id)
-                member = ctx.guild.get_member(int(member_id[0]))
-                if member is None:
-                    member_mention = "User has left the server {}".format(member_id)
-                else:
-                    member_mention = member.mention
-                msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1]["season"]))
-                count += 1
-            leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
-            if user_position is not None:
-                await ctx.send("{}, you're #{} on the seasonal leaderboard!".format(ctx.author.display_name, user_position+1))
-            await hockey_menu(ctx, "seasonal", leaderboard_list)
+            await self.post_leaderboard(ctx, "season")
         if leaderboard_type in ["weekly", "week"]:
-            leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["weekly"], reverse=True)
-            msg_list = []
-            count = 1
-            user_position = None
-            for member_id in leaderboard:
-                if str(member_id[0]) == str(ctx.author.id):
-                    user_position = leaderboard.index(member_id)
-                member = ctx.guild.get_member(int(member_id[0]))
-                if member is None:
-                    member_mention = "User has left the server"
-                else:
-                    member_mention = member.mention
-                msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1]["weekly"]))
-                count += 1
-            leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
-            if user_position is not None:
-                await ctx.send("{}, you're #{} on this weeks leaderboard!".format(ctx.author.display_name, user_position+1))
-            await hockey_menu(ctx, "weekly", leaderboard_list)
-
-
+            await self.post_leaderboard(ctx, "weekly")
 
     @hockey_commands.command(hidden=True)
     @checks.mod_or_permissions(manage_messages=True)
