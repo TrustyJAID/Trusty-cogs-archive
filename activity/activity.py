@@ -437,5 +437,3 @@ class ActivityChecker(getattr(commands, "Cog", object)):
 
     def __unload(self):
         self.activitycheck.cancel()
-
-    __del__ = __unload

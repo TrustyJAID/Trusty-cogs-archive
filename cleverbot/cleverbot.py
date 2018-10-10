@@ -216,6 +216,3 @@ class Cleverbot(getattr(commands, "Cog", object)):
     def __unload(self):
         if self.session:
             self.bot.loop.create_task(self.session.close())
-
-    __del__ = __unload
-
