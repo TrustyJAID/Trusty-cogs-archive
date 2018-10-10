@@ -672,5 +672,3 @@ class Tweets(getattr(commands, "Cog", object)):
         if self.mystream is not None:
             self.mystream.disconnect()
             self.loop.cancel()
-
-    __del__ = __unload
