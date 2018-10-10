@@ -2,7 +2,6 @@ import asyncio
 import discord
 import aiohttp
 from redbot.core.commands import Context
-from redbot.core.utils.embed import randomize_colour
 from .embeds import *
 
 numbs = {
@@ -15,20 +14,30 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
                          page=0, timeout: int=30):
     """menu control logic for this taken from
        https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
-    if display_type == "standings":
-        em = await build_standing_embed(post_list, page)
-    if display_type == "division":
-        em = await division_standing_embed(post_list, page)
-    if display_type == "conference":
-        em = await conference_standing_embed_test(post_list, page)
-    if display_type == "teams":
-        em = await team_standing_embed(post_list, page)
-    if display_type == "all":
-        em = await all_standing_embed(post_list, page)
-    if display_type == "roster":
-        em = await roster_embed(post_list, page)
-    if display_type == "game":
-        em = await game_embed(post_list, page)
+    if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+        if display_type == "standings":
+            em = await build_standing_embed(post_list, page)
+        if display_type == "division":
+            em = await division_standing_embed(post_list, page)
+        if display_type == "conference":
+            em = await conference_standing_embed_test(post_list, page)
+        if display_type == "teams":
+            em = await team_standing_embed(post_list, page)
+        if display_type == "all":
+            em = await all_standing_embed(post_list, page)
+        if display_type == "roster":
+            em = await roster_embed(post_list, page)
+        if display_type == "game":
+            em = await game_embed(post_list, page)
+        if display_type == "season":
+            leaderboard = {"type": "Seasonal", "lists": post_list}
+            em = await make_leaderboard_embed(ctx.guild, leaderboard, page)
+        if display_type == "weekly":
+            leaderboard = {"type": "Weekly", "lists": post_list}
+            em = await make_leaderboard_embed(ctx.guild, leaderboard, page)
+    else:
+        await ctx.send("I need embed_links permission to use this command.")
+        return
     
     if not message:
         message = await ctx.send(embed=em)

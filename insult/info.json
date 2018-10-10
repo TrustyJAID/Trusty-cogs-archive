@@ -1,9 +1,22 @@
 {
-    "AUTHOR" : "Airen and JennJenn/ TrustyJAID",
-    "SHORT" : "Insult people in a creative way",
-    "DESCRIPTION" : "Insult people in a creative way",
-    "DISABLED" : false,
-    "NAME" : "Insult",
-    "TAGS" : ["insults", "fun"],
-    "INSTALL_MSG" : "Usage: `[p]insult <user>`"
+    "author" : [
+        "Airen",
+        "JennJenn",
+        "TrustyJAID"
+    ],
+    "description" : "Insult people in a creative way",
+    "install_msg" : "Usage: `[p]insult <user>`",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Insult",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "Insult people in a creative way",
+    "tags" : [
+        "insults",
+        "fun"
+    ]
 }

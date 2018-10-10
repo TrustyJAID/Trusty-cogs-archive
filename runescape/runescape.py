@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from random import randint
 from random import choice
@@ -11,7 +11,7 @@ import asyncio
 from tabulate import tabulate
 from .profile import Profile
 
-class Runescape:
+class Runescape(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -20,14 +20,10 @@ class Runescape:
         self.config.register_user(**default)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    def __unload(self):
-        self.session.close()
-
-
     @commands.group(name="runescape", aliases=["rs"])
     async def runescape(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        """Search for a user account or profile"""
+        pass
 
     @runescape.command()
     async def set(self, ctx, RunescapeName):
@@ -58,10 +54,12 @@ class Runescape:
 
     async def get_profile(self, runescape_name, activities=5):
         data = await self.get_data_profile(runescape_name, activities)
+        if "error" in data:
+          return "NO PROFILE"
         return await self.get_profile_obj(data)
 
     @runescape.command()
-    async def profile(self, ctx, runescape_name=None, activity:int=10):
+    async def profile(self, ctx, runescape_name:str=None, activity:int=10):
         """Display a players profile in Runescape"""
         user = self.bot.get_user(ctx.message.author.id)
         if runescape_name is None:
@@ -72,13 +70,16 @@ class Runescape:
 
         details = await self.get_player_details(runescape_name)
         data = await self.get_profile(runescape_name, activity)
+        if data == "NO PROFILE":
+          await ctx.send("The account {} doesn't appear to exist!".format(runescape_name))
+          return
         # print(data.slayer)
         embed = await self.profile_embed(data, details)
         await ctx.send(embed=embed)
 
 
     @runescape.command()
-    async def stats(self, ctx, runescape_name=None):
+    async def stats(self, ctx, *, runescape_name:str=None):
         """Display a players stats in Runescape"""
         user = self.bot.get_user(ctx.message.author.id)
         if runescape_name is None:
@@ -89,38 +90,22 @@ class Runescape:
 
         details = await self.get_player_details(runescape_name)
         data = await self.get_profile(runescape_name)
+        if data == "NO PROFILE":
+          await ctx.send("The account {} doesn't appear to exist!".format(runescape_name))
+          return
         # print(data.slayer)
         skills = await self.stats_message(data)
         await ctx.send(skills)
 
     async def raw_stats_message(self, p):
-        skills_list = [["Overall", p.totalskill, "{:,}".format(p.totalxp), p.rank],
-                       ["Attack", p.attack["level"], "{:,}".format(p.attack["xp"]), "{:,}".format(p.attack["rank"])],
-                       ["Defence", p.defence["level"], "{:,}".format(p.defence["xp"]), "{:,}".format(p.defence["rank"])],
-                       ["Strength", p.strength["level"], "{:,}".format(p.strength["xp"]), "{:,}".format(p.strength["rank"])],
-                       ["Constitution", p.constitution["level"], "{:,}".format(p.constitution["xp"]), "{:,}".format(p.constitution["rank"])],
-                       ["Ranged", p.ranged["level"], "{:,}".format(p.ranged["xp"]), "{:,}".format(p.ranged["rank"])],
-                       ["Prayer", p.prayer["level"], "{:,}".format(p.prayer["xp"]), "{:,}".format(p.prayer["rank"])],
-                       ["Magic", p.magic["level"], "{:,}".format(p.magic["xp"]), "{:,}".format(p.magic["rank"])],
-                       ["Cooking", p.cooking["level"], "{:,}".format(p.cooking["xp"]), "{:,}".format(p.cooking["rank"])],
-                       ["Woodcutting", p.attack["level"], "{:,}".format(p.attack["xp"]), "{:,}".format(p.attack["rank"])],
-                       ["Fletching", p.fletching["level"], "{:,}".format(p.fletching["xp"]), "{:,}".format(p.fletching["rank"])],
-                       ["Fishing", p.fishing["level"], "{:,}".format(p.fishing["xp"]), "{:,}".format(p.fishing["rank"])],
-                       ["Crafting", p.crafting["level"], "{:,}".format(p.crafting["xp"]), "{:,}".format(p.crafting["rank"])],
-                       ["Smithing", p.smithing["level"], "{:,}".format(p.smithing["xp"]), "{:,}".format(p.smithing["rank"])],
-                       ["Mining", p.mining["level"], "{:,}".format(p.mining["xp"]), "{:,}".format(p.mining["rank"])],
-                       ["Herblore", p.herblore["level"], "{:,}".format(p.herblore["xp"]), "{:,}".format(p.herblore["rank"])],
-                       ["Agility", p.agility["level"], "{:,}".format(p.agility["xp"]), "{:,}".format(p.agility["rank"])],
-                       ["Thieving", p.thieving["level"], "{:,}".format(p.thieving["xp"]), "{:,}".format(p.thieving["rank"])],
-                       ["Slayer", p.slayer["level"], "{:,}".format(p.slayer["xp"]), "{:,}".format(p.slayer["rank"])],
-                       ["Farming", p.farming["level"], "{:,}".format(p.farming["xp"]), "{:,}".format(p.farming["rank"])],
-                       ["Runecrafting", p.runecrafting["level"], "{:,}".format(p.runecrafting["xp"]), "{:,}".format(p.runecrafting["rank"])],
-                       ["Hunter", p.hunter["level"], "{:,}".format(p.hunter["xp"]), "{:,}".format(p.hunter["rank"])],
-                       ["Construction", p.construction["level"], "{:,}".format(p.construction["xp"]), "{:,}".format(p.construction["rank"])],
-                       ["Summoning", p.summoning["level"], "{:,}".format(p.summoning["xp"]), "{:,}".format(p.summoning["rank"])],
-                       ["Dungeoneering", p.dungeoneering["level"], "{:,}".format(p.dungeoneering["xp"]), "{:,}".format(p.dungeoneering["rank"])],
-                       ["Divination", p.divination["level"], "{:,}".format(p.divination["xp"]), "{:,}".format(p.divination["rank"])],
-                       ["Invention", p.invention["level"], "{:,}".format(p.invention["xp"]), "{:,}".format(p.invention["rank"])]]
+        skills_list = [["Overall", p.totalskill, "{:,}".format(p.totalxp), p.rank]]
+        skills = ["Attack","Defence","Strength","Constitution","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking","Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecrafting","Hunter","Construction","Summoning","Dungeoneering","Divination","Invention"]
+        stats = p.to_json()
+        for skill in skills:
+          level = stats[skill.lower()]["level"]
+          xp = stats[skill.lower()]["xp"]
+          rank = stats[skill.lower()]["rank"] if "rank" in stats[skill.lower()] else "Unranked"
+          skills_list.append([skill, level, xp, rank])
         return tabulate(skills_list, headers=['Skill', 'Level', 'Experience', 'Rank'], tablefmt='orgtbl')
 
     async def stats_message(self, p):
@@ -148,12 +133,13 @@ class Runescape:
         em.add_field(name="Combat Level", value=profile.combatlevel)
         em.add_field(name="Total Level", value=profile.totalskill)
         em.add_field(name="Total XP", value=profile.totalxp)
-        em.add_field(name="Activities", value=activities)
+        if activities != "":
+            em.add_field(name="Activities", value=activities)
         # if profile.logged_in:
             # em.set_footer(text="Online", icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Green_pog.svg/64px-Green_pog.svg.png")
         # else:
             # em.set_footer(text="Offline", icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Red_pog.svg/64px-Red_pog.svg.png")
         return em
 
-
-
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

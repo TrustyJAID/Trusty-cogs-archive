@@ -4,7 +4,7 @@ import asyncio
 import json
 import os
 from datetime import datetime
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 from redbot.core.utils.chat_formatting import pagify, box
@@ -15,7 +15,7 @@ numbs = {
     "back": "⬅",
     "exit": "❌"
 }
-class Anime:
+class Anime(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -29,16 +29,10 @@ class Anime:
         # self.airing = dataIO.load_json("data/anilist/airing.json")
         self.loop = bot.loop.create_task(self.check_airing_start())
 
-
-    def __unload(self):
-        self.session.close()
-        self.loop.cancel()
-
     @commands.group()
     async def anime(self, ctx):
         """Various anime related commands"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @anime.command()
     @checks.is_owner()
@@ -301,8 +295,7 @@ class Anime:
     @checks.admin_or_permissions(manage_channels=True)
     async def animeset(self, ctx):
         """Setup a channel for anime airing announcements"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     
 
@@ -342,13 +335,12 @@ class Anime:
         To get this info, visit https://anilist.co/home log in, go to your profile
         select Developer and create new Client, set the name and provide your client_id
         and client secret with `[p]aniset creds client_id client_secret`"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_aniset.command(name='creds')
     @checks.is_owner()
     async def set_creds(self, ctx, client_id:str, client_secret:str):
-        """Sets the access credentials. See [p]help tweetset for instructions on getting these"""
+        """Sets the access credentials. See [p]help aniset for instructions on getting these"""
         # self.settings["api"]["client_id"] = client_id
         # self.settings["api"]["client_secret"] = client_secret
         await self.config.api.client_id.set(client_id)
@@ -356,3 +348,6 @@ class Anime:
         # dataIO.save_json("data/anilist/settings.json", self.settings)
         await ctx.send('Set the access credentials!')
 
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+        self.loop.cancel()

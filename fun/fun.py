@@ -1,7 +1,7 @@
 import random
 import re
 import json
-from discord.ext import commands
+from redbot.core import commands
 import discord
 
 '''Module for fun/meme commands commands
@@ -9,7 +9,7 @@ import discord
 '''
 
 
-class Fun:
+class Fun(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         self.regionals = {'a': '\N{REGIONAL INDICATOR SYMBOL LETTER A}', 'b': '\N{REGIONAL INDICATOR SYMBOL LETTER B}',
@@ -207,25 +207,48 @@ class Fun:
         spaced_message = spaces.join(list(msg))
         await ctx.send(spaced_message)
 
-    async def find_channel(self, channel_list, text):
-        if text.isdigit():
-            found_channel = discord.utils.get(channel_list, id=int(text))
-        elif text.startswith("<#") and text.endswith(">"):
-            found_channel = discord.utils.get(channel_list,
-                                              id=text.replace("<", "").replace(">", "").replace("#", ""))
+    @commands.command()
+    async def oof(self, ctx, msg_id:int=None, channel:discord.TextChannel=None):
+        """
+            Oof a message
+        """
+        emojis = ["🅾", "🇴", "🇫"]
+        if channel is None:
+            channel = ctx.message.channel
+        if msg_id is None:
+            async for message in channel.history(limit=2):
+                msg = message
         else:
-            found_channel = discord.utils.get(channel_list, name=text)
-        return found_channel
+            msg = await channel.get_message(msg_id)
+        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+            await ctx.message.delete()
+        if channel.permissions_for(ctx.guild.me).add_reactions:
+            for emoji in emojis:
+                await msg.add_reaction(emoji)
+
 
     # given String react_me, return a list of emojis that can construct the string with no duplicates (for the purpose of reacting)
     # TODO make it consider reactions already applied to the message
     @commands.command(pass_context=True, aliases=['r'])
-    async def react(self, ctx, msg: str, msg_id="last", channel="current", prefer_combine: bool = False):
+    async def react(self, ctx, msg: str, msg_id:int=None, channel:discord.TextChannel=None):
         """Add letter(s) as reaction to previous message. Ex: [p]react hot"""
         
         msg = msg.lower()
 
-        msg_id = None if not msg_id.isdigit() else int(msg_id)
+        if channel is None:
+            channel = ctx.channel
+        if not channel.permissions_for(ctx.guild.me).add_reactions:
+            return
+        if msg_id is None:
+            async for message in channel.history(limit=2):
+                msg_id = message
+        else:
+            try:
+                msg_id = await channel.get_message(msg_id)
+            except:
+                await ctx.send("Message ID {} not found in {}".format(msg_id, channel.mention))
+                return
+
 
         limit = 25 if msg_id else 2
 
@@ -250,20 +273,15 @@ class Fun:
         react_me_original = react_me  # we'll go back to this version of react_me if prefer_combine is false but we can't make the reaction happen unless we combine anyway.
 
         if Fun.has_dupe(react_me):  # there's a duplicate letter somewhere, so let's go ahead try to fix it.
-            if prefer_combine:  # we want a smaller reaction string, so we'll try to combine anything we can right away
-                react_me = Fun.replace_combos(react_me)
+            react_me = Fun.replace_combos(react_me)
             react_me = Fun.replace_letters(react_me)
             # print(react_me)
             if Fun.has_dupe(react_me):  # check if we were able to solve the dupe
-                if not prefer_combine:  # we wanted the most legible reaction string possible, even if it was longer, but unfortunately that's not possible, so we're going to combine first anyway
-                    react_me = react_me_original
-                    react_me = Fun.replace_combos(react_me)
-                    react_me = Fun.replace_letters(react_me)
-                    if Fun.has_dupe(react_me):  # this failed too, so there's really nothing we can do anymore.
-                        return await ctx.send("Failed to fix all duplicates. Cannot react with this string.")
-                else:
-                    return await ctx.send("Failed to fix all duplicates. Cannot react with this string.")
-                    
+                react_me = react_me_original
+                react_me = Fun.replace_combos(react_me)
+                react_me = Fun.replace_letters(react_me)
+                if Fun.has_dupe(react_me):  # this failed too, so there's really nothing we can do anymore.
+                    return await ctx.send("Failed to fix all duplicates. Cannot react with this string.")                    
 
             lt_count = 0
             for char in react_me:
@@ -280,26 +298,5 @@ class Fun:
                 else:
                     reactions.append(char)
 
-        if channel == "current":
-            async for message in ctx.message.channel.history(limit=limit):
-                if (not msg_id and message.id != ctx.message.id) or (msg_id == message.id):
-                    for i in reactions:
-                        try:
-                            await message.add_reaction(i)
-                        # :ok_hand: lit fam :ok_hand:
-                        except:
-                            pass
-        else:
-            found_channel = await self.find_channel(ctx.guild.channels, channel)
-            if not found_channel:
-                found_channel = self.find_channel(self.bot.get_all_channels(), channel)
-            if found_channel:
-                async for message in found_channel.history(limit=limit):
-                    if (not msg_id and message.id != ctx.message.id) or (msg_id == message.id):
-                        for i in reactions:
-                            try:
-                                await message.add_reaction(i)
-                            except:
-                                pass
-            else:
-                await ctx.send("Channel not found.")
+        for i in reactions:
+            await msg_id.add_reaction(i)

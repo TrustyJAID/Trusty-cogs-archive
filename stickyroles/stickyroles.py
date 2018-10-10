@@ -1,6 +1,6 @@
 import discord
 import os
-from discord.ext import commands
+from redbot.core import commands
 from collections import defaultdict
 from redbot.core import Config
 from redbot.core import checks
@@ -11,8 +11,8 @@ default = {
 }
 
 
-class StickyRoles:
-    """Reapplies specific roles on join"""
+class StickyRoles(getattr(commands, "Cog", object)):
+    """Reapplies specific roles on join. Rewritten for V3 from https://github.com/Twentysix26/26-Cogs/blob/master/stickyroles/stickyroles.py"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -25,8 +25,7 @@ class StickyRoles:
     @checks.admin()
     async def stickyroles(self, ctx):
         """Adds / removes roles to be reapplied on join"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @stickyroles.command(pass_context=True)
     async def add(self, ctx, *, role: discord.Role):

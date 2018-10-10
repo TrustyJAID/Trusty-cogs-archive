@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from redbot.core import checks
 from redbot.core.utils.chat_formatting import pagify
@@ -15,8 +15,8 @@ default_settings = {"GREETING": [default_greeting], "ON": False,
 settings_path = "data/welcome/settings.json"
 
 
-class Welcome:
-    """Welcomes new members to the guild in the default channel"""
+class Welcome(getattr(commands, "Cog", object)):
+    """Welcomes new members to the guild in the default channel rewritten for V3 from https://github.com/irdumbs/Dumb-Cogs/blob/master/welcome/welcome.py"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -29,7 +29,6 @@ class Welcome:
         """Sets welcome module settings"""
         guild = ctx.message.guild
         if ctx.invoked_subcommand is None:
-            await ctx.send_help()
             msg = "```"
             msg += "Random GREETING: {}\n".format(rand_choice(await self.config.guild(guild).GREETING()))
             msg += "CHANNEL: #{}\n".format(await self.config.guild(guild).CHANNEL())
@@ -47,7 +46,6 @@ class Welcome:
         """
         if ctx.invoked_subcommand is None or \
                 isinstance(ctx.invoked_subcommand, commands.Group):
-            await ctx.send_help()
             return
 
     @welcomeset_msg.command(pass_context=True, name="add", no_pm=True)
@@ -149,7 +147,6 @@ class Welcome:
         """Special welcome for bots"""
         if ctx.invoked_subcommand is None or \
                 isinstance(ctx.invoked_subcommand, commands.Group):
-            await ctx.send_help()
             return
 
     @welcomeset_bot.command(pass_context=True, name="msg", no_pm=True)
@@ -206,13 +203,13 @@ class Welcome:
         if not guild_settings:
             await ctx.send("I will no longer send DMs to new users")
         elif guild_settings == "BOTH":
-            await channel.send("I will now send welcome "
+            await ctx.send("I will now send welcome "
                                         "messages to {0.mention} as well as to "
-                                        "the new user in a DM".format(channel))
+                                        "the new user in a DM".format(ctx.channel))
         else:
-            await channel.send("I will now only send "
+            await ctx.send("I will now only send "
                                         "welcome messages to the new user "
-                                        "as a DM".format(channel))
+                                        "as a DM")
         await self.send_testing_msg(ctx)
 
     @welcomeset.command(pass_context=True)
@@ -229,6 +226,12 @@ class Welcome:
             await self.config.guild(guild).EMBED.set(guild_settings)
             await ctx.send("I will test without embedds.")
             await self.send_testing_msg(ctx)
+
+    async def make_embed(self, member, msg):
+        em = discord.Embed(description=msg.format(member, member.guild),timestamp=member.joined_at)
+        em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
+        em.set_thumbnail(url=member.avatar_url_as(format='png'))
+        return em
         
 
     async def on_member_join(self, member):
@@ -250,7 +253,11 @@ class Welcome:
         # whisper the user if needed
         if not member.bot and await self.config.guild(guild).WHISPER():
             try:
-                await self.bot.send_message(member, msg.format(member, guild))
+                if is_embed:
+                    em = await self.make_embed(member, msg)
+                    await channel.send(embed=em)
+                else:
+                    await member.send(msg.format(member, guild))
             except:
                 print("welcome.py: unable to whisper {}. Probably "
                       "doesn't want to be PM'd".format(member))
@@ -284,9 +291,7 @@ class Welcome:
                       'bot, {}'.format(role, member))
         # finally, welcome them
         if is_embed:
-            em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
-            em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
-            em.set_thumbnail(url=member.avatar_url_as(format='png'))
+            em = await self.make_embed(member, msg)
             await channel.send(embed=em)
         else:
             await channel.send(msg.format(member, guild))
@@ -312,7 +317,8 @@ class Welcome:
         rand_msg = msg or rand_choice(await self.config.guild(guild).GREETING())
         is_embed = await self.config.guild(guild).EMBED()
         member = ctx.message.author
-        if channel is None:
+        whisper_settings = await self.config.guild(guild).WHISPER()
+        if channel is None and whisper_settings not in ["BOTH", True]:
             await ctx.send("I can't find the specified channel. "
                            "It might have been deleted.")
             return
@@ -322,17 +328,13 @@ class Welcome:
             msg = await self.config.guild(guild).BOTS_MSG() if bot else rand_msg
             if not bot and await self.config.guild(guild).WHISPER():
                 if is_embed:
-                    em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
-                    em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
-                    em.set_thumbnail(url=member.avatar_url_as(format='png'))
-                    await channel.send(embed=em)
+                    em = await self.make_embed(member, msg)
+                    await ctx.author.send(embed=em)
                 else:
-                    await channel.send(msg.format(member, guild))
-            if bot or await self.config.guild(guild).WHISPER() is not True:
+                    await ctx.author.send(msg.format(member, guild))
+            if bot or whisper_settings is not True:
                 if is_embed:
-                    em = discord.Embed(description=msg.format(member, guild),timestamp=member.joined_at)
-                    em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
-                    em.set_thumbnail(url=member.avatar_url_as(format='png'))
+                    em = await self.make_embed(member, msg)
                     await channel.send(embed=em)
                 else:
                     await channel.send(msg.format(member, guild))

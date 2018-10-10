@@ -1,10 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Anime episode updates",
-    "DESCRIPTION" : "Set a channel to show which anime is currently airing!",
-    "DISABLED" : false,
-    "NAME" : "Anime",
-    "TAGS" : ["general"],
-    "REQUIREMENTS" : [],
-    "INSTALL_MSG" : "Type [p]anime channel to setup a channel for latest anime episodes airing"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Set a channel to show which anime is currently airing!",
+    "install_msg" : "Type [p]anime channel to setup a channel for latest anime episodes airing",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Anime",
+    "permissions" : ["embed_links"],
+    "requirements" : [],
+    "short" : "Anime episode updates",
+    "tags" : [
+        "general",
+        "anime"
+    ]
 }

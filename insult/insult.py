@@ -1,11 +1,11 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from random import choice
 import os
 from .insults import insults
 
 
-class Insult:
+class Insult(getattr(commands, "Cog", object)):
 
     """Airenkun's Insult Cog"""
     def __init__(self, bot):

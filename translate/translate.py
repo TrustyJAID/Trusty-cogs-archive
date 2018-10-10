@@ -1,6 +1,6 @@
 import aiohttp
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from redbot.core import checks
 from redbot.core.data_manager import bundled_data_path
@@ -21,7 +21,7 @@ Join the official development guild                https://discord.gg/uekTNPj
 '''
 
 
-class Translate:
+class Translate(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
@@ -130,3 +130,6 @@ class Translate:
         """
         await self.config.api_key.set(api_key)
         await ctx.send("API key set.")
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

@@ -1,4 +1,4 @@
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 import aiohttp
@@ -9,7 +9,7 @@ import functools
 import asyncio
 
 
-class Chatter():
+class Chatter(getattr(commands, "Cog", object)):
     """Chatterbot"""
 
     def __init__(self, bot):
@@ -19,7 +19,7 @@ class Chatter():
         self.config = Config.get_conf(self, 3568777796)
         self.config.register_guild(**default_guild)
         self.config.register_channel(**default_channel)
-        self.chatbot = chatterbot.ChatBot("TrustyBot",
+        self.chatbot = chatterbot.ChatBot("Redbot",
                                           output_adapter="chatterbot.output.OutputAdapter",
                                           storage_adapter="chatterbot.storage.MongoDatabaseAdapter",
                                           output_format="text",
@@ -53,11 +53,14 @@ class Chatter():
     
     @chatterbot.command(pass_context=True)
     @checks.mod_or_permissions(manage_channels=True)
-    async def channel(self, ctx, channel: discord.TextChannel):
+    async def channel(self, ctx, channel: discord.TextChannel=None):
         """Toggles channel for automatic replies"""
         guild = ctx.message.guild
-        await self.config.guild(guild).channel.set(channel.id)
-        await self.bot.say("I will reply in {}".format(channel.mention))
+        if channel is None:
+            await self.config.guild(guild).channel.set(channel)
+        else:
+            await self.config.guild(guild).channel.set(channel.id)
+        await ctx.send("I will reply in {}".format(channel.mention))
 
 
     async def on_message(self, message):
@@ -70,11 +73,19 @@ class Chatter():
         last_author = await self.config.channel(channel).author()
         last_message = await self.config.channel(channel).message()
         if author.id == last_author and last_message != message.content:
-            await self.config.channel(channel).message.set(message.content)
+
+            await self.config.channel(channel).message.set(last_message + "\n" + message.content)
         if author.id != last_author and author.id != self.bot.user.id and last_author is not None:
+
             conversation.append(message.content)
             conversation.append(last_message)
-            self.chatbot.train(conversation)
+            task = functools.partial(self.chatbot.train, conversation=conversation)
+            task = self.bot.loop.run_in_executor(None, task)
+            try:
+                response = await asyncio.wait_for(task, timeout=60)
+            except asyncio.TimeoutError:
+                return
+            # self.chatbot.train(conversation)
             await self.config.channel(channel).message.set(None)
             await self.config.channel(channel).author.set(None)
         if last_author is None and last_message is None:

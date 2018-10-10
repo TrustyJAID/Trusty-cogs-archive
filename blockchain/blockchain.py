@@ -2,7 +2,7 @@
 '''blockchain rpc related functions'''
 
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from .utils.dataIO import dataIO
 from random import randint
 from random import choice
@@ -20,7 +20,7 @@ import struct
 BADTRANSACTION = ["4a0088a249e9099d205fb4760c28275d4b8965ac9fd56f5ddf6771cdb0d94f38",
                   "dde7cd8e8f073a525c16c5ee4e4a254f847b7ad6babef257231813166fbef551"]
 
-class blockchain:
+class blockchain(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -34,9 +34,6 @@ class blockchain:
                     password=self.login_data["password"],
                     ip=self.login_data["ip"],
                     port=self.login_data["port"])
-
-    def __unload(self):
-        self.session.close()
 
     async def get_block_height(self):
         params = json.dumps({"jsonrpc":"1.1","method":"getblockcount","id":self.request_id})
@@ -293,6 +290,11 @@ class blockchain:
                 data = None
                 print('Error: {}'.format(e), file=sys.stderr)
             return data
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    
 
 
 def setup(bot):
