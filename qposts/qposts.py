@@ -436,4 +436,4 @@ class QPosts(getattr(commands, "Cog", object)):
         self.bot.loop.create_task(self.session.close())
         self.loop.cancel()
 
-    __del__ = __unload
+    __del__ = self.__unload
