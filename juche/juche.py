@@ -1,6 +1,7 @@
 import discord
+from redbot.core import commands
 
-class Juche:
+class Juche(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

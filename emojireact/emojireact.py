@@ -1,9 +1,8 @@
 import discord
-from discord.ext import commands
-from redbot.core import Config
+from redbot.core import commands, Config, checks
 from .unicode_codes import UNICODE_EMOJI
 
-class EmojiReactions:
+class EmojiReactions(getattr(commands, "Cog", object)):
     
     def __init__(self, bot):
         self.bot = bot
@@ -12,10 +11,9 @@ class EmojiReactions:
         self.config.register_guild(**default_guild)
 
     @commands.group()
+    @checks.admin_or_permissions(manage_message=True)
     async def emojireact(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
-            
+        if ctx.invoked_subcommand is None:          
             try:
                 guild = ctx.message.guild
                 em = discord.Embed(title="Emojireact settings for {}".format(guild.name), colour=discord.Colour.blue())
@@ -26,7 +24,7 @@ class EmojiReactions:
                 pass
 
 
-    @emojireact.group(name="unicode")
+    @emojireact.command(name="unicode")
     async def _unicode(self, ctx):
         """Toggle unicode emoji reactions"""
         if await self.config.guild(ctx.guild).unicode():
@@ -36,7 +34,7 @@ class EmojiReactions:
             await self.config.guild(ctx.guild).unicode.set(True)
             await ctx.send("Okay, I will react to messages containing unicode emojis!")
 
-    @emojireact.group(name="guild")
+    @emojireact.command(name="guild")
     async def _guild(self, ctx):
         """Toggle guild emoji reactions"""
         if await self.config.guild(ctx.guild).guild():
@@ -46,7 +44,7 @@ class EmojiReactions:
             await self.config.guild(ctx.guild).guild.set(True)
             await ctx.send("Okay, I will react to messages containing server emojis!")
 
-    @emojireact.group(name="all")
+    @emojireact.command(name="all")
     async def _all(self, ctx):
         """Toggle all emoji reactions"""
         if await self.config.guild(ctx.guild).guild() or await self.config.guild(ctx.guild).unicode():
@@ -61,6 +59,8 @@ class EmojiReactions:
     async def on_message(self, message):
         channel = message.channel
         emoji_list = []
+        if message.guild is None:
+            return
         for word in message.content.split(" "):
             if word.startswith("<:") and word.endswith(">") and await self.config.guild(message.guild).guild():
                 emoji_list.append(word.rpartition(">")[0].partition("<")[2])

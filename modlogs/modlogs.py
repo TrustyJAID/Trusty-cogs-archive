@@ -1,4 +1,4 @@
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 import datetime
@@ -14,7 +14,7 @@ inv_settings = {"embed": False, "Channel": None, "toggleedit": False, "toggledel
                 "toggleguild": False}
 
 
-class ModLogs:
+class ModLogs(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 154457677895)
@@ -29,7 +29,6 @@ class ModLogs:
         if ctx.invoked_subcommand is None:
             guild = ctx.message.guild
             
-            await ctx.send_help()
             try:
                 e = discord.Embed(title="Setting for {}".format(guild.name), colour=discord.Colour.blue())
                 e.description = "ModLogs channel set to {}".format(self.bot.get_channel(id=await self.config.guild(guild).Channel()).mention)
@@ -45,15 +44,15 @@ class ModLogs:
                 e.add_field(name="guild", value=str(await self.config.guild(guild).toggleguild()))
                 e.set_thumbnail(url=guild.icon_url)
                 await ctx.send(embed=e)
-            except KeyError:
+            except Exception as e:
+                print(e)
                 return
 
     @checks.admin_or_permissions(administrator=True)
     @commands.group(pass_context=True, no_pm=True)
     async def modlogsetup(self, ctx):
         """Change modlog settings"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @modlogsetup.command(name='channel', pass_context=True, no_pm=True)
     async def _channel(self, ctx):

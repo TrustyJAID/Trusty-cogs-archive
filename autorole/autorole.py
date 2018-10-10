@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 import random
@@ -13,8 +13,8 @@ default_settings = {
             "AGREE_MSG": None
         }
 
-class Autorole:
-    """Autorole commands."""
+class Autorole(getattr(commands, "Cog", object)):
+    """Autorole commands. Rewritten for V3 from https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/autorole/autorole.py"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -134,7 +134,6 @@ class Autorole:
         Requires the manage roles permission"""
         guild = ctx.message.guild
         if ctx.invoked_subcommand is None:
-            await ctx.send_help()
             try:
                 enabled = await self.config.guild(guild).ENABLED()
                 roles = await self.config.guild(guild).ROLE()
@@ -173,7 +172,7 @@ class Autorole:
         You can use this command multiple times to add multiple roles."""
         guild = ctx.message.guild
         roles = await self.config.guild(guild).ROLE()
-        if not permissions_for(guild.me).manage_roles:
+        if not guild.me.guild_permissions.manage_roles:
             await ctx.send("I don't have the manage roles permission to use these features!")
             return
         if role.id in roles:

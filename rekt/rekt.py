@@ -1,6 +1,7 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
+from random import choice
 
 rektlist = [
             "☑ Rekt",
@@ -83,37 +84,24 @@ rektlist = [
             "☑ Rektal Exam",
             "☑ Rektium for a Dream",
             "☑ www.Trekt.tv",
-            "☑ Erektile Dysfunction"
+            "☑ Erektile Dysfunction",
+            "☑ Jesus, stepping out the grave: 'Get ressurekt'"
             ]
 
 
-class Rekt:
+class Rekt(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(hidden=False, pass_context=True)
+    @commands.command()
     @commands.cooldown(1, 60, commands.BucketType.guild)
-    async def rekt(self, ctx, endcount=10):
+    async def rekt(self, ctx):
         """REKT"""
-        guild = str(ctx.message.guild.id)
         user = ctx.message.author.id
         rektemoji = ["\u2611", "\U0001F1F7", "\U0001F1EA", "\U0001F1F0", "\U0001F1F9"]
         embed = discord.Embed(colour=discord.Colour.blue())
         embed.add_field(name="NOT REKT", value="⬜ Not Rekt", inline=True)
-        count = 0
-        count2 = 0
-        message = ""
-        for line in rektlist:
-            if count2 == 10:
-                embed.add_field(name="REKT", value=message, inline=True)
-                count2 = 0
-                message = ""
-
-            message += line + "\n"
-            count += 1
-            count2 += 1
-            if count == endcount:
-                break
+        message = "\n".join(choice(rektlist) for line in range(10))
         if message != "":
             embed.add_field(name="REKT", value=message, inline=True)
         embed.set_author(name="Are you REKT?")

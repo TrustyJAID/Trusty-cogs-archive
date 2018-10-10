@@ -1,11 +1,11 @@
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from redbot.core import checks
 from random import choice
 import asyncio
 import aiohttp
 
-class Imgflip:
+class Imgflip(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -92,3 +92,6 @@ class Imgflip:
         await self.config.username.set(username)
         await self.config.password.set(password)
         await ctx.send("Credentials set!")
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

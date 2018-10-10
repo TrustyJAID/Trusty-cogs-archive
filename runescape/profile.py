@@ -1,5 +1,5 @@
 from typing import Tuple
-from discord.ext import commands
+from redbot.core import commands
 
 import discord
 
@@ -82,6 +82,14 @@ class Profile:
             "crafting": self.crafting,
             "smithing": self.smithing,
             "mining": self.mining,
+            "herblore": self.herblore,
+            "agility": self.agility,
+            "thieving": self.thieving,
+            "slayer": self.slayer,
+            "farming": self.farming,
+            "runecrafting": self.runecrafting,
+            "hunter": self.hunter,
+            "construction": self.construction,
             "summoning": self.summoning,
             "dungeoneering": self.dungeoneering,
             "divination": self.divination,

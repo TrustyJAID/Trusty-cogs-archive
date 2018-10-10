@@ -31,13 +31,12 @@ japanese_corpus = '''それは20年前の今日だった
 だから私はあなたに紹介しましょう
 唯一無二のビリー·シアーズ
 そして、サージェント·ペパーズ·ロンリー·ハーツ·クラブ·バンド'''.split('\n')
-print(str(__file__)[:38])
-main_dir = str(__file__)[:38]
-bubbles = [main_dir+'img/png/bubbles/' + i for i in os.listdir(main_dir+'img/png/bubbles/') if i != 'Thumbs.db']
-windows = [main_dir+'img/png/windows/' + i for i in os.listdir(main_dir+'img/png/windows/') if i != 'Thumbs.db']
-backgrounds = [main_dir+'img/png/background/' + i for i in os.listdir(main_dir+'img/png/background/') if i != 'Thumbs.db']
-pics = [main_dir+'img/png/pics/' + i for i in os.listdir(main_dir+'img/png/pics/') if i != 'Thumbs.db']
-greek = [main_dir+'img/png/greek/' + i for i in os.listdir(main_dir+'img/png/greek/') if i != 'Thumbs.db']
+main_dir = str(__file__)[:-16]
+bubbles = [main_dir+'/img/png/bubbles/' + i for i in os.listdir(main_dir+'/img/png/bubbles/') if i != 'Thumbs.db']
+windows = [main_dir+'/img/png/windows/' + i for i in os.listdir(main_dir+'/img/png/windows/') if i != 'Thumbs.db']
+backgrounds = [main_dir+'/img/png/background/' + i for i in os.listdir(main_dir+'/img/png/background/') if i != 'Thumbs.db']
+pics = [main_dir+'/img/png/pics/' + i for i in os.listdir(main_dir+'/img/png/pics/') if i != 'Thumbs.db']
+greek = [main_dir+'/img/png/greek/' + i for i in os.listdir(main_dir+'/img/png/greek/') if i != 'Thumbs.db']
 
 def random_color(k=0):
 	RGB = int(k%255),int(255*cos(k)),int(255*(1-sin(k)))
@@ -50,7 +49,7 @@ def full_width(txt):
 def draw_text(txt, image, k=0, x=0, y=30):
 	'''takes a image and places txt on it'''
 	print('adding text:', txt.encode('utf-8'))
-	font_path = "resources/msjhbd.ttc"
+	font_path = main_dir+"/resources/msjhbd.ttc"
 	draw = ImageDraw.Draw(image)
 
 	#autofit

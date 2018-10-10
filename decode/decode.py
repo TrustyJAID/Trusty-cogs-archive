@@ -1,12 +1,12 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 import binascii
 import random
 import hashlib
 
 
 
-class Encoding:
+class Encoding(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -48,14 +48,12 @@ class Encoding:
     @commands.group(name="encode")
     async def _encode(self, ctx: commands.Context):
         """Encode a string."""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @commands.group(name="decode")
     async def _decode(self, ctx: commands.Context):
         """Decode a string."""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_encode.command(name="binary")
     async def encode_binary(self, ctx: commands.Context, *, message: str):

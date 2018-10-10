@@ -3,7 +3,7 @@ import random
 import aiohttp
 import discord
 import asyncio
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 from redbot.core.data_manager import cog_data_path
@@ -15,7 +15,7 @@ from redbot.core.i18n import Translator
 
 _ = Translator("Alias", __file__)
 
-class AddImage:
+class AddImage(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         # self.images = dataIO.load_json("data/addimage/settings.json")
@@ -27,9 +27,6 @@ class AddImage:
         self.config = Config.get_conf(self, 16446735546)
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
-
-    def __unload(self):
-        self.session.close()
 
     async def first_word(self, msg):
         return msg.split(" ")[0].lower()
@@ -310,3 +307,6 @@ class AddImage:
             if msg.content.lower().strip() == "exit":
                 await ctx.send("Image adding cancelled.")
                 break
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

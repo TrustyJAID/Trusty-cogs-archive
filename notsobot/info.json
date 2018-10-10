@@ -1,0 +1,31 @@
+{
+    "author" : [
+        "NotSoSuper",
+        "TrustyJAID"
+    ],
+    "description" : "Some working, some not working NotSoBot commands",
+    "install_msg" : "Please, read the README.md to understand how to install. `sudo apt-get install libmagickwand-dev` and install all other requirements.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Modlogs",
+    "permissions" : ["attach_files"],
+    "requirements" : [
+        "python-aalib",
+        "cairosvg",
+        "imgurpython",
+        "pyfiglet",
+        "numpy",
+        "pillow",
+        "lxml",
+        "urbandict",
+        "git+https://github.com/Kareeeeem/jpglitch",
+        "wand"
+        ],
+    "short" : "Some working commands from NotSoBot",
+    "tags" : [
+        "Fun"
+    ]
+}

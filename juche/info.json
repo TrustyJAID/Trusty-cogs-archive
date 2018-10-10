@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "General commands",
-    "DESCRIPTION" : "Have the bot correct the current year to the Juche Calendar",
-    "DISABLED" : false,
-    "NAME" : "TrustyBot",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Various commands."
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Have the bot correct the current year to the Juche Calendar",
+    "install_msg" : "Various commands.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Juche",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "General commands",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }

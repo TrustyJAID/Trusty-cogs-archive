@@ -1,6 +1,6 @@
 from random import choice as randchoice
 from datetime import datetime as dt
-from discord.ext import commands
+from redbot.core import commands
 import discord
 from redbot.core import Config
 from redbot.core import checks
@@ -9,7 +9,7 @@ import os
 import asyncio
 from phue import Bridge
 
-class Hue():
+class Hue(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -64,8 +64,7 @@ class Hue():
     @checks.is_owner()
     async def _hue(self, ctx):
         """Commands for interacting with Hue lights"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @_hue.command(name="connect")
     async def hue_connect(self):
@@ -173,8 +172,7 @@ class Hue():
         if not await self.get_bridge():
             await ctx.send("Whoops, set the IP.")
             return
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     async def rgb_to_xy(self, red:float, green:float, blue:float):
         X = 0.4124*red + 0.3576*green + 0.1805*blue

@@ -1,10 +1,19 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "ServerWhitelist",
-    "DESCRIPTION" : "Sets a whitelist for redbot to leave unapproved servers.",
-    "DISABLED" : false,
-    "NAME" : "ServerWhitelist",
-    "REQUIREMENTS" : [""],
-    "TAGS" : ["serverwhitelist"],
-    "INSTALL_MSG" : "Sets a whitelist for redbot to leave unapproved servers. WARNING: Loading the cog will make the bot leave any new servers unless it is added with the `[p]serverwhitelist add <server_id>` command."
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Sets a whitelist for redbot to leave unapproved servers.",
+    "install_msg" : "Sets a whitelist for redbot to leave unapproved servers. WARNING: Loading the cog will make the bot leave any new servers unless it is added with the `[p]serverwhitelist add <server_id>` command.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "ServerWhitelist",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "ServerWhitelist",
+    "tags" : [
+        "serverwhitelist"
+    ]
 }

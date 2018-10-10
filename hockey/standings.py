@@ -1,8 +1,6 @@
-from typing import Tuple
-from discord.ext import commands
 from .teams import teams
+from datetime import datetime
 
-import discord
 class Standings:
     def __init__(self, name:str, division:str, conference:str, division_rank:int, conference_rank:int,
                  league_rank:int, wins:int, losses:int, ot:int, gp:int, pts:int, streak:int, streak_type:str,
@@ -23,7 +21,7 @@ class Standings:
         self.streak_type = streak_type
         self.goals = goals
         self.gaa = gaa
-        self.last_updated = last_updated
+        self.last_updated = datetime.strptime(last_updated, "%Y-%m-%dT%H:%M:%SZ")
 
     def to_json(self) -> dict:
         return {
@@ -42,13 +40,19 @@ class Standings:
             "streak_type" : self.streak_type,
             "goals" : self.goals,
             "gaa" : self.gaa,
-            "last_updated": self.last_updated
+            "last_updated": self.last_updated.strftime("%Y-%m-%dT%H:%M:%SZ"),
 
         }
 
 
     @classmethod
     async def from_json(cls, data: dict, division:str, conference:str):
+        if "streak" in data:
+          streak_number = data["streak"]["streakNumber"]
+          streak_type = data["streak"]["streakType"]
+        else:
+          streak_number = 0
+          streak_type = 0
         return cls(data["team"]["name"],
                    division,
                    conference,
@@ -60,8 +64,8 @@ class Standings:
                    data["leagueRecord"]["ot"],
                    data["gamesPlayed"],
                    data["points"],
-                   data["streak"]["streakNumber"],
-                   data["streak"]["streakType"],
+                   streak_number,
+                   streak_type,
                    data["goalsScored"],
                    data["goalsAgainst"],
                    data["lastUpdated"]
