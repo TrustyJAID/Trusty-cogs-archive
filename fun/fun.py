@@ -273,8 +273,7 @@ class Fun(getattr(commands, "Cog", object)):
         react_me_original = react_me  # we'll go back to this version of react_me if prefer_combine is false but we can't make the reaction happen unless we combine anyway.
 
         if Fun.has_dupe(react_me):  # there's a duplicate letter somewhere, so let's go ahead try to fix it.
-            if prefer_combine:  # we want a smaller reaction string, so we'll try to combine anything we can right away
-                react_me = Fun.replace_combos(react_me)
+            react_me = Fun.replace_combos(react_me)
             react_me = Fun.replace_letters(react_me)
             # print(react_me)
             if Fun.has_dupe(react_me):  # check if we were able to solve the dupe
