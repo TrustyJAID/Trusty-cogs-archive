@@ -300,4 +300,3 @@ class Fun(getattr(commands, "Cog", object)):
 
         for i in reactions:
             await msg_id.add_reaction(i)
-

@@ -59,5 +59,3 @@ class TrustyAvatar(getattr(commands, "Cog", object)):
 
     def __unload(self):
         self.loop.cancel()
-
-    __del__ = __unload
