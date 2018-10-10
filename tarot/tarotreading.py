@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from . import tarot_cards
 import aiohttp
 import json
@@ -9,7 +9,7 @@ from random import choice
 import time
 
 
-class TarotReading:
+class TarotReading(getattr(commands, "Cog", object)):
     """It's time to get your fortune!!!"""
 
     def __init__(self, bot):
@@ -23,8 +23,7 @@ class TarotReading:
 
     @commands.group(pass_context=True)
     async def tarot(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
     
     @tarot.command(name="life", pass_context=True)
     async def _life(self, ctx, user: discord.Member=None):

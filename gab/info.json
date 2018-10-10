@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Gab verification",
-    "DESCRIPTION" : "Checks if a user is on gab",
-    "DISABLED" : false,
-    "NAME" : "Gab",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Apply a special role for people who are on Gab."
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Checks if a user is on gab",
+    "install_msg" : "Apply a special role for people who are on Gab.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Gab",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "Gab verification",
+    "tags" : [
+        "general",
+        "utility"
+    ]
 }

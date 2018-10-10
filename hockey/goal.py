@@ -1,9 +1,3 @@
-from typing import Tuple
-from discord.ext import commands
-from .teams import teams
-
-import discord
-default_team = {"channel":[], "created_channel":[], "goal_id":{}, "game_state":"Null", "period":0, "game_start":""}
 class Goal:
     def __init__(self, event_id:str, team_name:str, scorer_id:int, description:str, period:int, period_ord:str,
                  time:int, home_score:int, away_score:int, strength:str, empty_net:bool=False):

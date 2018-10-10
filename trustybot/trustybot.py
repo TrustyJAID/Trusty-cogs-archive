@@ -3,7 +3,7 @@ import random
 import aiohttp
 import discord
 import asyncio
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks, bank
 from redbot.core.utils.chat_formatting import pagify, box
 from redbot.core.data_manager import bundled_data_path
@@ -26,10 +26,9 @@ numbs = {
 }
 
 
-class TrustyBot:
+class TrustyBot(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     @commands.command(hidden=True)
     @checks.is_owner()
@@ -46,28 +45,6 @@ class TrustyBot:
         em.set_image(url="https://i.imgur.com/6FPYjoU.gif")
         # em.set_thumbnail(url="https://i.imgur.com/EfOnDQy.gif")
         em.set_author(name=ctx.guild.name, icon_url="https://i.imgur.com/EfOnDQy.gif")
-        await ctx.message.delete()
-        await ctx.send(embed=em)
-
-    @commands.command(hidden=True)
-    @checks.is_owner()
-    async def oilersrules(self, ctx):
-        rules = """1. Don't be a *complete* jerk - We're here to have fun and discuss the <@&381573564408791040> and their Triumphs and Defeats!\n
-2. No sharing of personal or confidential information of others - This is a [discord Terms of Service](https://discordapp.com/terms) violation and can result in immediate ban.\n
-3. Anything deemed NSFW by a <@&381578067304251404> can and will be deleted as per discords [Community Guidelines](https://discordapp.com/guidelines).\n
-4. Do not harass or threaten other memebers, this extends to other discord servers - This is another [discord TOS](https://discordapp.com/terms) violation.\n
-5. <@&381578067304251404> action is at the discretion of a <@&381578067304251404> and changes may be made without warning to your privliges. Don't get any penalty's.\n
-***Any violation of the [discord TOS](https://discordapp.com/terms) or [Community Guidelines](https://discordapp.com/guidelines) will result in immediate banning and possible report to discord.***\n
-"""
-        roles = """Type `;hockey role <teamname, division, or conference>` in <#381582160710205441> to get the specified team role and colour and access to live goal update channels\n
-Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on team goals
-"""
-        em = discord.Embed(colour=int("FF4C00", 16))
-        em.add_field(name="__RULES__", value=rules)
-        em.add_field(name="__Teams/Roles__", value=roles)
-        # em.set_image(url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
-        em.set_thumbnail(url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
-        em.set_author(name=ctx.guild.name, icon_url="https://nhl.bamcontent.com/images/photos/281721030/256x256/cut.png")
         await ctx.message.delete()
         await ctx.send(embed=em)
 
@@ -113,79 +90,10 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
     async def msg(self, ctx, *, msg):
         print(msg)
 
-    async def on_message(self, message):
-        if len(message.content) < 2:
-            return
-
-        msg = message.content
-        channel = message.channel
-        guild = message.guild
-        if "fuck" in msg.lower():
-            if guild is not None:
-                if guild.id in [321105104931389440, 402161292644712468]:
-                    async with channel.typing():
-                        file = discord.File(str(bundled_data_path(self)) + "/christian.jpg")
-                        await channel.send(file=file)
-
-        try:
-            prefix = await self.get_prefix(message)
-        except ValueError:
-            return
-        alias = await self.first_word(msg[len(prefix):])
-        if alias == "beemovie":
-            return
-        if alias in messages:
-            await channel.trigger_typing()
-            await channel.send(messages[alias])
-        if alias in links:
-            await channel.trigger_typing()
-            await channel.send(links[alias])
-        return
-
-    async def first_word(self, msg):
-        return msg.split(" ")[0].lower()
-
-    async def get_prefix(self, message: discord.Message) -> str:
-        """
-        From Redbot Alias Cog
-        Tries to determine what prefix is used in a message object.
-            Looks to identify from longest prefix to smallest.
-            Will raise ValueError if no prefix is found.
-        :param message: Message object
-        :return:
-        """
-        content = message.content
-        prefix_list = await self.bot.command_prefix(self.bot, message)
-        prefixes = sorted(prefix_list,
-                          key=lambda pfx: len(pfx),
-                          reverse=True)
-        for p in prefixes:
-            if content.startswith(p):
-                return p
-        raise ValueError(_("No prefix found."))
-
     @commands.command(hidden=True)
     async def say(self, ctx, *, msg):
         print(ctx.message.content)
         await ctx.send(msg)
-
-    @commands.command()
-    async def oof(self, ctx):
-        emojis = ["🅾", "🇴", "🇫"]
-        channel = ctx.message.channel
-        guild = ctx.message.guild
-        if not channel.permissions_for(guild.me).manage_messages:
-            async for message in channel.history(limit=2):
-                msg = message
-            for emoji in emojis:
-                await message.add_reaction(emoji)
-        else:
-            await ctx.message.delete()
-            async for message in channel.history(limit=1):
-                msg = message
-            for emoji in emojis:
-                await message.add_reaction(emoji)
-
 
     @commands.command()
     async def pingtime(self, ctx):
@@ -194,141 +102,18 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
         t2 = time.perf_counter()
         await ctx.send("pong: {}ms".format(round((t2-t1)*1000)))
 
-    @commands.command(pass_context=True)
-    async def emoji(self, ctx, emoji):
-        # print(emoji)
-        if emoji is discord.Emoji:
-            await ctx.channel.trigger_typing()
-            emoji_name = emoji.name
-            ext = emoji.url.split(".")[-1]
-            async with self.session.get(emoji.url) as resp:
-                data = await resp.read()
-            file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
-            await ctx.send(file=file)
-            # await self.bot.say(emoji.url)
-        else:
-            emoji_id = emoji.split(":")[-1].replace(">", "")
-            if not emoji_id.isdigit():
-                return
-            await ctx.channel.trigger_typing()
-            # print(emoji_id)
-            if emoji.startswith("<a"):
-                async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.gif".format(emoji_id))
-            else:
-                async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.png".format(emoji_id))
-            await ctx.send(file=file)
-
-
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def testcu(self, ctx, *, category):
-        guild = ctx.message.guild
-        for cat in guild.categories:
-            if category.lower() == cat.name.lower():
-                category = cat
-                break
-        channel = await guild.create_text_channel("test", category=category)
-        print(channel.id)
-
-
-    @commands.command(pass_context=True)
-    async def avatar(self, ctx, member:discord.Member=None):
-        async with ctx.channel.typing():
-            if member is None:
-                member = ctx.message.author
-            if member.is_avatar_animated():
-                async with self.session.get(member.avatar_url_as(format="gif")) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.gif".format(member.name))
-            if not member.is_avatar_animated():
-                async with self.session.get(member.avatar_url_as(static_format="png")) as resp:
-                    data = await resp.read()
-                file = discord.File(io.BytesIO(data),filename="{}.png".format(member.name))
-            await ctx.send(file=file)
-
-
     @commands.command(pass_context=True, aliases=["guildhelp", "serverhelp", "helpserver"])
     async def helpguild(self, ctx):
         await ctx.send("https://discord.gg/wVVrqej")
 
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def createchannel(self, ctx, name:str, position:int):
-        chn = await self.bot.create_channel(ctx.message.guild, name)
-        await self.bot.move_channel(chn, position)
-        await ctx.send(chn.position)
-
-    
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def makeinvite(self, ctx, guild_id:int):
-        guild = self.bot.get_guild(id=guild_id)
-        invites = None
-        for channel in guild.text_channels:
-            if invites is not None:
-                break
-            try:
-                invite = await self.bot.create_invite(channel)
-                invites = invite.url
-            except:
-                pass
-        if invites is not None:
-            await ctx.send(invites)
-        else:
-            await ctx.send("Can't make any invites")
-
-    @commands.command(pass_context=True)
-    @checks.is_owner()
-    async def massinvite(self, ctx, guild_id=None):
-
-        invites = []
-        for guild in self.bot.guilds:
-            made_invite = False
-            members = [member.id for member in guild.members]
-            if "218773382617890828" not in members:
-                print(guild.name)
-                for channel in guild.channels:
-                    if made_invite:
-                        continue
-                    if channel.type == discord.ChannelType.text:
-                        try:
-                            invite = await self.bot.create_invite(channel, unique=False)
-                            invites.append(invite.url)
-                            made_invite = True
-                        except:
-                            made_invite = False
-                            pass
-
-        await ctx.send(invites)
-
     @commands.command()
+    @commands.cooldown(1, 3600, commands.BucketType.guild)
     async def beemovie(self, ctx):
         msg = "<a:bm1_1:394355466022551552><a:bm1_2:394355486625103872><a:bm1_3:394355526496026624><a:bm1_4:394355551859113985><a:bm1_5:394355549581606912><a:bm1_6:394355542849617943><a:bm1_7:394355537925373952><a:bm1_8:394355511912300554>\n<a:bm2_1:394355541616361475><a:bm2_2:394355559719239690><a:bm2_3:394355587409772545><a:bm2_4:394355593567272960><a:bm2_5:394355578337624064><a:bm2_6:394355586067726336><a:bm2_7:394355558104432661><a:bm2_8:394355539716472832>\n<a:bm3_1:394355552626409473><a:bm3_2:394355572381843459><a:bm3_3:394355594955456532><a:bm3_4:394355578253737984><a:bm3_5:394355579096793098><a:bm3_6:394355586411528192><a:bm3_7:394355565788397568><a:bm3_8:394355551556861993>\n<a:bm4_1:394355538181488640><a:bm4_2:394355548944072705><a:bm4_3:394355568669884426><a:bm4_4:394355564504809485><a:bm4_5:394355567843606528><a:bm4_6:394355577758679040><a:bm4_7:394355552655900672><a:bm4_8:394355527867564032>"
         em = discord.Embed(title="The Entire Bee Movie", description=msg)
         await ctx.send(embed=em)
-
     
     @commands.command()
-    async def listtext(self):
-        """List phrases added to bot"""
-        msg = ""
-        for text in messages.keys():
-            msg += text + ", "
-        await ctx.send("```" + msg[:len(msg)-2] + "```")
-    
-    @commands.command()
-    async def listlinks(self):
-        """List links added to bot"""
-        msg = ""
-        for link in links.keys():
-            msg += link + ", "
-        await ctx.send("```" + msg[:len(msg)-2] + "```")
-    
-    @commands.command(pass_context=True)
     async def neat(self, ctx, number:int=None):
         """Neat"""
         files = str(cog_data_path(self)) + "/bundled_data/neat{}.gif"
@@ -339,7 +124,7 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
             image = discord.File(files.format(number))
             await ctx.send(file=image)
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def reviewbrah(self, ctx):
         """Reviewbrah"""
         files = ["/bundled_data/revi.png", "/bundled_data/ew.png", "/bundled_data/brah.png"]
@@ -348,14 +133,12 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
             data = discord.File(str(cog_data_path(self))+file)
             await ctx.send(file=data)
 
-
-    @commands.command(pass_context=True,)
+    @commands.command()
     async def donate(self, ctx):
         """Donate to the development of TrustyBot!"""
         await ctx.send("Help support me  and development of TrustyBot by buying my album or donating bitcoin on my website :smile: https://trustyjaid.com/")
-
     
-    @commands.command(pass_context=True, aliases=["dnd"])
+    @commands.command(aliases=["dnd"])
     async def donotdo(self, ctx, number=None):
         if number is None:
             await ctx.send(choice(donotdo))
@@ -373,17 +156,7 @@ Type `;hockey goals <teamname>` in <#381582160710205441> to get notifications on
         else:
             await ctx.send(msg.format(user))
 
-    @commands.command(hidden=False)
-    async def dreams(self):
-        """don't let your dreams be dreams"""
-        await ctx.send(messages["dreams"].format("dreams"))
-
-    @commands.command(hidden=False)
-    async def memes(self):
-        """don't let your memes be dreams"""
-        await ctx.send(messages["dreams"].format("memes"))
-
-    @commands.command(pass_context=True)
+    @commands.command()
     async def flipm(self, ctx, *, message):
         """Flips a message"""
         msg = ""

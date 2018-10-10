@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core.data_manager import bundled_data_path
 from redbot.core import checks
 from random import choice, randint
@@ -8,7 +8,7 @@ import aiohttp
 import glob
 
 
-class TrustyAvatar:
+class TrustyAvatar(getattr(commands, "Cog", object)):
     """Changes the bot's image every so often"""
 
     def __init__(self, bot):
@@ -24,9 +24,6 @@ class TrustyAvatar:
                     "angry": {"status":discord.Status.dnd, "game":["Hitchhickers May Be Escaping Inmates"], "type":self.activities},
                     "watching": {"status":discord.Status.dnd, "game":[" "], "type":[discord.ActivityType.watching]},
                    }
-    
-    def __unload(self):
-        self.loop.cancel()
 
     @commands.command()
     @checks.is_owner()
@@ -59,3 +56,6 @@ class TrustyAvatar:
                 print(e)
             
             await asyncio.sleep(randint(1000, 1500))
+
+    def __unload(self):
+        self.loop.cancel()

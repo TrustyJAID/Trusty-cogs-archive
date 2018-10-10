@@ -1,9 +1,7 @@
-from typing import Tuple
-from discord.ext import commands
 from .teams import teams
+from datetime import datetime
 
-import discord
-default_team = {"channel":[], "created_channel":[], "goal_id":{}, "game_state":"Null", "period":0, "game_start":""}
+
 class Game:
     def __init__(self, game_state:str, home_team: str, away_team:str, period:int,
                  home_shots:int, away_shots:int, home_score:int, away_score:int, game_start:str, goals:list,
@@ -25,11 +23,11 @@ class Game:
         self.period_ord = period_ord
         self.period_time_left = period_time_left
         self.plays = plays
-        self.game_start = game_start
-        self.home_logo = teams[home_team]["logo"]
-        self.away_logo = teams[away_team]["logo"]
-        self.home_emoji = "<:{}>".format(teams[home_team]["emoji"])
-        self.away_emoji = "<:{}>".format(teams[away_team]["emoji"])
+        self.game_start = datetime.strptime(game_start, "%Y-%m-%dT%H:%M:%SZ")
+        self.home_logo = teams[home_team]["logo"] if home_team in teams else "https://www-league.nhlstatic.com/images/logos/league-light/133.svg"
+        self.away_logo = teams[away_team]["logo"] if away_team in teams else "https://www-league.nhlstatic.com/images/logos/league-light/133.svg"
+        self.home_emoji = "<:{}>".format(teams[home_team]["emoji"]) if home_team in teams else "<:nhl:496510372828807178>"
+        self.away_emoji = "<:{}>".format(teams[away_team]["emoji"]) if away_team in teams else "<:nhl:496510372828807178>"
 
     def to_json(self) -> dict:
         return {
@@ -49,7 +47,7 @@ class Game:
             "period_ord" : self.period_ord,
             "period_time_left" : self.period_time_left,
             "plays" : self.plays,
-            "game_start" : self.game_start,
+            "game_start" : self.game_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "home_logo" : self.home_logo,
             "away_logo" : self.away_logo,
             "home_emoji" : self.home_emoji,

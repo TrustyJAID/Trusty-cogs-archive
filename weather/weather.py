@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from random import randint
 from random import choice
@@ -9,7 +9,7 @@ import datetime
 import aiohttp
 import asyncio
 
-class Weather:
+class Weather(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -31,9 +31,7 @@ class Weather:
     @commands.group(pass_context=True, name="weatherset")
     async def weather_set(self, ctx):
         """Set user or guild default units"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
-
+        pass
     @weather_set.command(pass_context=True, name="guild")
     async def set_guild(self, ctx, units):
         """Sets the guild default weather units use imperial, metric, or kelvin"""
@@ -97,7 +95,10 @@ class Weather:
                         .format(currenttemp, self.unit[units]["temp"]))
         embed.add_field(name="🔆 **Min - Max**", value="{0:.2f}{1} to {2:.2f}{3}"
                         .format(mintemp, self.unit[units]["temp"], maxtemp, self.unit[units]["temp"]))
-        embed.add_field(name="🌄 **Sunrise (utc)**", value=sunrise)
-        embed.add_field(name="🌇 **Sunset (utc)**", value=sunset)
-        embed.set_footer(text="Powered by http://openweathermap.org")
+        embed.add_field(name="🌄 **Sunrise (UTC)**", value=sunrise)
+        embed.add_field(name="🌇 **Sunset (UTC)**", value=sunset)
+        embed.set_footer(text="Powered by https://openweathermap.org")
         await ctx.send(embed=embed)
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

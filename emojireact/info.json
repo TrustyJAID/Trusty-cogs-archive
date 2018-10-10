@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Emoji Reaction",
-    "DESCRIPTION" : "React to messages containing any emojis!",
-    "DISABLED" : false,
-    "NAME" : "EmojiReact",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "React to message emojis automatically!"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "React to messages containing any emojis!",
+    "install_msg" : "React to message emojis automatically!",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "EmojiReact",
+    "permissions" : ["add_reactions"],
+    "requirements" : [],
+    "short" : "Emoji Reaction",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }

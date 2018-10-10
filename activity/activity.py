@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 import asyncio
@@ -10,7 +10,7 @@ import json
 import time
 from datetime import timedelta
 
-class ActivityChecker():
+class ActivityChecker(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -26,9 +26,6 @@ class ActivityChecker():
         self.units = {"minute" : 60, "hour" : 3600, "day" : 86400, "week": 604800, "month": 2592000}
         self.activitycheck = bot.loop.create_task(self.activity_checker())
 
-    def __unload(self):
-        self.activitycheck.cancel()
-
     async def get_role(self, guild, role_id):
         role_return = None
         for role in guild.roles:
@@ -41,7 +38,6 @@ class ActivityChecker():
     async def activity(self, ctx):
         """Setup an activity checker channel"""
         if ctx.invoked_subcommand is None:
-            await ctx.send_help()
             guild = ctx.message.guild
             time = await self.config.guild(guild).time()
             channel = guild.get_channel(await self.config.guild(guild).channel())
@@ -171,7 +167,7 @@ class ActivityChecker():
             await channel.send("Now checking {}!".format(role.name))
         if len(guild_roles) < 1:
             guild_roles.append(everyone_role)
-            await self.bot.send_message(channel, "Now checking everyone!")
+            await channel.send("Now checking everyone!")
         if len(guild_roles) > 1 and everyone_role in guild_roles:
             guild_roles.remove(everyone_role)
         await self.config.guild(guild).check_roles.set(guild_roles)
@@ -438,3 +434,6 @@ class ActivityChecker():
                 await self.config.guild(guild).members.set(member_list)
             else:
                 return
+
+    def __unload(self):
+        self.activitycheck.cancel()

@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Check for activity on your server and remove old users!",
-    "DESCRIPTION" : "Tracks activity on a server and kicks members not active in a while! Also sends an invite URL",
-    "DISABLED" : false,
-    "NAME" : "activity",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Type [p]activity to see the options and set it up!"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Tracks activity on a server and kicks members not active in a while! Also sends an invite URL",
+    "install_msg" : "Type [p]activity to see the options and set it up!",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "activity",
+    "permissions" : ["kick_members"],
+    "requirements" : [],
+    "short" : "Check for activity on your server and remove old users!",
+    "tags" : [
+        "general",
+        "utility"
+    ]
 }

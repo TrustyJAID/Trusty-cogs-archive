@@ -1,9 +1,19 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "Get various stats about servers the bot is on.",
-    "DESCRIPTION" : "Get information about servers the bot is on.",
-    "DISABLED" : false,
-    "NAME" : "ServerStats",
-    "TAGS" : ["utility"],
-    "INSTALL_MSG" : "Use `[p]setguildjoin` to set a channel to see all new servers the bot is added to and some information about them."
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Get information about servers the bot is on.",
+    "install_msg" : "Use `[p]setguildjoin` to set a channel to see all new servers the bot is added to and some information about them.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "ServerStats",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "Get various stats about servers the bot is on.",
+    "tags" : [
+        "utility"
+    ]
 }
