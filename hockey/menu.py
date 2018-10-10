@@ -29,9 +29,8 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
             em = await roster_embed(post_list, page)
         if display_type == "game":
             em = await game_embed(post_list, page)
-        if display_type == "seasonal":
+        if display_type == "season":
             leaderboard = {"type": "Seasonal", "lists": post_list}
-            print(leaderboard)
             em = await make_leaderboard_embed(ctx.guild, leaderboard, page)
         if display_type == "weekly":
             leaderboard = {"type": "Weekly", "lists": post_list}
