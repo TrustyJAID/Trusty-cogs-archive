@@ -1,9 +1,20 @@
 {
-    "AUTHOR" : "TrustyJAID",
-    "SHORT" : "REKT",
-    "DESCRIPTION" : "Are you REKT?",
-    "DISABLED" : false,
-    "NAME" : "TrustyBot",
-    "TAGS" : ["general"],
-    "INSTALL_MSG" : "Are you REKT?"
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Are you REKT?",
+    "install_msg" : "Are you REKT?",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "TrustyBot",
+    "permissions" : ["embed_links"],
+    "requirements" : [],
+    "short" : "REKT",
+    "tags" : [
+        "general",
+        "fun"
+    ]
 }

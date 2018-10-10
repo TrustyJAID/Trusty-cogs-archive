@@ -1,11 +1,12 @@
 import discord
 from redbot.core import Config
 from redbot.core import checks
-from discord.ext import commands
+from redbot.core import commands
 from .message_entry import StarboardMessage
 import re
+from copy import copy
 
-class Starboard:
+class Starboard(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -13,19 +14,18 @@ class Starboard:
                          "role":[], "messages":[], "ignore":[], "threshold": 0}
         self.config = Config.get_conf(self, 356488795)
         self.config.register_guild(**default_guild)
+        self.message_list = []
 
     @commands.group(pass_context=True)
     @checks.admin_or_permissions(manage_channels=True)
     async def starboard(self, ctx):
         """Commands for managing the starboard"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @starboard.group(pass_context=True, name="role", aliases=["roles"])
     async def _roles(self, ctx):
         """Add or remove roles allowed to add to the starboard"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     async def get_everyone_role(self, guild):
         for role in guild.roles:
@@ -40,13 +40,11 @@ class Starboard:
         return guild_emoji
 
     @commands.command()
-    async def star(self, ctx, msg_id, channel_id=None):
+    async def star(self, ctx, msg_id, channel:discord.TextChannel=None):
         """Manually star a message
            Do `[p]star <msg_id> <channel_id>` Deaults to the current channel if not provided"""
-        if channel_id is None:
+        if channel is None:
             channel = ctx.message.channel
-        else:
-            channel = self.bot.get_channel(channel_id)
         guild = channel.guild
         if guild is None:
             await ctx.send("This command can work in guilds only.")
@@ -75,7 +73,10 @@ class Starboard:
         count = 1
         channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
         em = await self.build_embed(guild, msg)
-        post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
+        try:
+            post_msg = await channel2.send("{} **#{}**".format(emoji, count), embed=em)
+        except discord.errors.Forbidden:
+            return await ctx.send("I don't have permissions to post in the starboard channel.")
         past_message_list = await self.config.guild(guild).messages()
         past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
         await self.config.guild(guild).messages.set(past_message_list)
@@ -94,6 +95,14 @@ class Starboard:
                 return
             else:
                 emoji = "<:" + emoji.name + ":" + str(emoji.id) + ">"
+
+        if not channel.permissions_for(guild.me).send_messages:
+            await ctx.send("I don't have permission to post in {}".format(channel.mention))
+            return
+
+        if not channel.permissions_for(guild.me).embed_links:
+            await ctx.send("I don't have permission to embed links in {}".format(channel.mention))
+            return
         
         if role is None:
             role = await self.get_everyone_role(guild)
@@ -162,6 +171,14 @@ class Starboard:
             return
         if channel is None:
             channel = ctx.message.channel
+
+        if not channel.permissions_for(guild.me).send_messages:
+            await ctx.send("I don't have permission to post in {}".format(channel.mention))
+            return
+
+        if not channel.permissions_for(guild.me).embed_links:
+            await ctx.send("I don't have permission to embed links in {}".format(channel.mention))
+            return
         await self.config.guild(guild).channel.set(channel.id)
         await ctx.send("Starboard channel set to {}.".format(channel.mention))
 
@@ -236,6 +253,8 @@ class Starboard:
         for past_message in await self.config.guild(guild).messages():
             if message.id == past_message["original_message"]:
                 is_posted = True
+        if (guild.id, message.id) in self.message_list:
+            is_posted = True
         return is_posted
 
     async def get_posted_message(self, guild, message):
@@ -251,56 +270,30 @@ class Starboard:
 
     async def build_embed(self, guild, msg):
         channel = msg.channel
-        author = msg.author        
+        author = msg.author
+        url = "https://discordapp.com/channels/{}/{}/{}".format(guild.id, channel.id, msg.id)
         if msg.embeds != []:
-            embed = msg.embeds[0].to_dict()
-            em = discord.Embed(timestamp=msg.created_at)
-            if "title" in embed:
-                em.title = embed["title"]
-            if "thumbnail" in embed:
-                em.set_thumbnail(url=embed["thumbnail"]["url"])
-            if "description" in embed:
-                em.description = "{} {}".format(msg.clean_content, embed["description"])
-            if "description" not in embed:
-                em.description = msg.clean_content
-            if "url" in embed:
-                em.url = embed["url"]
-            if "footer" in embed:
-                em.set_footer(text=embed["footer"]["text"])
-            if "author" in embed:
-                postauthor = embed["author"]
-                if "icon_url" in postauthor:
-                    em.set_author(name=postauthor["name"], icon_url=postauthor["icon_url"])
+            em = msg.embeds[0]
+            if msg.content != "":
+                if em.description != "Embed.Empty":
+                    em.description = "{}\n\n{}".format(msg.content, em.description)
                 else:
-                    em.set_author(name=postauthor["name"])
-            if "author" not in embed:
-                em.set_author(name=author.name, icon_url=author.avatar_url)
-            if "color" in embed:
-                em.color = embed["color"]
-            if "color" not in embed:
-                em.color = author.top_role.color
-            if "image" in embed:
-                em.set_image(url=embed["image"]["url"])
-            if embed["type"] == "image":
-                em.type = "image"
-                if ".png" in embed["url"] or ".jpg" in embed["url"]:
-                    em.set_thumbnail(url="")
-                    em.set_image(url=embed["url"])
-                else:
-                    em.set_thumbnail(url=embed["url"])
-                    em.set_image(url=embed["url"]+"."+embed["thumbnail"]["url"].rsplit(".")[-1])
-            if embed["type"] == "gifv":
-                em.type = "gifv"
-                em.set_thumbnail(url=embed["url"])
-                em.set_image(url=embed["url"]+".gif")
-            
+                    em.description = msg.content
+                if not author.bot:
+                    em.set_author(name=author.display_name, url=url, icon_url=author.avatar_url)
         else:
             em = discord.Embed(timestamp=msg.created_at)
-            em.color = author.top_role.color
+            try:
+                em.color = author.top_role.color
+            except Exception as e:
+                print(e)
+                pass
             em.description = msg.content
-            em.set_author(name=author.display_name, icon_url=author.avatar_url)
+            em.set_author(name=author.display_name, url=url, icon_url=author.avatar_url)
             if msg.attachments != []:
                 em.set_image(url=msg.attachments[0].url)
+        em.timestamp = msg.created_at
+        # em.description = em.description +"\n\n[Click Here]({})".format(url)
         em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
         return em
 
@@ -341,14 +334,18 @@ class Starboard:
                     await msg_edit.edit(content="{} **#{}**".format(payload.emoji, count))
                     return
 
+            self.message_list.append((guild.id, payload.message_id))
             if count < threshold:
-                    past_message_list = await self.config.guild(guild).messages()
-                    past_message_list.append(StarboardMessage(msg.id, None, count).to_json())
-                    await self.config.guild(guild).messages.set(past_message_list)
-                    return
+                past_message_list = await self.config.guild(guild).messages()
+                past_message_list.append(StarboardMessage(msg.id, None, count).to_json())
+                await self.config.guild(guild).messages.set(past_message_list)
+                self.message_list.remove((guild.id, payload.message_id))
+                return
+            
             channel2 = self.bot.get_channel(id=await self.config.guild(guild).channel())
             em = await self.build_embed(guild, msg)
             post_msg = await channel2.send("{} **#{}**".format(payload.emoji, count), embed=em)
             past_message_list = await self.config.guild(guild).messages()
             past_message_list.append(StarboardMessage(msg.id, post_msg.id, count).to_json())
             await self.config.guild(guild).messages.set(past_message_list)
+            self.message_list.remove((guild.id, payload.message_id))

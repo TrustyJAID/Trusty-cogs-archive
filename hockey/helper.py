@@ -1,21 +1,28 @@
-from discord.ext import commands
+from redbot.core import commands
 from .teams import teams
 import asyncio
 from datetime import datetime, timezone
+import pytz
 import aiohttp
 from .standings import Standings
 
+def get_season():
+    now = datetime.now()
+    if (now.month, now.day) < (7, 1):
+        return (now.year - 1, now.year)
+    if (now.month, now.day) >= (7, 1):
+        return (now.year, now.year + 1)
         
 async def get_team_role(guild, home_team, away_team):
     home_role = None
     away_role = None
     
     for role in guild.roles:
-        if "Canadiens" in home_team and "Canadiens" in role.name:
+        if "Montreal Canadiens" in home_team and "Montreal Canadiens" in role.name:
             home_role = role.mention
         elif role.name == home_team:
             home_role = role.mention
-        if "Canadiens" in away_team and "Canadiens" in role.name:
+        if "Montreal Canadiens" in away_team and "Montreal Canadiens" in role.name:
             away_role = role.mention
         elif role.name == away_team:
             away_role = role.mention
@@ -113,8 +120,9 @@ async def check_valid_team(team_name, standings=False):
             is_team.append(team)
     return is_team
 
-def utc_to_local(utc_dt):
-    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+def utc_to_local(utc_dt, new_timezone='US/Eastern'):
+    eastern = pytz.timezone(new_timezone)
+    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=eastern)
 
 async def get_chn_name(game):
     """
@@ -123,7 +131,7 @@ async def get_chn_name(game):
     def utc_to_local(utc_dt):
         return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
-    timestamp = utc_to_local(datetime.strptime(game.game_start, "%Y-%m-%dT%H:%M:%SZ"))
+    timestamp = utc_to_local(game.game_start)
     chn_name = "{}-vs-{}-{}-{}-{}".format(game.home_abr, game.away_abr,\
                                           timestamp.year, timestamp.month, timestamp.day)
     return chn_name.lower()

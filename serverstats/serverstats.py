@@ -1,9 +1,11 @@
 from random import choice, randint
 import discord
 import asyncio
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks, bank, Config
 import datetime
+import aiohttp
+from io import BytesIO
 from redbot.core.i18n import Translator
 from redbot.core.utils.chat_formatting import pagify, box
 
@@ -16,12 +18,14 @@ numbs = {
 }
 
 
-class ServerStats:
+class ServerStats(getattr(commands, "Cog", object)):
+
     def __init__(self, bot):
         self.bot = bot
         default_global = {"join_channel":None}
         self.config = Config.get_conf(self, 54853421465543)
         self.config.register_global(**default_global)
+        self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     async def on_guild_join(self, guild):
         channel_id = await self.config.join_channel()
@@ -35,9 +39,11 @@ class ServerStats:
         text_channels = len([x for x in guild.text_channels])
         voice_channels = len([x for x in guild.voice_channels])
         passed = (datetime.datetime.utcnow() - guild.created_at).days
-        created_at = ("{} is on {} servers now! \nServer created {}. That's over {} days ago!"
-                      "".format(channel.guild.me.mention, len(self.bot.guilds), guild.created_at.strftime("%d %b %Y %H:%M"),
-                                passed))
+        created_at = _("{} is on {} servers now! \nServer created {}. That's over {} days ago!".format(
+                        channel.guild.me.mention,
+                        len(self.bot.guilds),
+                        guild.created_at.strftime("%d %b %Y %H:%M"),
+                        passed))
 
         colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
         colour = int(colour, 16)
@@ -62,6 +68,53 @@ class ServerStats:
         else:
             em.set_author(name=guild.name) 
         await channel.send(embed=em)
+
+    @commands.command(pass_context=True)
+    async def emoji(self, ctx, emoji):
+        # print(emoji)
+        if emoji is discord.Emoji:
+            await ctx.channel.trigger_typing()
+            emoji_name = emoji.name
+            ext = emoji.url.split(".")[-1]
+            async with self.session.get(emoji.url) as resp:
+                data = await resp.read()
+            file = discord.File(io.BytesIO(data),filename="{}.{}".format(emoji.name, ext))
+            await ctx.send(file=file)
+            # await self.bot.say(emoji.url)
+        else:
+            emoji_id = emoji.split(":")[-1].replace(">", "")
+            if not emoji_id.isdigit():
+                return
+            await ctx.channel.trigger_typing()
+            # print(emoji_id)
+            if emoji.startswith("<a"):
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.gif?v=1".format(emoji_id)) as resp:
+                    data = await resp.read()
+                file = discord.File(BytesIO(data),filename="{}.gif".format(emoji_id))
+            else:
+                async with self.session.get("https://cdn.discordapp.com/emojis/{}.png?v=1".format(emoji_id)) as resp:
+                    data = await resp.read()
+                file = discord.File(BytesIO(data),filename="{}.png".format(emoji_id))
+            await ctx.send(file=file)
+
+    @commands.command(pass_context=True)
+    async def avatar(self, ctx, member:discord.Member=None):
+        if member is None:
+            member = ctx.message.author
+        guild = ctx.message.guild
+        if guild is not None:
+            colour = member.top_role.colour
+        else:
+            colour = discord.Embed.Empty
+        await ctx.channel.trigger_typing()
+        em = discord.Embed(title="**Avatar**", colour=colour)
+        if member.is_avatar_animated():
+            url = member.avatar_url_as(format="gif")
+        if not member.is_avatar_animated():
+            url = member.avatar_url_as(static_format="png")
+        em.set_image(url= url)
+        em.set_author(name="{}#{}".format(member.name, member.discriminator), icon_url=url, url=url)
+        await ctx.send(embed=em)
 
     @commands.command()
     @checks.is_owner()
@@ -131,7 +184,7 @@ class ServerStats:
         for page in pagify(msg, ['\n']):
             await ctx.send(page)
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def topmembers(self, ctx, number:int=10, guild_id:int=None):
         """Lists top 10 members on the server by join date"""
@@ -147,7 +200,7 @@ class ServerStats:
         for page in pagify(new_msg, ['\n']):
             await ctx.send(page)
     
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def listchannels(self, ctx, guild_id:discord.guild=None):
         """Lists channels and their position and ID for a server"""
@@ -176,7 +229,7 @@ class ServerStats:
         text_channels = len([x for x in guild.text_channels])
         voice_channels = len([x for x in guild.voice_channels])
         passed = (ctx.message.created_at - guild.created_at).days
-        created_at = ("Since {}. That's over {} days ago!"
+        created_at = _("Since {}. That's over {} days ago!"
                       "".format(guild.created_at.strftime("%d %b %Y %H:%M"),
                                 passed))
 
@@ -250,7 +303,7 @@ class ServerStats:
             else:
                 return await message.delete()
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def getguild(self, ctx, guild_name=None):
         """Menu to view info on all servers the bot is on"""
@@ -264,7 +317,7 @@ class ServerStats:
         await self.guild_menu(ctx, guilds, None, page)
 
     
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def nummembers(self, ctx, *, guild_name=None):
         """Checks the number of members on the server"""
@@ -276,7 +329,7 @@ class ServerStats:
             guild = ctx.message.guild
             await ctx.send(len(guild.members))
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @checks.is_owner()
     async def getroles(self, ctx):
         guild = ctx.message.guild
@@ -287,7 +340,7 @@ class ServerStats:
         for page in pagify(msg, ["\n"]):
             await ctx.send(page)
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def rolestats(self, ctx):
         guild = ctx.message.guild
         em = discord.Embed()
@@ -306,6 +359,24 @@ class ServerStats:
                 users = user
         return highest, users
 
+    @commands.command(name="getreactions", aliases=["getreaction"])
+    @checks.mod_or_permissions(manage_messages=True)
+    async def get_reactions(self, ctx, message_id:int, channel:discord.TextChannel=None):
+        """
+            Gets a list of all reactions from specified message and displays the user ID,
+            Username, and Discriminator and the emoji name.
+        """
+        if channel is None:
+            channel = ctx.message.channel
+        msg = await channel.get_message(message_id)
+        new_msg = ""
+        for reaction in msg.reactions:
+            async for user in reaction.users():
+                new_msg += "{} {}#{} {}\n".format(user.id, user.name, user.discriminator, reaction.emoji.name)
+        for page in pagify(new_msg):
+            await ctx.send("```py\n{}\n```".format(page))
+
+
     @commands.command(aliases=["serverstats"])
     @checks.mod_or_permissions(manage_messages=True)
     async def server_stats(self, ctx, *, guild_id:int=None):
@@ -320,7 +391,7 @@ class ServerStats:
         total_msgs = 0
         msg = ""
         total_contribution = {}
-        warning_msg = await ctx.send("This might take a while!")
+        warning_msg = await ctx.send(_("This might take a while!"))
         async with ctx.channel.typing():
             for chn in guild.channels:
                 channel_msgs = 0
@@ -361,12 +432,12 @@ class ServerStats:
         emojis = post_list[page]
         guild = ctx.message.guild
         em = discord.Embed(timestamp=ctx.message.created_at)
-        em.set_author(name=guild.name, icon_url=guild.icon_url)
+        em.set_author(name=guild.name + " Emojis", icon_url=guild.icon_url)
         regular = []
         msg = ""
         for emoji in emojis:
             msg += emoji
-        em.add_field(name="Emojis", value=msg)
+        em.description = msg
         em.set_footer(text="Page {} of {}".format(page+1, len(post_list)))
         
         if not message:
@@ -415,7 +486,7 @@ class ServerStats:
             else:
                 return await message.delete()
 
-    @commands.command(pass_context=True, aliases=["serveremojis"])
+    @commands.command(aliases=["serveremojis"])
     async def guildemojis(self, ctx, *, guildname=None):
         msg = ""
         guild = None
@@ -445,3 +516,6 @@ class ServerStats:
         # if animated != "":
             # embed.add_field(name="Animated Emojis", value=animated[:1023])
         await self.emoji_menu(ctx, x)
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

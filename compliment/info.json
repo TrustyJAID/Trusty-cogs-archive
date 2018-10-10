@@ -1,9 +1,22 @@
 {
-    "AUTHOR" : "Airen and JennJenn/ TrustyJAID",
-    "SHORT" : "Compliment people in a creative way",
-    "DESCRIPTION" : "Compliment people in a creative way",
-    "DISABLED" : false,
-    "NAME" : "Compliment",
-    "TAGS" : ["compliments", "fun"],
-    "INSTALL_MSG" : "Usage: `[p]compliment <user>`"
+    "author" : [
+        "Airen",
+        "JennJenn",
+        "TrustyJAID"
+    ],
+    "description" : "Compliment people in a creative way",
+    "install_msg" : "Usage: `[p]compliment <user>`",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Compliment",
+    "permissions" : [],
+    "requirements" : [],
+    "short" : "Compliment people in a creative way",
+    "tags" : [
+        "compliments",
+        "fun"
+    ]
 }

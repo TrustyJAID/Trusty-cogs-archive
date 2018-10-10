@@ -1,7 +1,7 @@
 import discord
 import asyncio
 import aiohttp
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core.data_manager import cog_data_path
 import datetime
@@ -11,14 +11,11 @@ import json
 import logging
 
 
-class Backup:
+class Backup(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-
-    def __unload(self):
-        self.session.close()
 
     def save_json(self, filename, data):
         """Atomically saves json file"""
@@ -115,3 +112,6 @@ class Backup:
                 await channel.send("0 messages saved from {}".format(chn.name))
                 pass
         await channel.send("{} messages saved from {}".format(total_msgs, guild.name))
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

@@ -4,7 +4,7 @@ import asyncio
 import json
 import os
 from datetime import datetime
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import Config
 from redbot.core import checks
 from redbot.core.data_manager import cog_data_path
@@ -21,7 +21,7 @@ numbs = {
     "back": "⬅",
     "exit": "❌"
 }
-class QPosts:
+class QPosts(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -39,9 +39,6 @@ class QPosts:
         self.trips = ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE", "!CbboFOtcZs", "!A6yxsPKia.", "!2jsTvXXmX", "!!mG7VJxZNCI"]
         self.loop = bot.loop.create_task(self.get_q_posts())
 
-    def __unload(self):
-        self.session.close()
-        self.loop.cancel()
 
     async def authenticate(self):
         """Authenticate with Twitter's API"""
@@ -161,7 +158,10 @@ class QPosts:
         reference_post = []
         for a in soup.find_all("a", href=True):
             # print(a)
-            url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
+            try:
+                url, post_id = a["href"].split("#")[0].replace("html", "json"), int(a["href"].split("#")[1])
+            except:
+                continue
             async with self.session.get(self.url + url) as resp:
                 data = await resp.json()
             for post in data["posts"]:
@@ -212,10 +212,13 @@ class QPosts:
         em.set_author(name=name + qpost["trip"], url=url)
         em.timestamp = datetime.utcfromtimestamp(qpost["time"])
         if text != "":
-            if "_" in text or "~" in text or "*" in text:
+            if text.count("_") > 2 or text.count("~") > 2 or text.count("*") > 2:
                 em.description = "```\n{}```".format(text[:1990])
             else:
                 em.description = text[:1900]
+        else:
+            em.description = qpost["com"]
+
         if ref_text != "":
             if ref_text.count("_") > 2 or ref_text.count("~") > 2 or ref_text.count("*") > 2:
                 em.add_field(name=str(post["no"]), value="```{}```".format(ref_text[:1000]))
@@ -256,10 +259,13 @@ class QPosts:
                 await channel.send(text[:1900])
             try:
                 role = "".join(role.mention for role in guild.roles if role.name == "QPOSTS")
-                await channel.send("{} <{}>".format(role, url), embed=em)
+                if role != "":
+                    await channel.send("{} <{}>".format(role, url), embed=em)
+                else:
+                    await channel.send("<{}>".format(url), embed=em)
             except Exception as e:
                 print(e)
-                await channel.send("<{}>".format(url), embed=em)
+                
 
 
     async def q_menu(self, ctx, post_list: list, board,
@@ -426,3 +432,8 @@ class QPosts:
         await self.config.twitter.set(api)
         await ctx.send('Set the access credentials!')
 
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
+        self.loop.cancel()
+
+    __del__ = __unload

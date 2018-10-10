@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 import aiohttp
 import os
 from PIL import Image
@@ -18,7 +18,7 @@ import sys
 import functools
 import asyncio
 
-class Badges:
+class Badges(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
@@ -28,9 +28,6 @@ class Badges:
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-
-    def __unload(self):
-        self.session.close()
 
     def remove_white_barcode(self, img):
         """https://stackoverflow.com/questions/765736/using-pil-to-make-all-white-pixels-transparent"""
@@ -204,7 +201,7 @@ class Badges:
                 to_return = await Badge.from_json(badge)
         return to_return
 
-    @commands.group(aliases=["badge"])
+    @commands.group(aliases=["badge"], autohelp=False)
     async def badges(self, ctx, *, badge):
         """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
         guild = ctx.message.guild
@@ -238,4 +235,5 @@ class Badges:
             em.add_field(name="Global Badges", value=", ".join(badge["badge_name"] for badge in guild_badges))
         await ctx.send(embed=em)
     
-    
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

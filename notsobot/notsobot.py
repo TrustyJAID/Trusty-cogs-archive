@@ -1,3 +1,5 @@
+# https://github.com/NotSoSuper/NotSoBot
+
 import asyncio, aiohttp, discord
 import aalib
 import os, sys, linecache, traceback, glob
@@ -14,12 +16,15 @@ from urllib.parse import parse_qs
 from lxml import etree
 from imgurpython import ImgurClient
 from io import BytesIO, StringIO
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from pyfiglet import figlet_format
 from string import ascii_lowercase as alphabet
 from urllib.parse import quote
 from concurrent.futures._base import CancelledError
+import random, uuid
+
+from redbot.core.data_manager import bundled_data_path
 
 code = "```py\n{0}\n```"
 
@@ -51,20 +56,37 @@ def find_coeffs(pa, pb):
     res = np.dot(np.linalg.inv(A.T*A)*A.T, B)
     return np.array(res).reshape(8)
 
-class NotSoBot():
+class DataProtocol(asyncio.SubprocessProtocol):
+    def __init__(self, exit_future):
+        self.exit_future = exit_future
+        self.output = bytearray()
+
+    def pipe_data_received(self, fd, data):
+        self.output.extend(data)
+
+    def process_exited(self):
+        try:
+            self.exit_future.set_result(True)
+        except:
+            pass
+
+    def pipe_connection_lost(self, fd, exc):
+        try:
+            self.exit_future.set_result(True)
+        except:
+            pass
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def connection_lost(self, exc):
+        try:
+            self.exit_future.set_result(True)
+        except:
+            pass
+
+class NotSoBot(getattr(commands, "Cog", object)):
     def __init__(self, bot):
-        self.files_path = bot.path.files
-        self.download = bot.download
-        self.bytes_download = bot.bytes_download
-        self.isimage = bot.isimage
-        self.isgif = bot.isgif
-        self.get_json = bot.get_json
-        self.truncate = bot.truncate
-        self.get_images = bot.get_images
-        self.escape = bot.escape
-        self.cursor = bot.mysql.cursor
-        self.get_text = bot.get_text
-        self.is_nsfw = bot.funcs.is_nsfw
+        self.bot = bot
         try:
             self.imgur_client = ImgurClient("", "")
         except:
@@ -81,14 +103,344 @@ class NotSoBot():
         self.retro_regex = re.compile(r"((https)(\:\/\/|)?u3\.photofunia\.com\/.\/results\/.\/.\/.*(\.jpg\?download))")
         self.voice_list = ['`Allison - English/US (Expressive)`', '`Michael - English/US`', '`Lisa - English/US`', '`Kate - English/UK`', '`Renee - French/FR`', '`Birgit - German/DE`', '`Dieter - German/DE`', '`Francesca - Italian/IT`', '`Emi - Japanese/JP`', '`Isabela - Portuguese/BR`', '`Enrique - Spanish`', '`Laura - Spanish`', '`Sofia - Spanish/NA`']
         self.scrap_regex = re.compile(",\"ou\":\"([^`]*?)\"")
-        self.google_keys = bot.google_keys
+        # self.google_keys = bot.google_keys
         self.interval_functions = {"random": interval.random, "threshold": interval.threshold, "edges": interval.edge, "waves": interval.waves, "file": interval.file_mask, "file-edges": interval.file_edges, "none": interval.none}
         self.s_functions =  {"lightness": sorting.lightness, "intensity": sorting.intensity, "maximum": sorting.maximum, "minimum": sorting.minimum}
         self.webmd_responses = ['redacted']
         self.webmd_count = random.randint(0, len(self.webmd_responses)-1)
         self.color_combinations = [[150, 50, -25], [135, 30, -10], [100, 50, -15], [75, 25, -15], [35, 20, -25], [0, 20, 0], [-25, 45, 35], [-25, 45, 65], [-45, 70, 75], [-65, 100, 135], [-45, 90, 100], [-10, 40, 70], [25, 25, 50], [65, 10, 10], [100, 25, 0], [135, 35, -10]]
-        # self.fp_dir = os.listdir(self.files_path('fp/'))
+        # self.fp_dir = os.listdir(str(bundled_data_path(self)/'fp/'))
         self.more_cache = {}
+        self.mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
+        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.image_mimes = ['image/png', 'image/pjpeg', 'image/jpeg', 'image/x-icon']
+
+    async def is_nsfw(self, message):
+        channel = message.channel
+        if channel.is_private:
+            return True
+        name = channel.name.lower()
+        if name == 'nsfw' or name == '[nsfw]':
+            return True
+        elif name == 'no-nsfw' or name == 'sfw':
+            return False
+        split = name.split()
+        if 'nsfw' in name:
+            try:
+                i = split.index('nsfw')
+            except:
+                i = None
+            if len(split) > 1 and i != None and split[i-1] != 'no':
+                return True
+            elif i is None:
+                split = name.split('-')
+                try:
+                    i = split.index('nsfw')
+                except:
+                    i = None
+                if len(split) > 1 and i != None and split[i-1] != 'no':
+                    return True
+        if channel.topic != None:
+            topic = channel.topic.lower()
+            split = topic.split()
+            if '{nsfw}' in topic or '[nsfw]' in topic or topic == 'nsfw':
+                return True
+            elif 'nsfw' in topic and 'sfw' not in split:
+                try:
+                    i = split.index('nsfw')
+                except:
+                    i = None
+                if len(split) > 1 and i != None and split[i-1] != 'no':
+                    return True
+                elif i is None:
+                    split = topic.split('-')
+                    try:
+                        i = split.index('nsfw')
+                    except:
+                        i = None
+                    if len(split) > 1 and i != None and split[i-1] != 'no':
+                        return True
+        return False
+
+    def random(self, image=False, ext:str=False):
+        h = str(uuid.uuid4().hex)
+        if image:
+            return '{0}.{1}'.format(h, ext) if ext else h+'.png'
+        return h
+
+    async def get_text(self, url:str):
+        try:
+            async with self.session.get(url) as resp:
+                try:
+                    text = await resp.text()
+                    return text
+                except:
+                    return False
+        except asyncio.TimeoutError:
+            return False
+
+    async def replace_mentions(self, txt:str):
+        match = self.mention_regex.findall(txt)
+        if match:
+            for i in match:
+                user = discord.utils.get(self.bot.get_all_members(), id=str(i))
+                if user is None:
+                    user = await self.bot.get_user_info(i)
+                txt = re.sub(re.compile('(<@\!?{0}>)'.format(user.id)), '@{0}'.format(user), txt)
+        return txt
+
+    async def get_attachment_images(self, ctx, check_func):
+        last_attachment = None
+        img_urls = []
+        async for m in ctx.channel.history(before=ctx.message, limit=25):
+            check = False
+            if m.attachments:
+                last_attachment = m.attachments[0].url
+                check = await check_func(last_attachment)
+            elif m.embeds:
+                last_attachment = m.embeds[0].url
+                check = await check_func(last_attachment)
+            if check:
+                img_urls.append(last_attachment)
+                break
+        return img_urls
+
+    def find_member(self, guild, name, steps=2):
+        member = None
+        match = self.mention_regex.search(name)
+        if match:
+            member = guild.get_member(match.group('id'))
+        if not member:
+            name = name.lower()
+            checks = [lambda m: m.name.lower() == name or m.display_name.lower() == name, lambda m: m.name.lower().startswith(name) or m.display_name.lower().startswith(name) or m.id == name, lambda m: name in m.display_name.lower() or name in m.name.lower()]
+            for i in range(steps if steps <= len(checks) else len(checks)):
+                if i == 3:
+                    member = discord.utils.find(checks[1], self.bot.get_all_members())
+                else:
+                    member = discord.utils.find(checks[i], guild.members)
+                if member:
+                    break
+        return member
+
+    async def get_images(self, ctx, **kwargs):
+        try:
+            message = ctx.message
+            channel = ctx.message.channel
+            attachments = ctx.message.attachments
+            mentions = ctx.message.mentions
+            limit = kwargs.pop('limit', 8)
+            urls = kwargs.pop('urls', [])
+            gif = kwargs.pop('gif', False)
+            msg = kwargs.pop('msg', True)
+            if gif:
+                check_func = self.isgif
+            else:
+                check_func = self.isimage
+            if urls is None:
+                urls = []
+            elif type(urls) != tuple:
+                urls = [urls]
+            else:
+                urls = list(urls)
+            scale = kwargs.pop('scale', None)
+            scale_msg = None
+            int_scale = None
+            if gif is False:
+                for user in mentions:
+                    if user.avatar:
+                        urls.append('https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(user))
+                    else:
+                        urls.append(user.default_avatar_url)
+                    limit += 1
+            for attachment in attachments:
+                urls.append(attachment.url)
+            if scale:
+                scale_limit = scale
+                limit += 1
+            if urls and len(urls) > limit:
+                await channel.send(':no_entry: `Max image limit (<= {0})`'.format(limit))
+                ctx.command.reset_cooldown(ctx)
+                return False
+            img_urls = []
+            count = 1
+            for url in urls:
+                user = None
+                if url.startswith('<@'):
+                    continue
+                if not url.startswith('http'):
+                    url = 'http://'+url
+                try:
+                    if scale:
+                        s_url = url[8:] if url.startswith('https://') else url[7:]
+                        if str(math.floor(float(s_url))).isdigit():
+                            int_scale = int(math.floor(float(s_url)))
+                            scale_msg = '`Scale: {0}`\n'.format(int_scale)
+                            if int_scale > scale_limit and ctx.message.author.id != self.bot.owner.id:
+                                int_scale = scale_limit
+                                scale_msg = '`Scale: {0} (Limit: <= {1})`\n'.format(int_scale, scale_limit)
+                            continue
+                except Exception as e:
+                    pass
+                check = await check_func(url)
+                if check is False and gif is False:
+                    check = await self.isgif(url)
+                    if check:
+                        if msg:
+                            await channel.send(":warning: This command is for images, not gifs (use `gmagik` or `gascii`)!")
+                        ctx.command.reset_cooldown(ctx)
+                        return False
+                    elif len(img_urls) == 0:
+                        name = url[8:] if url.startswith('https://') else url[7:]
+                        member = self.find_member(message.guild, name, 2)
+                        if member:
+                            img_urls.append('https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(member) if member.avatar else member.default_avatar_url)
+                            count += 1
+                            continue
+                        if msg:
+                            await channel.send(':warning: Unable to download or verify URL is valid.')
+                        ctx.command.reset_cooldown(ctx)
+                        return False
+                    else:
+                        if msg:
+                            await channel.send(':warning: Image `{0}` is Invalid!'.format(count))
+                        continue
+                elif gif and check is False:
+                    check = await self.isimage(url)
+                    if check:
+                        if msg:
+                            await channel.send(":warning: This command is for gifs, not images (use `magik`)!")
+                        ctx.command.reset_cooldown(ctx)
+                        return False
+                    elif len(img_urls) == 0:
+                        name = url[8:] if url.startswith('https://') else url[7:]
+                        member = self.find_member(message.guild, name, 2)
+                        if member:
+                            img_urls.append('https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(member) if member.avatar else member.default_avatar_url)
+                            count += 1
+                            continue
+                        if msg:
+                            await channel.send(':warning: Unable to download or verify URL is valid.')
+                        ctx.command.reset_cooldown(ctx)
+                        return False
+                    else:
+                        if msg:
+                            await channel.send(':warning: Gif `{0}` is Invalid!'.format(count))
+                        continue
+                img_urls.append(url)
+                count += 1
+            else:
+                if len(img_urls) == 0:
+                    attachment_images = await self.get_attachment_images(ctx, check_func)
+                    if attachment_images:
+                        img_urls.extend([*attachment_images])
+                    else:
+                        if msg:
+                            await channel.send(":no_entry: Please input url(s){0}or attachment(s).".format(', mention(s) ' if not gif else ' '))
+                        ctx.command.reset_cooldown(ctx)
+                        return False
+            if scale:
+                if len(img_urls) == 0:
+                    attachment_images = await self.get_attachment_images(ctx, check_func)
+                    if attachment_images:
+                        img_urls.extend([*attachment_images])
+                    else:
+                        if msg:
+                            await channel.send(":no_entry: Please input url(s){0}or attachment(s).".format(', mention(s) ' if not gif else ' '))
+                        ctx.command.reset_cooldown(ctx)
+                        return False
+                return img_urls, int_scale, scale_msg
+            if img_urls:
+                return img_urls
+            return False
+        except Exception as e:
+            print(e)
+
+    async def truncate(self, channel, msg):
+        if len(msg) == 0:
+            return
+        split = [msg[i:i + 1999] for i in range(0, len(msg), 1999)]
+        try:
+            for s in split:
+                await channel.send(s)
+                await asyncio.sleep(0.21)
+        except Exception as e:
+            await channel.send(e)
+
+    async def get_json(self, url:str):
+        try:
+            async with self.session.get(url) as resp:
+                try:
+                    load = await resp.json()
+                    return load
+                except:
+                    return {}
+        except asyncio.TimeoutError:
+            return {}
+
+    async def isimage(self, url:str):
+        try:
+            async with self.session.head(url) as resp:
+                if resp.status == 200:
+                    mime = resp.headers.get('Content-type', '').lower()
+                    if any([mime == x for x in self.image_mimes]):
+                        return True
+                    else:
+                        return False
+        except:
+            return False
+
+    async def isgif(self, url:str):
+        try:
+            async with self.session.head(url) as resp:
+                if resp.status == 200:
+                    mime = resp.headers.get('Content-type', '').lower()
+                    if mime == "image/gif":
+                        return True
+                    else:
+                        return False
+        except:
+            return False
+
+    async def download(self, url:str, path:str):
+        try:
+            async with self.session.get(url) as resp:
+                data = await resp.read()
+                with open(path, "wb") as f:
+                    f.write(data)
+        except asyncio.TimeoutError:
+            return False
+
+    async def bytes_download(self, url:str):
+        try:
+            async with self.session.get(url) as resp:
+                data = await resp.read()
+                b = BytesIO(data)
+                b.seek(0)
+                return b
+        except asyncio.TimeoutError:
+            return False
+        except Exception as e:
+            print(e)
+            return False
+
+    async def run_process(self, code, response=False):
+        try:
+            loop = self.bot.loop
+            exit_future = asyncio.Future(loop=loop)
+            create = loop.subprocess_exec(lambda: DataProtocol(exit_future),
+                                                                        *code, stdin=None, stderr=None)
+            transport, protocol = await asyncio.wait_for(create, timeout=30)
+            await exit_future
+            if response:
+                data = bytes(protocol.output)
+                return data.decode('ascii').rstrip()
+            return True
+        except asyncio.TimeoutError:
+            return False
+        except Exception as e:
+            print(e)
+        finally:
+            transport.close()
 
     async def gist(self, ctx, idk, content:str):
         payload = {
@@ -179,8 +531,9 @@ class NotSoBot():
                 content_msg = scale_msg
             else:
                 content_msg = scale_msg+content_msg
-            await self.bot.delete_message(msg)
-            await self.bot.upload(final, filename='magik.png', content=content_msg)
+            await msg.delete()
+            file = discord.File(final, filename='magik.png')
+            await ctx.send(content_msg, file=file)
         except discord.errors.Forbidden:
             await ctx.send(":warning: **I do not have permission to send files!**")
         except Exception as e:
@@ -212,7 +565,8 @@ class NotSoBot():
             for image in imgs:
                 try:
                     im = wand.image.Image(filename=image)
-                except:
+                except Exception as e:
+                    print(e)
                     continue
                 i = im.clone()
                 i.transform(resize='800x800>')
@@ -239,16 +593,16 @@ class NotSoBot():
                 url = url[0]
             else:
                 return
-            gif_dir = self.files_path('gif/')
+            gif_dir = str(bundled_data_path(self)/'gif/')
             check = await self.isgif(url)
             if check is False:
                 await ctx.send("Invalid or Non-GIF!")
                 ctx.command.reset_cooldown(ctx)
                 return
             x = await ctx.message.channel.send( "ok, processing (this might take a while for big gifs)")
-            rand = self.bot.random()
-            gifin = gif_dir+'1_{0}.gif'.format(rand)
-            gifout = gif_dir+'2_{0}.gif'.format(rand)
+            rand = self.random()
+            gifin = gif_dir+'/1_{0}.gif'.format(rand)
+            gifout = gif_dir+'/2_{0}.gif'.format(rand)
             await self.download(url, gifin)
             if os.path.getsize(gifin) > 5000000 and ctx.message.author.id != self.bot.owner.id:
                 await ctx.send(":no_entry: `GIF Too Large (>= 5 mb).`")
@@ -256,23 +610,27 @@ class NotSoBot():
                 return
             try:
                 result = await self.bot.loop.run_in_executor(None, self.do_gmagik, ctx, gifin, gif_dir, rand)
-            except CancelledError:
+            except Exception as e:
+                print("Failing here")
+                print(e)
                 await ctx.send(':warning: Gmagik failed...')
                 return
             if type(result) == str:
                 await ctx.send(result)
                 return
             if framerate != None:
-                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'%d_{0}.png'.format(rand), '-r', framerate, gifout]
+                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'/%d_{0}.png'.format(rand), '-r', framerate, gifout]
             else:
-                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'%d_{0}.png'.format(rand), gifout]
-            await self.bot.run_process(args)
-            await self.bot.upload(gifout, filename='gmagik.gif')
+                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'/%d_{0}.png'.format(rand), gifout]
+            print(gifout)
+            await self.run_process(args)
+            file = discord.File(gifout, filename='gmagik.gif')
+            await ctx.send(file=file)
             for image in glob.glob(gif_dir+"*_{0}.png".format(rand)):
                 os.remove(image)
-            os.remove(gifin)
-            os.remove(gifout)
-            await await x.delete()
+            # os.remove(gifin)
+            # os.remove(gifout)
+            await x.delete()
         except Exception as e:
             print(e)
 
@@ -291,7 +649,7 @@ class NotSoBot():
             b = await self.bytes_download(url)
             img = wand.image.Image(file=b)
             i = img.clone()
-            font_path = self.files_path('impact.ttf')
+            font_path = str(bundled_data_path(self)/'impact.ttf')
             if size != None:
                 color = wand.color.Color('{0}'.format(color))
                 font = wand.font.Font(path=font_path, size=int(size), color=color)
@@ -319,8 +677,9 @@ class NotSoBot():
             final = BytesIO()
             i.save(file=final)
             final.seek(0)
-            await self.bot.delete_message(xx)
-            await self.bot.upload(final, filename='caption.png')
+            await xx.delete()
+            file = discord.File(final, filename='caption.png')
+            await ctx.send(file=file)
         except Exception as e:
             await ctx.send("Error: Invalid Syntax\n `.caption <image_url> <text>** <color>* <size>* <x>* <y>*`\n`* = Optional`\n`** = Wrap text in quotes`")
             print(e)
@@ -347,11 +706,11 @@ class NotSoBot():
                 if not get_images:
                     return
                 avatar = get_images[0]
-            path = self.files_path(self.bot.random(True))
+            path = str(bundled_data_path(self)/self.random(True))
             path2 = path[:-3]+'gif'
             await self.download(avatar, path)
-            t_path = self.files_path('triggered.jpg')
-            await self.bot.run_process(['convert',
+            t_path = str(bundled_data_path(self)/'triggered.png')
+            await self.run_process(['convert',
                 'canvas:none',
                 '-size', '512x680!',
                 '-resize', '512x680!',
@@ -378,7 +737,8 @@ class NotSoBot():
                 '-layers', 'Optimize',
                 '-set', 'delay', '2',
             path2])
-            await self.bot.upload(path2, filename='triggered.gif')
+            file = discord.File(path2, filename='triggered.gif')
+            await ctx.send(file=file)
             os.remove(path)
             os.remove(path2)
         except Exception as e:
@@ -407,9 +767,9 @@ class NotSoBot():
                 if not get_images:
                     return
                 avatar = get_images[0]
-            path = self.files_path(self.bot.random(True))
+            path = str(bundled_data_path(self)/self.random(True))
             await self.download(avatar, path)
-            await self.bot.run_process(['convert',
+            await self.run_process(['convert',
                 '(',
                     path,
                     '-resize', '256', 
@@ -426,7 +786,7 @@ class NotSoBot():
     @commands.cooldown(1, 5)
     async def triggered2(self, ctx, user:str=None, url:str=None):
         """Generate a Triggered Image for a User or Image"""
-        t_path = self.files_path('triggered.png')
+        t_path = str(bundled_data_path(self)/'triggered.png')
         path = await self.do_triggered(ctx, user, url, t_path)
         if path is False:
             await ctx.send(':warning: **Command Failed.**')
@@ -435,14 +795,15 @@ class NotSoBot():
             except:
                 pass
             return
-        await self.bot.upload(path, filename='triggered3.png')
+        file = discord.File(path, filename='triggered3.png')
+        await ctx.send(file=file)
         os.remove(path)
 
     @commands.command(pass_context=True)
     @commands.cooldown(1, 5)
     async def triggered3(self, ctx, user:str=None, url:str=None):
         """Generate a Triggered2 Image for a User or Image"""
-        t_path = self.files_path('triggered2.png')
+        t_path = str(bundled_data_path(self)/'triggered2.png')
         path = await self.do_triggered(ctx, user, url, t_path)
         if path is False:
             await ctx.send(':warning: **Command Failed.**')
@@ -451,7 +812,8 @@ class NotSoBot():
             except:
                 pass
             return
-        await self.bot.upload(path, filename='triggered3.png')
+        file = discord.File(path, filename='triggered3.png')
+        await ctx.send(file=file)
         os.remove(path)
 
     @commands.command(pass_context=True, aliases=['aes'])
@@ -504,10 +866,11 @@ class NotSoBot():
             msg = "```fix\n{0}```".format(txt)
         else:
             msg = None
-        await self.bot.upload(final, filename='ascii.png', content=msg)
+        file = discord.File(final, filename='ascii.png')
+        await ctx.send(msg, file=file)
 
     def generate_ascii(self, image):
-        font = PIL.ImageFont.truetype(self.files_path('FreeMonoBold.ttf'), 15, encoding="unic")
+        font = PIL.ImageFont.truetype(str(bundled_data_path(self)/'FreeMonoBold.ttf'), 15, encoding="unic")
         image_width, image_height = image.size
         aalib_screen_width= int(image_width/24.9)*10
         aalib_screen_height= int(image_height/41.39)*10
@@ -545,8 +908,9 @@ class NotSoBot():
                 final = BytesIO()
                 img.save(final, 'png')
                 final.seek(0)
-                await await x.delete()
-                await self.bot.upload(final, filename='iascii.png')
+                await x.delete()
+                file = discord.File(final, filename='iascii.png')
+                await ctx.send(file=file)
         except Exception as e:
             await ctx.send(e)
 
@@ -583,8 +947,8 @@ class NotSoBot():
                 await ctx.send("Error: Invalid Syntax\n`.gascii <gif_url> <liquid_rescale>*`\n`* = Optional`")
                 return
             for url in get_images:
-                rand = self.bot.random()
-                gif_dir = self.files_path('gascii/')
+                rand = self.random()
+                gif_dir = str(bundled_data_path(self)/'/gascii/')
                 location = gif_dir+'1_{0}.gif'.format(rand)
                 location2 = gif_dir+'2_{0}.gif'.format(rand)
                 x = await ctx.message.channel.send( "ok, processing")
@@ -604,9 +968,10 @@ class NotSoBot():
                         os.remove(image)
                     os.remove(location)
                     return
-                await self.bot.run_process(['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', self.files_path('gascii/')+'%d_{0}.png'.format(rand), location2])
-                await await x.delete()
-                await self.bot.upload(location2, filename='gascii.gif')
+                await self.run_process(['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', str(bundled_data_path(self)/'/gascii/')+'%d_{0}.png'.format(rand), location2])
+                await x.delete()
+                file = discord.File(location2, filename='gascii.gif')
+                await ctx.send(file=file)
                 for image in list_imgs:
                     os.remove(image)
                 os.remove(location)
@@ -632,7 +997,8 @@ class NotSoBot():
                 name += "'s"
             url = "http://www.tombstonebuilder.com/generate.php?top1=R.I.P&top3={0}&top4=Hopes and Dreams".format(name).replace(" ", "%20")
         b = await self.bytes_download(url)
-        await self.bot.upload(b, filename='rip.png')
+        file = discord.File(b, filename='rip.png')
+        await ctx.send(file=file)
 
     async def add_cache(self, search, result, t=0, level=1):
         try:
@@ -657,10 +1023,9 @@ class NotSoBot():
             if image:
                 api = 'https://www.google.com/search?tbm=isch&gs_l=img&safe={0}&q={1}'.format('on' if safe else 'off', search)
                 with aiohttp.ClientSession() as session:
-                    with aiohttp.Timeout(5):
-                        async with session.get(api, headers=headers) as r:
-                            assert r.status == 200
-                            txt = await r.text()
+                    async with session.get(api, headers=headers) as r:
+                        assert r.status == 200
+                        txt = await r.text()
                 match = self.scrap_regex.findall(txt)
                 assert match
                 image = random.choice(match[:10])
@@ -678,10 +1043,9 @@ class NotSoBot():
                 #why are you so good danny, my old method was using regex so, not so good.....
                 entries = {}
                 with aiohttp.ClientSession() as session:
-                    with aiohttp.Timeout(5):
-                        async with session.get(api, headers=headers) as r:
-                            assert r.status == 200
-                            txt = await r.text()
+                    async with session.get(api, headers=headers) as r:
+                        assert r.status == 200
+                        txt = await r.text()
                 root = etree.fromstring(txt, etree.HTMLParser())
                 search_nodes = root.findall(".//div[@class='g']")
                 result = False
@@ -724,13 +1088,13 @@ class NotSoBot():
             else:
                 scale_msg = '\n'+scale_msg
             do_2 = False
-            rand = self.bot.random()
+            rand = self.random()
             x = await ctx.message.channel.send( "ok, resizing `{0}` by `{1}`".format(url, str(size)))
             b = await self.bytes_download(url)
             if sys.getsizeof(b) > 3000000:
                 await ctx.send("Sorry, image too large for waifu2x guilds!")
                 return
-            await self.bot.edit_message(x, "25%, resizing")
+            await x.edit("25%, resizing")
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:43.0) Gecko/20100101 Firefox/43.0'}
             payload = aiohttp.FormData()
             payload.add_field('url', url)
@@ -738,12 +1102,11 @@ class NotSoBot():
             payload.add_field('style', 'art')
             payload.add_field('noise', '3')
             payload.add_field('comp', '10')
-            await self.bot.edit_message(x, "50%, w2x")
+            await x.edit("50%, w2x")
             try:
                 with aiohttp.ClientSession() as session:
-                    with aiohttp.Timeout(30):
-                        async with session.post('http://waifu2x.me/convert', data=payload, headers=headers) as r:
-                            txt = await r.text()
+                    async with session.post('http://waifu2x.me/convert', data=payload, headers=headers) as r:
+                        txt = await r.text()
                 download_url = 'http://waifu2x.me/{0}'.format(txt)
                 final = None
             except asyncio.TimeoutError:
@@ -792,9 +1155,8 @@ class NotSoBot():
                         payload.add_field('noise', '1')
                         payload.add_field('url', url)
                         with aiohttp.ClientSession() as session:
-                            with aiohttp.Timeout(30):
-                                async with session.post('http://waifu2x.udp.jp/api', data=payload, headers=headers) as r:
-                                    raw = await r.read()
+                            async with session.post('http://waifu2x.udp.jp/api', data=payload, headers=headers) as r:
+                                raw = await r.read()
                     elif s == 1.6:
                         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:43.0) Gecko/20100101 Firefox/43.0'}
                         payload = aiohttp.FormData()
@@ -803,9 +1165,8 @@ class NotSoBot():
                         payload.add_field('noise', '1')
                         payload.add_field('url', url)
                         with aiohttp.ClientSession() as session:
-                            with aiohttp.Timeout(30):
-                                async with session.post('http://waifu2x.udp.jp/api', data=payload, headers=headers) as r:
-                                    raw = await r.read()
+                            async with session.post('http://waifu2x.udp.jp/api', data=payload, headers=headers) as r:
+                                raw = await r.read()
                     final = BytesIO(raw)
                     final.seek(0)
             if final is None:
@@ -813,7 +1174,7 @@ class NotSoBot():
             if sys.getsizeof(final) > 8388608:
                 await ctx.send("Sorry, image too large for discord!")
                 return
-            await self.bot.edit_message(x, "100%, uploading")
+            await x.edit("100%, uploading")
             i = 0
             while sys.getsizeof(final) == 88 and i < 5:
                 final = await self.bytes_download(download_url)
@@ -822,16 +1183,17 @@ class NotSoBot():
                     i = 5
                 else:
                     i += 1
-            await self.bot.upload(final, filename='enlarge.png', content='Visit image link for accurate resize visual.'+scale_msg if size > 3 else scale_msg if scale_msg != '' else None)
+            file = discord.File(final, filename='enlarge.png')
+            await ctx.send('Visit image link for accurate resize visual.'+scale_msg if size > 3 else scale_msg if scale_msg != '' else None, file=file)
             await asyncio.sleep(3)
-            await await x.delete()
+            await x.delete()
         except Exception as e:
             await ctx.send(code.format(e))
             await ctx.send("Error: Failed\n `Discord Failed To Upload or Waifu2x guilds Failed`")
 
 
-    @commands.command(aliases=['r'])
-    async def reverse(self, *, text:str):
+    @commands.command()
+    async def reverse(self, ctx, *, text:str):
         """Reverse Text\n.revese <text>"""
         text = text.replace('\u202E', '')
         s = text.split('\n')
@@ -839,7 +1201,7 @@ class NotSoBot():
         for x in s:
             kek += u"\u202E " + x + '\n'
         kek = kek
-        await ctx.send(kek, replace_mentions=True)
+        await ctx.send(kek)
 
     async def get_emote_image(self, em, one=False, apple=False):
         em = em.replace('⠀', '').replace(' ', '')
@@ -855,11 +1217,11 @@ class NotSoBot():
         if em == '🏳️‍🌈':
             emote = '1f308'
         if one:
-            path = self.files_path('emojione/{0}.svg'.format(emote))
+            path = str(bundled_data_path(self)/'emojione/{0}.svg'.format(emote))
         elif apple:
-            path = self.files_path('apple_emoji/{0}.png'.format(emote))
+            path = str(bundled_data_path(self)/'apple_emoji/{0}.png'.format(emote))
         else:
-            path = self.files_path('twemoji/{0}.svg'.format(emote))
+            path = str(bundled_data_path(self)/'twemoji/{0}.svg'.format(emote))
         return path
 
     async def png_svg(self, path, size):
@@ -873,7 +1235,7 @@ class NotSoBot():
     fp_emotes = {
         #redacted spam
     }
-    @commands.command(pass_context=True, aliases=['emoji', 'hugemoji', 'hugeemoji'])
+    @commands.command(pass_context=True, aliases=['hugemoji', 'hugeemoji'])
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def e(self, ctx, *ems:str):
         """Returns a large emoji image"""
@@ -901,8 +1263,8 @@ class NotSoBot():
                 elif em == 'steam':
                     steam = True
             if len(self.twitch_cache) == 0:
-                twitch_images_load = await self.get_json('https://twitchemotes.com/api_cache/v2/images.json')
-                twitch_sub_load = await self.get_json('https://twitchemotes.com/api_cache/v2/subscriber.json')
+                twitch_images_load = await self.get_json('https://twitchemotes.com/api_cache/v3/images.json')
+                twitch_sub_load = await self.get_json('https://twitchemotes.com/api_cache/v3/subscriber.json')
                 self.twitch_cache.append(twitch_images_load)
                 self.twitch_cache.append(twitch_sub_load)
             else:
@@ -949,9 +1311,9 @@ class NotSoBot():
                             f = self.fp_dir[self.fp_dir.index(match+'.gif')]
                             gif = True
                         found = True
-                        path = self.files_path('fp/{0}'.format(f))
+                        path = str(bundled_data_path(self)/'fp/{0}'.format(f))
                 if not found:
-                    frankerz_path = self.files_path('frankerz_emotes.txt')
+                    frankerz_path = str(bundled_data_path(self)/'frankerz_emotes.txt')
                     frankerz_emotes = []
                     with open(frankerz_path) as f:
                         for line in f:
@@ -1030,13 +1392,14 @@ class NotSoBot():
             else:
                 b = list_imgs[0]
             try:
-                await self.bot.upload(b, filename='emote.gif' if gif and len(list_imgs) == 1 else 'emote.png')
+                file = discord.File(b, filename='emote.gif' if gif and len(list_imgs) == 1 else 'emote.png')
+                await ctx.send(file=file)
             except:
                 await ctx.send('sorry, file 2 big (> 8 mb)')
             await asyncio.sleep(5)
             try:
                 self.bot.pruned_messages.append(ctx.message)
-                await self.bot.delete_message(ctx.message)
+                await ctx.message.delete()
             except:
                 pass
         except Exception as e:
@@ -1054,7 +1417,7 @@ class NotSoBot():
         em = em.lower()
         desc = None
         if em == ':b1:' or em == 'b1':
-            b = self.files_path('b1.png')
+            b = str(bundled_data_path(self)/'b1.png')
         else:
             url = "https://steamcommunity-a.akamaihd.net/economy/emoticonhover/{0}".format(em)
             txt = await self.get_text(url)
@@ -1065,13 +1428,15 @@ class NotSoBot():
             base = root.find('.//img[@class="emoticon_large"]')
             b = BytesIO(base64.b64decode(base.attrib['src'][22:]))
             desc = '**{0}**'.format(root.find('.//div[@class="emoticon_hover_desc"]').text)
-        await self.bot.upload(b, filename='steam.png', content=desc)
+        file = discord.File(b, filename='steam.png')
+        await ctx.send(desc, file=file)
 
     @commands.command(pass_context=True)
     @commands.cooldown(3, 5)
     async def b1(self, ctx):
         """cool"""
-        await self.bot.upload(self.files_path('b1.png'))
+        file = discord.File(str(bundled_data_path(self)/'b1.png'))
+        await ctx.send(file=file)
 
     @commands.group(pass_context=True, invoke_without_command=True)
     @commands.cooldown(1, 5)
@@ -1109,8 +1474,9 @@ class NotSoBot():
             final = BytesIO()
             imgs_comb.save(final, 'png')
             final.seek(0)
-            await self.bot.delete_message(xx)
-            await self.bot.upload(final, filename='merge.png')
+            await xx.delete()
+            file = discord.File(final, filename='merge.png')
+            await ctx.send(file=file)
         except Exception as e:
             await ctx.send(code.format(e))
 
@@ -1130,9 +1496,8 @@ class NotSoBot():
         """Analyze Tone in Text"""
         payload = {'text':text}
         headers = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:46.0) Gecko/20100101 Firefox/46.0.2 Waterfox/46.0.2'}
-        with aiohttp.ClientSession() as session:
-            async with session.post('https://tone-analyzer-demo.mybluemix.net/api/tone', data=payload, headers=headers) as r:
-                load = await r.json()
+        async with self.session.post('https://tone-analyzer-demo.mybluemix.net/api/tone', data=payload, headers=headers) as r:
+            load = await r.json()
         anger = load['document_tone']['tone_categories'][0]['tones'][0]['score']
         disgust = load['document_tone']['tone_categories'][0]['tones'][1]['score']
         fear = load['document_tone']['tone_categories'][0]['tones'][2]['score']
@@ -1156,14 +1521,16 @@ class NotSoBot():
         api = 'http://api.img4me.com/?font=arial&fcolor=FFFFFF&size=35&type=png&text={0}'.format(quote(txt))
         r = await self.get_text(api)
         b = await self.bytes_download(r)
-        await self.bot.upload(b, filename='tti.png')
+        file = discord.File(b, filename='tti.png')
+        await ctx.send(file=file)
 
     @commands.command(pass_context=True, aliases=['comicsans'])
     async def sans(self, ctx, *, txt:str):
         api = 'http://api.img4me.com/?font=sans&fcolor=000000&size=35&type=png&text={0}'.format(quote(txt))
         r = await self.get_text(api)
         b = await self.bytes_download(r)
-        await self.bot.upload(b, filename='tti.png')
+        file = discord.File(b, filename='tti.png')
+        await ctx.send(file=file)
 
     @commands.command(pass_context=True, aliases=['needsmorejpeg', 'jpegify', 'magik2'])
     @commands.cooldown(2, 5, commands.BucketType.user)
@@ -1187,7 +1554,8 @@ class NotSoBot():
             final = BytesIO()
             img.save(final, 'JPEG', quality=quality)
             final.seek(0)
-            await self.bot.upload(final, filename='needsmorejpeg.jpg')
+            file = discord.File(final, filename='needsmorejpeg.jpg')
+            await ctx.send(file=file)
 
     def do_vw(self, b, txt):
         im = PIL.Image.open(b)
@@ -1210,13 +1578,14 @@ class NotSoBot():
                 txt = "vapor wave"
             b = await self.bytes_download(url)
             final = await self.bot.loop.run_in_executor(None, self.do_vw, b, txt)
-            await self.bot.send_file(ctx.message.channel, final, filename='vapewave.png')
+            file = discord.File(final, filename='vapewave.png')
+            await ctx.send(file=file)
 
     @commands.command(pass_context=True)
     async def jagroshisgay(self, ctx, *, txt:str):
         x = await ctx.message.channel.send( txt, replace_mentions=True)
         txt = u"\u202E " + txt
-        await self.bot.edit_message(x, txt)
+        await x.edit(txt)
 
     @commands.command(pass_context=True, aliases=['achievement', 'ach'])
     async def mc(self, ctx, *, txt:str):
@@ -1233,7 +1602,8 @@ class NotSoBot():
         if i == 10 and sys.getsizeof(b) == 88:
             await ctx.send("Minecraft Achievement Generator API is bad, pls try again")
             return
-        await self.bot.upload(b, filename='achievement.png')
+        file = discord.File(b, filename='achievement.png')
+        await ctx.send(file=file)
 
     @commands.command(pass_context=True, aliases=['identify', 'captcha', 'whatis'])
     async def i(self, ctx, *, url:str):
@@ -1254,7 +1624,7 @@ class NotSoBot():
                 return
             b = await self.bytes_download(url)
             if mark == 'brazzers' or mark is None:
-                wmm = self.files_path('brazzers.png')
+                wmm = str(bundled_data_path(self)/'brazzers.png')
             else:
                 check = await self.isimage(mark)
                 if check == False:
@@ -1271,7 +1641,8 @@ class NotSoBot():
                         img.watermark(image=wm, left=int(img.width/15), top=int(img.height/10))          
                 img.save(file=final)
             final.seek(0)
-            await self.bot.upload(final, filename='watermark.png')
+            file = discord.File(final, filename='watermark.png')
+            await ctx.send(file=file)
         except Exception as e:
             exc_type, exc_obj, tb = sys.exc_info()
             f = tb.tb_frame
@@ -1330,10 +1701,12 @@ class NotSoBot():
                     b = BytesIO()
                     img.save(b, format='JPEG')
                     final = await self.bot.loop.run_in_executor(None, self.do_glitch, b, amount, seed, iterations)
-                    await self.bot.upload(final, filename='glitch.jpeg', content='Iterations: `{0}` | Amount: `{1}` | Seed: `{2}`'.format(iterations, amount, seed))
+                    file = discord.File(final, filename='glitch.jpeg')
+                    await ctx.send('Iterations: `{0}` | Amount: `{1}` | Seed: `{2}`'.format(iterations, amount, seed), file=file)
                 else:
                     final = await self.bot.loop.run_in_executor(None, self.do_gglitch, b)
-                    await self.bot.upload(final, filename='glitch.gif')
+                    file = discord.File(final, filename='glitch.gif')
+                    await ctx.send(file=file)
         except:
             await ctx.send("sorry, can't reglitch an image.")
             raise
@@ -1345,11 +1718,12 @@ class NotSoBot():
             if not get_images:
                 return
             for url in get_images:
-                path = self.files_path(self.bot.random(True))
+                path = str(bundled_data_path(self)/self.random(True))
                 await self.download(url, path)
                 args = ['convert', '(', path, '-resize', '1024x1024>', ')', '-alpha', 'on', '(', '-clone', '0', '-channel', 'RGB', '-separate', '-channel', 'A', '-fx', '0', '-compose', 'CopyOpacity', '-composite', ')', '(', '-clone', '0', '-roll', '+5', '-channel', 'R', '-fx', '0', '-channel', 'A', '-evaluate', 'multiply', '.3', ')', '(', '-clone', '0', '-roll', '-5', '-channel', 'G', '-fx', '0', '-channel', 'A', '-evaluate', 'multiply', '.3', ')', '(', '-clone', '0', '-roll', '+0+5', '-channel', 'B', '-fx', '0', '-channel', 'A', '-evaluate', 'multiply', '.3', ')', '(', '-clone', '0', '-channel', 'A', '-fx', '0', ')', '-delete', '0', '-background', 'none', '-compose', 'SrcOver', '-layers', 'merge', '-rotate', '90', '-wave', '1x5', '-rotate', '-90', path]
-                await self.bot.run_process(args)
-                await self.bot.upload(path, filename='glitch2.png')
+                await self.run_process(args)
+                file = discord.File(path, filename='glitch2.png')
+                await ctx.send(file=file)
                 os.remove(path)
         except:
             try:
@@ -1359,7 +1733,7 @@ class NotSoBot():
             raise
 
     @commands.command()
-    async def bean(self, url:str):
+    async def bean(self, ctx, url:str):
         """You got BEANED"""
         try:
             check = await self.isimage(url)
@@ -1367,7 +1741,7 @@ class NotSoBot():
                 await ctx.send('Invalid or Non-Image!')
                 return
             b = await self.bytes_download(url)
-            bean_path = self.files_path('bean.png')
+            bean_path = str(bundled_data_path(self)/'bean.png')
             bean = PIL.Image.open(bean_path)
             img = PIL.Image.open(b)
             width, height = bean.size
@@ -1376,7 +1750,8 @@ class NotSoBot():
             final = BytesIO()
             img.save(final, 'png')
             final.seek(0)
-            await self.bot.upload(final, filename='beaned.png')
+            file = discord.File(final, filename='beaned.png')
+            await ctx.send(file=file)
         except Exception as e:
             await ctx.send(e)
 
@@ -1413,9 +1788,11 @@ class NotSoBot():
                 final = BytesIO()
                 img.save(final, 'png')
                 final.seek(0)
-                await self.bot.upload(final, filename='pixelated.png', content=scale_msg)
+                file = discord.File(final, filename='pixelated.png')
+                await ctx.send(scale_msg, file=file)
                 await asyncio.sleep(0.21)
-        except:
+        except Exception as e:
+            print(e)
             await ctx.send(':warning: `Too many pixels.`')
 
     async def do_retro(self, text, bcg):
@@ -1445,10 +1822,8 @@ class NotSoBot():
             payload.add_field('text'+str(count), s.replace("'", "\'"))
             count += 1
         try:
-            with aiohttp.ClientSession() as session:
-                with aiohttp.Timeout(5):
-                    async with session.post('https://photofunia.com/effects/retro-wave?guild=3', data=payload, headers=headers) as r:
-                        txt = await r.text()
+            async with self.session.post('https://photofunia.com/effects/retro-wave?guild=3', data=payload, headers=headers) as r:
+                txt = await r.text()
         except asyncio.TimeoutError:
             return
         match = self.retro_regex.findall(txt)
@@ -1459,28 +1834,31 @@ class NotSoBot():
         return False
 
     @commands.command()
-    async def retro(self, *, text:str):
+    async def retro(self, ctx, *, text:str):
         retro_result = await self.do_retro(text, '5')
         if retro_result is False:
             await ctx.send(':warning: This text contains unsupported characters')
         else:
-            await self.bot.upload(retro_result, filename='retro.png')
+            file = discord.File(retro_result, filename='retro.png')
+            await ctx.send(file=file)
 
     @commands.command()
-    async def retro2(self, *, text:str):
+    async def retro2(self, ctx, *, text:str):
         retro_result = await self.do_retro(text, '2')
         if retro_result is False:
             await ctx.send(':warning: This text contains unsupported characters')
         else:
-            await self.bot.upload(retro_result, filename='retro.png')
+            file = discord.File(retro_result, filename='retro.png')
+            await ctx.send(file=file)
 
     @commands.command()
-    async def retro3(self, *, text:str):
+    async def retro3(self, ctx, *, text:str):
         retro_result = await self.do_retro(text, '4')
         if retro_result is False:
             await ctx.send(':warning: This text contains unsupported characters')
         else:
-            await self.bot.upload(retro_result, filename='retro.png')
+            file = discord.File(retro_result, filename='retro.png')
+            await ctx.send(file=file)
 
     def do_waaw(self, b):
         f = BytesIO()
@@ -1521,7 +1899,8 @@ class NotSoBot():
                     return
                 continue
             final = await self.bot.loop.run_in_executor(None, self.do_waaw, b)
-            await self.bot.upload(final, filename='waaw.png')
+            file = discord.File(final, filename='waaw.png')
+            await ctx.send(file=file)
 
     def do_haah(self, b):
         f = BytesIO()
@@ -1560,7 +1939,8 @@ class NotSoBot():
                     return
                 continue
             final = await self.bot.loop.run_in_executor(None, self.do_haah, b)
-            await self.bot.upload(final, filename='haah.png')
+            file = discord.File(final, filename='haah.png')
+            await ctx.send(file=file)
 
     def do_woow(self, b):
         f = BytesIO()
@@ -1600,7 +1980,8 @@ class NotSoBot():
                     return
                 continue
             final = await self.bot.loop.run_in_executor(None, self.do_woow, b)
-            await self.bot.upload(final, filename='woow.png')
+            file = discord.File(final, filename='woow.png')
+            await ctx.send(file=file)
 
     def do_hooh(self, b):
         f = BytesIO()
@@ -1640,10 +2021,11 @@ class NotSoBot():
                     return
                 continue
             final = await self.bot.loop.run_in_executor(None, self.do_hooh, b)
-            await self.bot.upload(final, filename='hooh.png')
+            file = discord.File(final, filename='hooh.png')
+            await ctx.send(file=file)
 
     @commands.command(pass_context=True)
-    async def flip(self, ctx, *urls:str):
+    async def flipimg(self, ctx, *urls:str):
         get_images = await self.get_images(ctx, urls=urls, limit=5)
         if not get_images:
             return
@@ -1654,7 +2036,8 @@ class NotSoBot():
             final = BytesIO()
             img.save(final, 'png')
             final.seek(0)
-            await self.bot.upload(final, filename='flip.png')
+            file = discord.File(final, filename='flip.png')
+            await ctx.send(file=file)
 
     @commands.command(pass_context=True)
     async def flop(self, ctx, *urls:str):
@@ -1668,18 +2051,12 @@ class NotSoBot():
             final = BytesIO()
             img.save(final, 'png')
             final.seek(0)
-            await self.bot.upload(final, filename='flop.png')
+            file = discord.File(final, filename='flop.png')
+            await ctx.send(file=file)
 
     @commands.command(pass_context=True, aliases=['inverse', 'negate'])
-    async def invert(self, ctx, url:str=None, *, txt:str=None):
-        if not url.startswith('http'):
-            if txt:
-                txt = url + txt
-            else:
-                txt = url
-            get_images = await self.get_images(ctx, urls=url, limit=1)
-        else:
-            get_images = await self.get_images(ctx, urls=url, limit=1)
+    async def invert(self, ctx, url:str="None"):
+        get_images = await self.get_images(ctx, urls=url, limit=3)
         if not get_images:
             return
         for url in get_images:      
@@ -1689,7 +2066,8 @@ class NotSoBot():
             final = BytesIO()
             img.save(final, 'png')
             final.seek(0)
-            await self.bot.upload(final, filename='flop.png')
+            file = discord.File(final, filename='flop.png')
+            await ctx.send(file=file)
 
     @commands.command(pass_context=True)
     async def rotate(self, ctx, *urls:str):
@@ -1706,4 +2084,8 @@ class NotSoBot():
             final = BytesIO()
             img.save(final, 'png')
             final.seek(0)
-            await self.bot.upload(final, filename='rotate.png', content='Rotated: `{0}°`'.format(scale))
+            file = discord.File(final, filename='rotate.png')
+            await ctx.send('Rotated: `{0}°`'.format(scale), file=file)
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())

@@ -1,8 +1,8 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 import re
 
-class Covfefe:
+class Covfefe(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot

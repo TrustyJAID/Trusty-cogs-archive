@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 from redbot.core import Config
 import asyncio
@@ -9,7 +9,7 @@ import aiohttp
 import json
 from bs4 import BeautifulSoup
 
-class Gab:
+class Gab(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
