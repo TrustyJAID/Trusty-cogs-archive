@@ -655,7 +655,11 @@ class Tweets(getattr(commands, "Cog", object)):
     @checks.admin_or_permissions(manage_guild=True)
     async def _tweetset(self, ctx):
         """Command for setting required access information for the API.
-        To get this info, visit https://apps.twitter.com and create a new application.
+
+        1. Visit https://apps.twitter.com and apply for a developer account.
+        2. Once your account is approved setup an application and follout the form
+        3. Supply the consumer_key, consumer_secret, access_token, and access_secret
+        to the bot in a private channel (DM's preferred).
         """
         pass
 
