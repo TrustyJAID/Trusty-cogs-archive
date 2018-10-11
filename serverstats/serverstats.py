@@ -372,8 +372,11 @@ class ServerStats(getattr(commands, "Cog", object)):
         new_msg = ""
         for reaction in msg.reactions:
             async for user in reaction.users():
-                new_msg += "{} {}#{} {}\n".format(user.id, user.name, user.discriminator, reaction.emoji.name)
-        for page in pagify(new_msg):
+                if type(reaction.emoji) is not str:
+                    new_msg += "{} {}#{} {}\n".format(user.id, user.name, user.discriminator, reaction.emoji.name)
+                else:
+                    new_msg += "{} {}#{} {}\n".format(user.id, user.name, user.discriminator, reaction.emoji)
+        for page in pagify(new_msg, shorten_by=20):
             await ctx.send("```py\n{}\n```".format(page))
 
 
