@@ -602,8 +602,10 @@ class Hockey(getattr(commands, "Cog", object)):
         old_pickem = None
         for p in pickems:
             if p["home_team"] == game.home_team and p["away_team"] == game.away_team:
-                print("Pickem already exists, adding channel")
-                old_pickem = p
+                if p["game_start"] == game.game_start.strftime("%Y-%m-%dT%H:%M:%SZ"):
+                    # Only use the old one if the date is the same and the same teams are playing
+                    print("Pickem already exists, adding channel")
+                    old_pickem = p
 
         if old_pickem is None:
             pickems.append({"message":[message.id], 
@@ -741,7 +743,6 @@ class Hockey(getattr(commands, "Cog", object)):
                 
                 else:
                     if data.game_state == "Preview":
-                        print(data.game_state)
                         if game_day_channels is not None:
                             # Don't post the preview message twice in the channel
                             if channel.id in game_day_channels:
