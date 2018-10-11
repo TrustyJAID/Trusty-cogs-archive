@@ -180,8 +180,8 @@ class Gabai(getattr(commands, "Cog", object)):
             Gets a users feed from gab.ai before a specified date
 
             before_date must be in format DD-MM-YYYY
-            2018-10-03T19:35:47+00:00
         """
+        await ctx.trigger_typing()
         if before_date is None:
             before_date = datetime.now().strftime("%Y-%m-%dT%H:%M%S%z")
         else:
@@ -198,6 +198,7 @@ class Gabai(getattr(commands, "Cog", object)):
         """
             Get user information from gab.ai
         """
+        await ctx.trigger_typing()
         try:
             user_info = await self.get_gab_response(f"users/{username}")
         except NotFoundError as e:
