@@ -84,16 +84,18 @@ class TrustyBot(getattr(commands, "Cog", object)):
         if ctx.message.guild.id == 402161292644712468:
             await ctx.send(embed=em)
 
-
-    @commands.command(hidden=True)
-    @checks.is_owner()
-    async def msg(self, ctx, *, msg):
-        print(msg)
-
     @commands.command(hidden=True)
     async def say(self, ctx, *, msg):
-        print(ctx.message.content)
+        """Say things as the bot"""
         await ctx.send(msg)
+
+    @commands.command(hidden=True, aliases=["ss"])
+    async def silentsay(self, ctx, *, msg):
+        """Say things as the bot and deletes the command if it can"""
+        if ctx.channel.permissions_for(ctx.guild).manage_messages:
+            await ctx.message.delete()
+        await ctx.send(msg)
+
 
     @commands.command()
     async def pingtime(self, ctx):
