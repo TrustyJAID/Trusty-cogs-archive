@@ -236,6 +236,9 @@ class Gabai(getattr(commands, "Cog", object)):
         }
         async with self.session.post("https://api.gab.com/oauth/token", json=params) as resp:
             token = await resp.json()
+        if "error" in token:
+            await ctx.send(token["message"]+ "\n\nMaybe try again/")
+            return
         await self.config.api_token.token.set(token)
         await self.config.api_token.refresh_time.set(token["expires_in"]+datetime.now().timestamp())
         await ctx.send("API Tokens set!")
