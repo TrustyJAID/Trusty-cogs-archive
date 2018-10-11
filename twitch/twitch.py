@@ -399,6 +399,12 @@ class Twitch(getattr(commands, "Cog", object)):
     async def twitch_creds(self, ctx, client_id:str, client_secret:str=None):
         """
             Set twitch client_id and client_secret if required for larger followings
+
+            1. Go to https://glass.twitch.tv/console/apps login and select Register Your Application
+            2. Fillout the form with the OAuth redirect URL set to https://localhost
+            3. Supply the client_id and client_secret to the bot
+            **Note:** client_secret is only necessary if you have more than 3000 followers
+            or you expect to be making more than 30 calls per minute to the API 
         """
         await self.config.client_id.set(client_id)
         if client_secret is not None:
