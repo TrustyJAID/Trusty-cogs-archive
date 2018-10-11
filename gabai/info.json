@@ -2,8 +2,8 @@
     "author" : [
         "TrustyJAID"
     ],
-    "description" : "Checks if a user is on gab",
-    "install_msg" : "Apply a special role for people who are on Gab.",
+    "description" : "Get information from gab.ai's API and display in discord.",
+    "install_msg" : "Thanks for installing, remember to set your gab API credentials with `[p]gab token` and follow the instructions.",
     "min_python_version" : [
         3,
         6,
@@ -12,7 +12,7 @@
     "name" : "Gabai",
     "permissions" : [],
     "requirements" : [],
-    "short" : "Gab verification",
+    "short" : "Gab.ai information",
     "tags" : [
         "general",
         "utility"
