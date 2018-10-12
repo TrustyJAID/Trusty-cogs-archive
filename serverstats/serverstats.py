@@ -69,6 +69,48 @@ class ServerStats(getattr(commands, "Cog", object)):
             em.set_author(name=guild.name) 
         await channel.send(embed=em)
 
+    async def on_guild_remove(self, guild):
+        channel_id = await self.config.join_channel()
+        if channel_id is None:
+            return
+        channel = self.bot.get_channel(channel_id)
+        online = len([m.status for m in guild.members
+                      if m.status == discord.Status.online or
+                      m.status == discord.Status.idle])
+        total_users = len(guild.members)
+        text_channels = len([x for x in guild.text_channels])
+        voice_channels = len([x for x in guild.voice_channels])
+        passed = (datetime.datetime.utcnow() - guild.created_at).days
+        created_at = _("{} is on {} servers now! \nServer created {}. That's over {} days ago!".format(
+                        channel.guild.me.mention,
+                        len(self.bot.guilds),
+                        guild.created_at.strftime("%d %b %Y %H:%M"),
+                        passed))
+
+        colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
+        colour = int(colour, 16)
+
+        em = discord.Embed(
+            description=created_at,
+            colour=discord.Colour(value=colour),
+            timestamp=guild.created_at)
+        em.add_field(name="Region", value=str(guild.region))
+        em.add_field(name="Users", value="{}/{}".format(online, total_users))
+        em.add_field(name="Text Channels", value=text_channels)
+        em.add_field(name="Voice Channels", value=voice_channels)
+        em.add_field(name="Roles", value=len(guild.roles))
+        em.add_field(name="Owner", value="{} | {}".format(str(guild.owner), guild.owner.mention))
+        if guild.features != []:
+            em.add_field(name="Guild Features", value=", ".join(feature for feature in guild.features))
+        em.set_footer(text="guild ID: {}".format(guild.id))
+
+        if guild.icon_url:
+            em.set_author(name=guild.name, icon_url=guild.icon_url)
+            em.set_thumbnail(url=guild.icon_url)
+        else:
+            em.set_author(name=guild.name) 
+        await channel.send(embed=em)
+
     @commands.command(pass_context=True)
     async def emoji(self, ctx, emoji):
         # print(emoji)
@@ -123,7 +165,14 @@ class ServerStats(getattr(commands, "Cog", object)):
         if channel is None:
             channel = ctx.message.channel
         await self.config.join_channel.set(channel.id)
-        await ctx.send("Posting joined servers in {}".format(channel.mention))
+        await ctx.send("Posting new servers and left servers in {}".format(channel.mention))
+
+    @commands.command()
+    @checks.is_owner()
+    async def removeguildjoin(self, ctx):
+        """Set a channel to see new servers the bot is joining"""
+        await self.config.join_channel.set(None)
+        await ctx.send("No longer posting joined or left servers.")
 
     @commands.command(hidden=True)
     @checks.is_owner()
