@@ -164,14 +164,32 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     9de8a0c [Gabai] Handle errors on setting tokens incorrectly\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     2e8b1ee [Serverstats] Fix message too long error and parse default emojis on getreactions command\n\n\nUntracked files:\n\tdestiny/\n\nChanges:\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 961,
+				"buffer_size": 1051,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
 				"scratch": true
+			}
+		},
+		{
+			"contents": "347143008539639808 quantumking#1537 EdmontonOilers\n320658801852153857 Drumstick#0621 EdmontonOilers\n300301333658075136 Connor#0138 EdmontonOilers\n297517577721217024 Cap'n Curnch#4995 EdmontonOilers\n276183620178149388 Blue™#6969 EdmontonOilers\n268562382173765643 TrustyBot#7726 EdmontonOilers\n225005778359156736 mbx#6539 EdmontonOilers\n222890534908329984 KrizChin#9573 EdmontonOilers\n218773382617890828 TrustyJAID#0001 EdmontonOilers\n218353673376497664 horomania#3909 EdmontonOilers\n205850545502683136 Helvigster | 7-7#7399 EdmontonOilers\n198526930125979648 Randompunkt#7753 EdmontonOilers\n197493600353910784 Encry_pted#3222 EdmontonOilers\n181427103466520576 CanadianZudomon#3290 EdmontonOilers\n178278201301270538 nago konami#0470 EdmontonOilers\n168139909859639296 mn#9071 EdmontonOilers\n159286254284963840 mvp13#7597 EdmontonOilers\n125719575420469248 KO#9048 EdmontonOilers\n109431171263254528 Cptn.Canuck#3976 EdmontonOilers\n87984033920737280 House 932#6870 EdmontonOilers\n\n\n496792573533487106 MCL33#8640 BostonBruins\n489126389581348884 MantoRune#9345 BostonBruins\n456884785843929088 SeveredSurvival#3319 BostonBruins\n436736392974827521 Endevour#4455 BostonBruins\n399403909539561492 FutureBoy#7777 BostonBruins\n394248940821676042 ken!#3903 BostonBruins\n383032430463811604 Don Cherry's Suits#8918 BostonBruins\n378639739953217576 Copeland#2281 BostonBruins\n372063109638258688 No-Name Horse#1378 BostonBruins\n370664913389092889 nontoaster#5480 BostonBruins\n370008443765129220 tapefoot#2436 BostonBruins\n361666107540635648 phoneaccountalvy#5047 BostonBruins\n353511739352023041 remdwg#4474 BostonBruins\n347834084279451648 joeytwotimes#2714 BostonBruins\n342937866617487372 rj2159927#9589 BostonBruins\n341438145239449611 Leddy#8233 BostonBruins\n338018799024603149 killerdoggie#6091 BostonBruins\n326115582527275009 pantsdragon#7274 BostonBruins\n322489932264374273 RobKing1994#8214 BostonBruins\n310156754975588352 Dodgy Bastard#2540 BostonBruins\n309520229082595339 Elephant Yarn#3024 BostonBruins\n307015049891807232 Bradley#0979 BostonBruins\n306948034665644042 Royale With Cheese#3006 BostonBruins\n296069516771721227 Chino#9452 BostonBruins\n294717175741022209 Lucky Boeser#2743 BostonBruins\n289882978757378050 grim#7295 BostonBruins\n283796485408292865 loservillemn#2951 BostonBruins\n268562382173765643 TrustyBot#7726 BostonBruins\n265224177957470219 Alx#3823 BostonBruins\n264551083236392961 Clint Eastwood#8982 BostonBruins\n262293137043488768 Lions GOAT#9990 BostonBruins\n254134588329164800 MrPenguin#1981 BostonBruins\n241356117832105985 soundersfan84#8550 BostonBruins\n231240829841309706 obj#9899 BostonBruins\n230140595916636172 eric#0009 BostonBruins\n228492507124596736 [name redacted]#0001 BostonBruins\n224051592486191104 NYSTLSportsFan#6019 BostonBruins\n216747731295797248 nerv#7625 BostonBruins\n211626684007448577 tristmist#4281 BostonBruins\n210422901772386304 Byr#1610 BostonBruins\n200954334354079744 Sorator#8893 BostonBruins\n200768282339311616 rufus#8702 BostonBruins\n196638888003895296 Lanturn#0001 BostonBruins\n195293264398516224 TapdancingCrabdemon#4105 BostonBruins\n193916148998209536 Highsman13#7563 BostonBruins\n187260654002896905 Error1355#1355 BostonBruins\n186506938870267904 d00magedd0n#1918 BostonBruins\n180144989655793664 Fuzzysqurl#7058 BostonBruins\n173281690402291713 Candy Corn Time#2542 BostonBruins\n167433740719620097 Werford#9665 BostonBruins\n165321408098992128 WildOne#4589 BostonBruins\n164174694411403264 sandman730#7796 BostonBruins\n150495791885058048 dftnate#1996 BostonBruins\n146691984084434944 3𝓓𝓼𝓹𝓸𝓭𝓮𝓻𝓼#6965 BostonBruins\n146171178132701185 Boss#0717 BostonBruins\n137805962034675712 NLO#2971 BostonBruins\n136609221234917376 Washingdone ♀#7878 BostonBruins\n135844386813509633 Tank#8314 BostonBruins\n134507698103255040 Max#6067 BostonBruins\n128321342998183936 Axepig#1234 BostonBruins\n125086541784547328 Scaldera93#9315 BostonBruins\n125004128454705152 Josh#7483 BostonBruins\n118081596828942344 Volfury#7166 BostonBruins\n114748580010393608 Canadian Musical Bastard#9732 BostonBruins\n95221876279738368 biebs#6130 BostonBruins\n90281725346734080 AaronQ94#0985 BostonBruins\n84810352839110656 Kieofire#3848 BostonBruins\n82936475393462272 Nas#2464 BostonBruins\n71020682493825024 (Preheated Microwave)#3931 BostonBruins",
+			"settings":
+			{
+				"buffer_size": 4230,
+				"line_ending": "Windows",
+				"name": "347143008539639808 quantumking#1537 EdmontonOilers"
+			}
+		},
+		{
+			"file": "serverstats/serverstats.py",
+			"settings":
+			{
+				"buffer_size": 21940,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		},
 		{
@@ -309,8 +327,7 @@
 	[
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
-		"/E/github/Trusty-cogs/gabai",
-		"/E/github/Trusty-cogs/hockey",
+		"/E/github/Trusty-cogs/serverstats",
 		"/E/github/Trusty-cogs/starboard"
 	],
 	"file_history":
@@ -461,6 +478,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"anyone",
+			"nas",
 			"hockey_menu",
 			"datetime.now()",
 			"time.time()",
@@ -586,9 +605,7 @@
 			"self.escape",
 			"get_text",
 			"self.cursor",
-			"self.download",
-			"self.files_path",
-			"await await "
+			"self.download"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -644,7 +661,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -652,15 +669,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 961,
+						"buffer_size": 1051,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								796,
-								796
+								907,
+								907
 							]
 						],
 						"settings":
@@ -678,11 +695,69 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4230,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2630,
+								2631
+							]
+						],
+						"settings":
+						{
+							"auto_name": "347143008539639808 quantumking#1537 EdmontonOilers",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 639.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "serverstats/serverstats.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21940,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								15564,
+								15565
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5805.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
 					"file": "gabai/gabai.py",
 					"semi_transient": false,
 					"settings":
@@ -708,11 +783,11 @@
 						"translation.y": 3454.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 4,
 					"file": "hockey/menu.py",
 					"semi_transient": false,
 					"settings":
@@ -738,11 +813,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 5,
 					"file": "hockey/embeds.py",
 					"semi_transient": false,
 					"settings":
@@ -768,11 +843,11 @@
 						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 6,
 					"file": "gabai/gabuser.py",
 					"semi_transient": false,
 					"settings":
@@ -797,7 +872,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 5,
 					"type": "text"
 				}
 			]
@@ -858,7 +933,7 @@
 	"project": "trusty-cogs.sublime-project",
 	"replace":
 	{
-		"height": 73.0
+		"height": 50.0
 	},
 	"save_all_on_build": false,
 	"select_file":
