@@ -83,14 +83,27 @@ class ActivityChecker(getattr(commands, "Cog", object)):
                 msg += role_name
             await ctx.send("```" + msg + "```")
 
+    async def get_member_from_id(self, guild, member_id):
+        member_list = await self.config.guild(guild).members()
+        for member in member_list:
+            if member_id == member["id"]:
+                return member
+        return None
+
     async def check_ignored_users(self, guild, member_id):
         member = guild.get_member(member_id)
         roles = await self.config.guild(guild).check_roles()
         if member is None:
             # print("member doesn't exist on the guild I should remove them from the list")
-            member_list = await self.config.guild(guild).members()
-            member_list.remove(member_id)
-            await self.config.guild(guild).members.set(member_list)
+            try:
+                member_list = await self.config.guild(guild).members()
+                member_dict = await self.get_member_from_id(guild, member_id)
+                if member_dict is not None:
+                    member_list.remove(member_dict)
+                    await self.config.guild(guild).members.set(member_list)
+            except Exception as e:
+                print(e)
+                pass
             return True
         if member.bot:
             # print("member is a bot account, we don't care about those " + member.name)
@@ -311,14 +324,6 @@ class ActivityChecker(getattr(commands, "Cog", object)):
 
         await self.build_list(ctx, guild)
         await ctx.send("Sending activity check messages to {}".format(channel.mention))
-
-    def check_roles(self, member, roles):
-        """Checks if a role name is in a members roles."""
-        has_role = False
-        for role in member.roles:
-            if role.name in roles:
-                has_role = True
-        return has_role
 
     async def activity_checker(self):
         await self.bot.wait_until_ready()
