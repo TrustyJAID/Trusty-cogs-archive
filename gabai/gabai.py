@@ -6,7 +6,7 @@ from datetime import datetime
 from .gabuser import GabUser
 
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 __author__ = "TrustyJAID"
 
 BASE_URL = "https://api.gab.com/v1.0/"
@@ -90,7 +90,7 @@ class Gabai(getattr(commands, "Cog", object)):
     async def make_user_embed(self, user:GabUser):
         
         url = "https://gab.ai/{}".format(user.username)
-        em = discord.Embed(description=user.bio[:1990], title=user.name)
+        em = discord.Embed(description=user.bio[:1990], title=user.name, colour=int("4bd079", 16))
         em.set_author(name=user.username, url=url, icon_url=user.picture_url_full)
         em.set_thumbnail(url=user.picture_url_full)
         em.add_field(name="Followers", value=user.follower_count)
@@ -111,10 +111,22 @@ class Gabai(getattr(commands, "Cog", object)):
         return em
 
     async def make_post_embed(self, post:dict):
-        url = "https://gab.ai/{}/posts/{}".format(post["actuser"]["username"], post["post"]["id"])
+        username = post["actuser"]["username"]
+        post_id = post["post"]["id"]
+        url = "https://gab.ai/{}/posts/{}".format(username, post_id)
         timestamp = datetime.strptime(post["post"]["created_at"], "%Y-%m-%dT%H:%M:%S+00:00")
-        em = discord.Embed(description= post["post"]["body"], timestamp=timestamp)
+        attachment = post["post"]["attachment"]["type"]
+        colour = int("4bd079", 16)
+        likes = post["post"]["like_count"]
+        replies = post["post"]["reply_count"]
+        em = discord.Embed(description= post["post"]["body"], timestamp=timestamp, colour=colour)
+        if attachment is not None:
+            if attachment != "media":
+                em.set_image(url=post["post"]["attachment"]["value"])
+            else:
+                em.set_image(url=post["post"]["attachment"]["value"][0]["url_full"])
         em.set_author(name=post["actuser"]["username"], url=url, icon_url=post["actuser"]["picture_url"])
+        em.set_footer(text="{} Likes | {} Replies | Created at".format(likes, replies))
         return em
 
 
