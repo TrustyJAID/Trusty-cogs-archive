@@ -210,6 +210,7 @@ class Gabai(getattr(commands, "Cog", object)):
 
 
     @gab.command()
+    @checks.is_owner()
     async def token(self, ctx, client_id:str, client_secret:str):
         """
             Provide your client_id and client_secret
