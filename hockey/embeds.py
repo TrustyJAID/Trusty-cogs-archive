@@ -14,11 +14,11 @@ async def game_state_embed(data):
     # timestamp = datetime.strptime(data.game_start, "%Y-%m-%dT%H:%M:%SZ")
     title = "{away} @ {home} {state}".format(away=data.away_team, home=data.home_team, state=data.game_state)
     em = discord.Embed(timestamp=data.game_start)
-    home_field = "{} {} {}".format(data.home_emoji, data.home_team, data.home_emoji)
-    away_field = "{} {} {}".format(data.away_emoji, data.away_team, data.away_emoji)
+    home_field = "{0} {1} {0}".format(data.home_emoji, data.home_team)
+    away_field = "{0} {1} {0}".format(data.away_emoji, data.away_team)
     if data.game_state != "Preview":
-        home_str = "Goals: **{}** \nShots: **{}**".format(data.home_score, data.home_shots)
-        away_str = "Goals: **{}** \nShots: **{}**".format(data.away_score, data.away_shots)
+        home_str = f"Goals: **{data.home_score}** \nShots: **{data.home_shots}**"
+        away_str = f"Goals: **{data.away_score}** \nShots: **{data.away_shots}**"
     else:
         home_str, away_str = await get_stats_msg(data)
     em.add_field(name=home_field, value=home_str, inline=True)
@@ -27,6 +27,9 @@ async def game_state_embed(data):
     if colour is not None:
         em.colour = colour
     home_url = teams[data.home_team]["team_url"]  if data.home_team in teams else "https://nhl.com"
+    if data.first_star is not None:
+        stars = f"⭐ {data.first_star}\n⭐⭐ {data.second_star}\n⭐⭐⭐ {data.third_star}"
+        em.add_field(name="Stars of the game", value=stars)
     em.set_author(name=title, url=home_url, icon_url=data.home_logo)
     em.set_thumbnail(url=data.home_logo)
     em.set_footer(text="Game start ", icon_url=data.away_logo)
@@ -367,6 +370,9 @@ async def game_embed(post_list, page):
                     goal_msg += "<:{}>{} Goal By {}\n\n".format(emoji, team, goal["result"]["description"])
                 if goal_msg != "":
                     em.add_field(name="{} Period Goals".format(ordinal), value=goal_msg)
+        if data.first_star is not None:
+            stars = f"⭐ {data.first_star}\n⭐⭐ {data.second_star}\n⭐⭐⭐ {data.third_star}"
+            em.add_field(name="Stars of the game", value=stars)
         if data.game_state == "Live":
             try:
                 em.description = data.plays[-1]["result"]["description"]
