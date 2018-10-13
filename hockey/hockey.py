@@ -670,6 +670,7 @@ class Hockey(getattr(commands, "Cog", object)):
                         leaderboard = {}
                     for user in leaderboard:
                         leaderboard[str(user)]["weekly"] = 0
+                    await self.config.guild(guild).leaderboard.set(leaderboard)
                 for pickems in pickem_list:
                     
                     if pickems.winner is None:
