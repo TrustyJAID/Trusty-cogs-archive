@@ -168,10 +168,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     16aed4f [Gabai] Version 2.0.1 Add colour to embeds Show images if a post has an image in it\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     30382da [Hockey] Version 2.2.3\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 993,
+				"buffer_size": 932,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -179,10 +179,28 @@
 			}
 		},
 		{
-			"file": "gabai/gabai.py",
+			"file": "hockey/hockey.py",
 			"settings":
 			{
-				"buffer_size": 10699,
+				"buffer_size": 70184,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/pickems.py",
+			"settings":
+			{
+				"buffer_size": 2609,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/game.py",
+			"settings":
+			{
+				"buffer_size": 5247,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -191,27 +209,18 @@
 			"file": "hockey/embeds.py",
 			"settings":
 			{
-				"buffer_size": 19510,
+				"buffer_size": 19836,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"contents": "{  \n   \"id\":\"d1614361-e3cd-4d45-b8f5-933524f6f45f\",\n   \"published_at\":\"2018-07-24T00:27:12+00:00\",\n   \"type\":\"post\",\n   \"actuser\":{  \n      \"id\":10285,\n      \"name\":\"Okham Tex (Delta Pappa Sierra)\",\n      \"username\":\"dps\",\n      \"picture_url\":\"https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png\",\n      \"verified\":False,\n      \"is_donor\":True,\n      \"is_investor\":False,\n      \"is_pro\":False,\n      \"is_private\":False,\n      \"is_premium\":False\n   },\n   \"post\":{  \n      \"id\":30000176,\n      \"created_at\":\"2018-07-23T21:27:12+00:00\",\n      \"revised_at\":None,\n      \"edited\":False,\n      \"body\":\"\",\n      \"body_html\":None,\n      \"body_html_summary\":\"\",\n      \"body_html_summary_truncated\":False,\n      \"only_emoji\":False,\n      \"liked\":False,\n      \"disliked\":False,\n      \"bookmarked\":False,\n      \"repost\":False,\n      \"reported\":False,\n      \"score\":25,\n      \"like_count\":25,\n      \"dislike_count\":0,\n      \"reply_count\":4,\n      \"repost_count\":5,\n      \"is_quote\":False,\n      \"is_reply\":False,\n      \"is_replies_disabled\":False,\n      \"embed\":{  \n         \"html\":None,\n         \"iframe\":None\n      },\n      \"attachment\":{  \n         \"type\":\"media\",\n         \"value\":[  \n            {  \n               \"id\":\"d542d6c0-0910-4f37-89c1-ff66014cdb25\",\n               \"url_thumbnail\":\"https://gabfiles.blob.core.windows.net/image/5b56725dd34ae.jpeg\",\n               \"url_full\":\"https://gabfiles.blob.core.windows.net/image/5b56725dd34ec.jpeg\",\n               \"width\":1080,\n               \"height\":1072\n            }\n         ]\n      },\n      \"category\":7,\n      \"category_details\":{  \n         \"title\":\"Humor\",\n         \"slug\":\"humor\",\n         \"value\":7,\n         \"emoji\":\"😂\"\n      },\n      \"language\":None,\n      \"nsfw\":False,\n      \"is_premium\":False,\n      \"is_locked\":False,\n      \"premium_min_tier\":0,\n      \"current_tier\":0,\n      \"user\":{  \n         \"id\":10285,\n         \"name\":\"Okham Tex (Delta Pappa Sierra)\",\n         \"username\":\"dps\",\n         \"picture_url\":\"https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png\",\n         \"verified\":False,\n         \"is_donor\":True,\n         \"is_investor\":False,\n         \"is_pro\":False,\n         \"is_private\":False,\n         \"is_premium\":False\n      },\n      \"replies\":{  \n         \"data\":[  \n\n         ]\n      }\n   }\n}\n{  \n   'id':'f99471b9-3b67-4804-9b14-64747da5e05e',\n   'published_at':'2018-07-24T18:30:01+00:00',\n   'type':'post',\n   'actuser':{  \n      'id':10285,\n      'name':'Okham Tex (Delta Pappa Sierra)',\n      'username':'dps',\n      'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png',\n      'verified':False,\n      'is_donor':True,\n      'is_investor':False,\n      'is_pro':False,\n      'is_private':False,\n      'is_premium':False\n   },\n   'post':{  \n      'id':30048367,\n      'created_at':'2018-07-24T15:30:01+00:00',\n      'revised_at':None,\n      'edited':False,\n      'body':'\"I don\\'t think I could handle that - because then Frank would be Henry with me....\"',\n      'body_html':'<p>\"I don\\'t think I could handle that - because then Frank would be Henry with me....\"</p>',\n      'body_html_summary':'<p>\"I don\\'t think I could handle that - because then Frank would be Henry with me....\"</p>',\n      'body_html_summary_truncated':False,\n      'only_emoji':False,\n      'liked':False,\n      'disliked':False,\n      'bookmarked':False,\n      'repost':False,\n      'reported':False,\n      'score':5,\n      'like_count':5,\n      'dislike_count':0,\n      'reply_count':0,\n      'repost_count':0,\n      'is_quote':True,\n      'is_reply':False,\n      'is_replies_disabled':False,\n      'embed':{  \n         'html':None,\n         'iframe':None\n      },\n      'attachment':{  \n         'type':None,\n         'value':None\n      },\n      'category':None,\n      'category_details':None,\n      'language':None,\n      'nsfw':False,\n      'is_premium':False,\n      'is_locked':False,\n      'premium_min_tier':0,\n      'current_tier':0,\n      'user':{  \n         'id':10285,\n         'name':'Okham Tex (Delta Pappa Sierra)',\n         'username':'dps',\n         'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png',\n         'verified':False,\n         'is_donor':True,\n         'is_investor':False,\n         'is_pro':False,\n         'is_private':False,\n         'is_premium':False\n      },\n      'parent':{  \n         'id':29599429,\n         'created_at':'2018-07-17T20:47:09+00:00',\n         'revised_at':None,\n         'edited':False,\n         'body':'Yeah - can we be Frank?',\n         'body_html':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary_truncated':False,\n         'only_emoji':False,\n         'liked':False,\n         'disliked':False,\n         'bookmarked':False,\n         'repost':False,\n         'reported':False,\n         'score':7,\n         'like_count':7,\n         'dislike_count':0,\n         'reply_count':0,\n         'repost_count':1,\n         'is_quote':True,\n         'is_reply':False,\n         'is_replies_disabled':False,\n         'embed':{  \n            'html':None,\n            'iframe':None\n         },\n         'attachment':{  \n            'type':None,\n            'value':None\n         },\n         'category':None,\n         'category_details':None,\n         'language':None,\n         'nsfw':False,\n         'is_premium':False,\n         'is_locked':False,\n         'premium_min_tier':0,\n         'current_tier':0,\n         'user':{  \n            'id':192748,\n            'name':'mmcc2200',\n            'username':'justmargaret',\n            'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/59455c41a57aa.jpg',\n            'verified':False,\n            'is_donor':False,\n            'is_investor':False,\n            'is_pro':True,\n            'is_private':False,\n            'is_premium':False\n         },\n         'replies':{  \n            'data':[  \n\n            ]\n         }\n      },\n      'replies':{  \n         'data':[  \n\n         ]\n      },\n      'conversation_parent':{  \n         'id':29599429,\n         'created_at':'2018-07-17T20:47:09+00:00',\n         'revised_at':None,\n         'edited':False,\n         'body':'Yeah - can we be Frank?',\n         'body_html':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary_truncated':False,\n         'only_emoji':False,\n         'liked':False,\n         'disliked':False,\n         'bookmarked':False,\n         'repost':False,\n         'reported':False,\n         'score':7,\n         'like_count':7,\n         'dislike_count':0,\n         'reply_count':0,\n         'repost_count':1,\n         'is_quote':True,\n         'is_reply':False,\n         'is_replies_disabled':False,\n         'embed':{  \n            'html':None,\n            'iframe':None\n         },\n         'attachment':{  \n            'type':None,\n            'value':None\n         },\n         'category':None,\n         'category_details':None,\n         'language':None,\n         'nsfw':False,\n         'is_premium':False,\n         'is_locked':False,\n         'premium_min_tier':0,\n         'current_tier':0,\n         'user':{  \n            'id':192748,\n            'name':'mmcc2200',\n            'username':'justmargaret',\n            'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/59455c41a57aa.jpg',\n            'verified':False,\n            'is_donor':False,\n            'is_investor':False,\n            'is_pro':True,\n            'is_private':False,\n            'is_premium':False\n         },\n         'replies':{  \n            'data':[  \n\n            ]\n         }\n      }\n   }\n}",
+			"file": "hockey/testgame.json",
 			"settings":
 			{
-				"buffer_size": 7651,
-				"line_ending": "Windows",
-				"name": "{"
-			}
-		},
-		{
-			"contents": "import requests\n\nurl = \"https://api.gab.com/v1.0/posts\"\n\npayload = \"------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"body\\\"\\r\\n\\r\\nSample post with multiple media attachments\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"media_attachments[]\\\"\\r\\n\\r\\nsample-media-attachment-id-1\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"media_attachments[]\\\"\\r\\n\\r\\nsample-media-attachment-id-2\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"reply_to\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"is_quote\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"nsfw\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"premium_min_tier\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"group\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"topic\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_1\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_2\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_3\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_4\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW--\"\nheaders = {\n    'content-type': \"multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW\",\n    'Authorization': \"Bearer ACCESS_TOKEN\"\n    }\n\nresponse = requests.request(\"POST\", url, data=payload, headers=headers)\n\nprint(response.text)",
-			"settings":
-			{
-				"buffer_size": 1944,
-				"line_ending": "Windows",
-				"name": "import requests"
+				"buffer_size": 573130,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		}
 	],
@@ -318,11 +327,13 @@
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
 		"/E/github/Trusty-cogs/activity",
+		"/E/github/Trusty-cogs/hockey",
 		"/E/github/Trusty-cogs/serverstats",
 		"/E/github/Trusty-cogs/starboard"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/gabai/gabai.py",
 		"/E/github/Trusty-cogs/activity/activity.py",
 		"/C/Users/Damez/Desktop/settings.json",
 		"/E/github/Trusty-cogs/gabai/gabuser.py",
@@ -449,8 +460,7 @@
 		"/E/github/Trusty-cogs/imgflip/info.json",
 		"/E/github/Trusty-cogs/convertinfo.py",
 		"/E/github/Trusty-cogs/stickyroles/info.json",
-		"/E/github/Trusty-cogs/welcome/info.json",
-		"/E/github/Trusty-cogs/autorole/info.json"
+		"/E/github/Trusty-cogs/welcome/info.json"
 	],
 	"find":
 	{
@@ -469,6 +479,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"tally_leaderboard",
 			"'",
 			"check_roles",
 			"152963007767511040",
@@ -595,8 +606,7 @@
 			"self.bot.send_message(channel, ",
 			"get_attachment_images",
 			"em = await self.make_embed(member)",
-			"get_welcome_channel",
-			"self.escape"
+			"get_welcome_channel"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -661,15 +671,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 993,
+						"buffer_size": 932,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								315,
-								315
+								312,
+								312
 							]
 						],
 						"settings":
@@ -692,19 +702,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "gabai/gabai.py",
+					"file": "hockey/hockey.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10699,
+						"buffer_size": 70184,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3973,
-								3973
+								29642,
+								29642
 							]
 						],
 						"settings":
@@ -714,7 +724,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1512.0,
+						"translation.y": 11464.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -722,19 +732,19 @@
 				},
 				{
 					"buffer": 2,
-					"file": "hockey/embeds.py",
+					"file": "hockey/pickems.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 19510,
+						"buffer_size": 2609,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2142,
-								2142
+								1699,
+								1699
 							]
 						],
 						"settings":
@@ -744,39 +754,33 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 270.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 4,
 					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 1,
-			"sheets":
-			[
+				},
 				{
 					"buffer": 3,
+					"file": "hockey/game.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 7651,
+						"buffer_size": 5247,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								479,
-								479
+								2880,
+								2880
 							]
 						],
 						"settings":
 						{
-							"auto_name": "{",
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 3,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
@@ -788,30 +792,68 @@
 				},
 				{
 					"buffer": 4,
+					"file": "hockey/embeds.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1944,
+						"buffer_size": 19836,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1944,
-								1944
+								1690,
+								1690
 							]
 						],
 						"settings":
 						{
-							"auto_name": "import requests",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 108.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 5,
+					"file": "hockey/testgame.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 573130,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								573129,
+								573130
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 5,
 					"type": "text"
 				}
 			]
@@ -879,7 +921,7 @@
 	"project": "trusty-cogs.sublime-project",
 	"replace":
 	{
-		"height": 73.0
+		"height": 50.0
 	},
 	"save_all_on_build": false,
 	"select_file":
