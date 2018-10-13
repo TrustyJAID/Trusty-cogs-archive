@@ -5,7 +5,8 @@ from datetime import datetime
 class Game:
     def __init__(self, game_state:str, home_team: str, away_team:str, period:int,
                  home_shots:int, away_shots:int, home_score:int, away_score:int, game_start:str, goals:list,
-                 home_goals:list, away_goals:list, home_abr:str, away_abr:str, period_ord:str, period_time_left:str, plays:list):
+                 home_goals:list, away_goals:list, home_abr:str, away_abr:str, period_ord:str,
+                 period_time_left:str, plays:list, first_star:str, second_star:str, third_star:str):
         super().__init__()
         self.game_state = game_state
         self.home_team = home_team
@@ -28,6 +29,9 @@ class Game:
         self.away_logo = teams[away_team]["logo"] if away_team in teams else "https://www-league.nhlstatic.com/images/logos/league-light/133.svg"
         self.home_emoji = "<:{}>".format(teams[home_team]["emoji"]) if home_team in teams else "<:nhl:496510372828807178>"
         self.away_emoji = "<:{}>".format(teams[away_team]["emoji"]) if away_team in teams else "<:nhl:496510372828807178>"
+        self.first_star = first_star
+        self.second_star = second_star
+        self.third_star = third_star
 
     def to_json(self) -> dict:
         return {
@@ -51,7 +55,10 @@ class Game:
             "home_logo" : self.home_logo,
             "away_logo" : self.away_logo,
             "home_emoji" : self.home_emoji,
-            "away_emoji" : self.away_emoji
+            "away_emoji" : self.away_emoji,
+            "first_star" : self.first_star,
+            "second_star" : self.second_star,
+            "third_star" : self.third_star
         }
 
 
@@ -72,6 +79,11 @@ class Game:
             period_ord = "0"
             period_time_left = "0"
             events = ["."]
+        decisions = data["liveData"]["decisions"]
+        first_star = decisions["firstStar"]["fullName"] if "firstStar" in decisions else None
+        second_star = decisions["secondStar"]["fullName"] if "secondStar" in decisions else None
+        third_star = decisions["thirdStar"]["fullName"] if "thirdStar" in decisions else None
+
         return cls(data["gameData"]["status"]["abstractGameState"],
                    data["gameData"]["teams"]["home"]["name"],
                    data["gameData"]["teams"]["away"]["name"],
@@ -88,5 +100,8 @@ class Game:
                    data["gameData"]["teams"]["away"]["abbreviation"],
                    period_ord,
                    period_time_left,
-                   events
+                   events,
+                   first_star,
+                   second_star,
+                   third_star
                    )

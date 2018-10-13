@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-__version__ = "2.2.2"
+__version__ = "2.2.3"
 __author__ = "TrustyJAID"
 
 class Hockey(getattr(commands, "Cog", object)):
@@ -62,14 +62,15 @@ class Hockey(getattr(commands, "Cog", object)):
         async with self.session.get(url) as resp:
             data = await resp.json()
         game_list = []
-        for link in data["dates"][0]["games"]:
-            try:
-                async with self.session.get(self.url + link["link"]) as resp:
-                    data = await resp.json()
-                game_list.append(await Game.from_json(data))
-            except Exception as e:
-                print("error here {}".format(e))
-                continue
+        if data["dates"] != []:
+            for link in data["dates"][0]["games"]:
+                try:
+                    async with self.session.get(self.url + link["link"]) as resp:
+                        data = await resp.json()
+                    game_list.append(await Game.from_json(data))
+                except Exception as e:
+                    print("error here {}".format(e))
+                    continue
         return game_list
 
     @commands.command() 
@@ -127,6 +128,15 @@ class Hockey(getattr(commands, "Cog", object)):
                 games = [game["link"] for game in data["dates"][0]["games"] if game["status"]["abstractGameState"] != "Final"]
             else:
                 games = []
+                # Only try to create game day channels if there's no games for the day
+                # Otherwise make the game day channels once we see the first preview message to delete old ones
+                if not await self.config.created_gdc():
+                    try:
+                        await self.post_automatic_standings()
+                    except Exception as e:
+                        print(e)
+                    await self.check_new_gdc()
+                    await self.config.created_gdc.set(True)
             games_playing = False
             while games != []:
                 to_remove = []
@@ -653,6 +663,13 @@ class Hockey(getattr(commands, "Cog", object)):
                     continue
                 pickem_list = [Pickems.from_json(p) for p in pickem_list_json]
                 time_now = datetime.now()
+                if time_now.isoweekday() == 0:
+                    # Reset the weekly leaderboard if it's Sunday
+                    leaderboard = await self.config.guild(guild).leaderboard()
+                    if leaderboard is None:
+                        leaderboard = {}
+                    for user in leaderboard:
+                        leaderboard[str(user)]["weekly"] = 0
                 for pickems in pickem_list:
                     
                     if pickems.winner is None:
@@ -668,9 +685,6 @@ class Hockey(getattr(commands, "Cog", object)):
                         for user, choice in pickems.votes:
                             if str(user) not in leaderboard:
                                     leaderboard[str(user)] = {"season": 0, "weekly": 0, "total":0}
-                            if time_now.isoweekday() == 0:
-                                # Reset the weekly leaderboard if it's Sunday
-                                leaderboard[str(user)]["weekly"] = 0
                             if choice == pickems.winner:
                                 if str(user) not in leaderboard:
                                     leaderboard[str(user)] = {"season": 1, "weekly": 1, "total":0}
@@ -853,24 +867,18 @@ class Hockey(getattr(commands, "Cog", object)):
                     #print(payload.emoji)
                     pickem.add_vote(user.id, payload.emoji)
                 except UserHasVotedError as team:
-                    try:
+                    if msg.channel.permissions_for(msg.guild.me).manage_messages:
                         emoji = pickem.home_emoji if str(payload.emoji.id) in pickem.away_emoji else pickem.away_emoji
                         await msg.remove_reaction(emoji, user)
-                    except Exception as e:
-                        print(e)
                     reply_message = "You have already voted! Changing vote to {}.".format(team)
                 except VotingHasEndedError:
-                    try:
+                    if msg.channel.permissions_for(msg.guild.me).manage_messages:
                         await msg.remove_reaction(payload.emoji, user)
-                    except:
-                        pass
                     reply_message = "Voting has ended!"
                 except NotAValidTeamError:
-                    try:
+                    if msg.channel.permissions_for(msg.guild.me).manage_messages:
                         await msg.remove_reaction(payload.emoji, user)
-                    except:
-                        pass
-                    reply_message = "Don't clutter the votes box with emojis!"
+                    reply_message = "Don't clutter the voting message with emojis!"
                 if reply_message != "":
                     try:
                         await user.send(reply_message)
