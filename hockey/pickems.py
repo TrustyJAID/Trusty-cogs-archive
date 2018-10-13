@@ -35,7 +35,11 @@ class Pickems:
             if user_id == user:
                 user_voted = True
                 if choice != team_choice:
-                    self.votes.remove((user, choice))
+                    if (user, choice) in self.votes:
+                        self.votes.remove((user, choice))
+                    if (user, team_choice) in self.votes:
+                        # Redundancy so we don't end up with duplicate votes
+                        self.votes.remove((user, team_choice))
                     self.votes.append((user_id, team_choice))
                     raise UserHasVotedError("{} {}".format(team, team_choice))
 
