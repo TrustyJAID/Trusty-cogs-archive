@@ -168,10 +168,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     986e5c3 [Activity] Try to properly remove a user if they're no longer in the server\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     16aed4f [Gabai] Version 2.0.1 Add colour to embeds Show images if a post has an image in it\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 985,
+				"buffer_size": 993,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -182,7 +182,7 @@
 			"file": "gabai/gabai.py",
 			"settings":
 			{
-				"buffer_size": 10090,
+				"buffer_size": 10699,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -197,29 +197,21 @@
 			}
 		},
 		{
-			"file": "activity/activity.py",
+			"contents": "{  \n   \"id\":\"d1614361-e3cd-4d45-b8f5-933524f6f45f\",\n   \"published_at\":\"2018-07-24T00:27:12+00:00\",\n   \"type\":\"post\",\n   \"actuser\":{  \n      \"id\":10285,\n      \"name\":\"Okham Tex (Delta Pappa Sierra)\",\n      \"username\":\"dps\",\n      \"picture_url\":\"https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png\",\n      \"verified\":False,\n      \"is_donor\":True,\n      \"is_investor\":False,\n      \"is_pro\":False,\n      \"is_private\":False,\n      \"is_premium\":False\n   },\n   \"post\":{  \n      \"id\":30000176,\n      \"created_at\":\"2018-07-23T21:27:12+00:00\",\n      \"revised_at\":None,\n      \"edited\":False,\n      \"body\":\"\",\n      \"body_html\":None,\n      \"body_html_summary\":\"\",\n      \"body_html_summary_truncated\":False,\n      \"only_emoji\":False,\n      \"liked\":False,\n      \"disliked\":False,\n      \"bookmarked\":False,\n      \"repost\":False,\n      \"reported\":False,\n      \"score\":25,\n      \"like_count\":25,\n      \"dislike_count\":0,\n      \"reply_count\":4,\n      \"repost_count\":5,\n      \"is_quote\":False,\n      \"is_reply\":False,\n      \"is_replies_disabled\":False,\n      \"embed\":{  \n         \"html\":None,\n         \"iframe\":None\n      },\n      \"attachment\":{  \n         \"type\":\"media\",\n         \"value\":[  \n            {  \n               \"id\":\"d542d6c0-0910-4f37-89c1-ff66014cdb25\",\n               \"url_thumbnail\":\"https://gabfiles.blob.core.windows.net/image/5b56725dd34ae.jpeg\",\n               \"url_full\":\"https://gabfiles.blob.core.windows.net/image/5b56725dd34ec.jpeg\",\n               \"width\":1080,\n               \"height\":1072\n            }\n         ]\n      },\n      \"category\":7,\n      \"category_details\":{  \n         \"title\":\"Humor\",\n         \"slug\":\"humor\",\n         \"value\":7,\n         \"emoji\":\"😂\"\n      },\n      \"language\":None,\n      \"nsfw\":False,\n      \"is_premium\":False,\n      \"is_locked\":False,\n      \"premium_min_tier\":0,\n      \"current_tier\":0,\n      \"user\":{  \n         \"id\":10285,\n         \"name\":\"Okham Tex (Delta Pappa Sierra)\",\n         \"username\":\"dps\",\n         \"picture_url\":\"https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png\",\n         \"verified\":False,\n         \"is_donor\":True,\n         \"is_investor\":False,\n         \"is_pro\":False,\n         \"is_private\":False,\n         \"is_premium\":False\n      },\n      \"replies\":{  \n         \"data\":[  \n\n         ]\n      }\n   }\n}\n{  \n   'id':'f99471b9-3b67-4804-9b14-64747da5e05e',\n   'published_at':'2018-07-24T18:30:01+00:00',\n   'type':'post',\n   'actuser':{  \n      'id':10285,\n      'name':'Okham Tex (Delta Pappa Sierra)',\n      'username':'dps',\n      'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png',\n      'verified':False,\n      'is_donor':True,\n      'is_investor':False,\n      'is_pro':False,\n      'is_private':False,\n      'is_premium':False\n   },\n   'post':{  \n      'id':30048367,\n      'created_at':'2018-07-24T15:30:01+00:00',\n      'revised_at':None,\n      'edited':False,\n      'body':'\"I don\\'t think I could handle that - because then Frank would be Henry with me....\"',\n      'body_html':'<p>\"I don\\'t think I could handle that - because then Frank would be Henry with me....\"</p>',\n      'body_html_summary':'<p>\"I don\\'t think I could handle that - because then Frank would be Henry with me....\"</p>',\n      'body_html_summary_truncated':False,\n      'only_emoji':False,\n      'liked':False,\n      'disliked':False,\n      'bookmarked':False,\n      'repost':False,\n      'reported':False,\n      'score':5,\n      'like_count':5,\n      'dislike_count':0,\n      'reply_count':0,\n      'repost_count':0,\n      'is_quote':True,\n      'is_reply':False,\n      'is_replies_disabled':False,\n      'embed':{  \n         'html':None,\n         'iframe':None\n      },\n      'attachment':{  \n         'type':None,\n         'value':None\n      },\n      'category':None,\n      'category_details':None,\n      'language':None,\n      'nsfw':False,\n      'is_premium':False,\n      'is_locked':False,\n      'premium_min_tier':0,\n      'current_tier':0,\n      'user':{  \n         'id':10285,\n         'name':'Okham Tex (Delta Pappa Sierra)',\n         'username':'dps',\n         'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/5917500c1d3d6.png',\n         'verified':False,\n         'is_donor':True,\n         'is_investor':False,\n         'is_pro':False,\n         'is_private':False,\n         'is_premium':False\n      },\n      'parent':{  \n         'id':29599429,\n         'created_at':'2018-07-17T20:47:09+00:00',\n         'revised_at':None,\n         'edited':False,\n         'body':'Yeah - can we be Frank?',\n         'body_html':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary_truncated':False,\n         'only_emoji':False,\n         'liked':False,\n         'disliked':False,\n         'bookmarked':False,\n         'repost':False,\n         'reported':False,\n         'score':7,\n         'like_count':7,\n         'dislike_count':0,\n         'reply_count':0,\n         'repost_count':1,\n         'is_quote':True,\n         'is_reply':False,\n         'is_replies_disabled':False,\n         'embed':{  \n            'html':None,\n            'iframe':None\n         },\n         'attachment':{  \n            'type':None,\n            'value':None\n         },\n         'category':None,\n         'category_details':None,\n         'language':None,\n         'nsfw':False,\n         'is_premium':False,\n         'is_locked':False,\n         'premium_min_tier':0,\n         'current_tier':0,\n         'user':{  \n            'id':192748,\n            'name':'mmcc2200',\n            'username':'justmargaret',\n            'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/59455c41a57aa.jpg',\n            'verified':False,\n            'is_donor':False,\n            'is_investor':False,\n            'is_pro':True,\n            'is_private':False,\n            'is_premium':False\n         },\n         'replies':{  \n            'data':[  \n\n            ]\n         }\n      },\n      'replies':{  \n         'data':[  \n\n         ]\n      },\n      'conversation_parent':{  \n         'id':29599429,\n         'created_at':'2018-07-17T20:47:09+00:00',\n         'revised_at':None,\n         'edited':False,\n         'body':'Yeah - can we be Frank?',\n         'body_html':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary':'<p>Yeah - can we be Frank?</p>\\n',\n         'body_html_summary_truncated':False,\n         'only_emoji':False,\n         'liked':False,\n         'disliked':False,\n         'bookmarked':False,\n         'repost':False,\n         'reported':False,\n         'score':7,\n         'like_count':7,\n         'dislike_count':0,\n         'reply_count':0,\n         'repost_count':1,\n         'is_quote':True,\n         'is_reply':False,\n         'is_replies_disabled':False,\n         'embed':{  \n            'html':None,\n            'iframe':None\n         },\n         'attachment':{  \n            'type':None,\n            'value':None\n         },\n         'category':None,\n         'category_details':None,\n         'language':None,\n         'nsfw':False,\n         'is_premium':False,\n         'is_locked':False,\n         'premium_min_tier':0,\n         'current_tier':0,\n         'user':{  \n            'id':192748,\n            'name':'mmcc2200',\n            'username':'justmargaret',\n            'picture_url':'https://f002.backblazeb2.com/file/files-gab/user/59455c41a57aa.jpg',\n            'verified':False,\n            'is_donor':False,\n            'is_investor':False,\n            'is_pro':True,\n            'is_private':False,\n            'is_premium':False\n         },\n         'replies':{  \n            'data':[  \n\n            ]\n         }\n      }\n   }\n}",
 			"settings":
 			{
-				"buffer_size": 19960,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
+				"buffer_size": 7651,
+				"line_ending": "Windows",
+				"name": "{"
 			}
 		},
 		{
-			"file": "/C/Users/Damez/Desktop/settings.json",
+			"contents": "import requests\n\nurl = \"https://api.gab.com/v1.0/posts\"\n\npayload = \"------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"body\\\"\\r\\n\\r\\nSample post with multiple media attachments\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"media_attachments[]\\\"\\r\\n\\r\\nsample-media-attachment-id-1\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"media_attachments[]\\\"\\r\\n\\r\\nsample-media-attachment-id-2\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"reply_to\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"is_quote\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"nsfw\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"premium_min_tier\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"group\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"topic\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_1\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_2\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_3\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW\\r\\nContent-Disposition: form-data; name=\\\"poll_option_4\\\"\\r\\n\\r\\n\\r\\n------WebKitFormBoundary7MA4YWxkTrZu0gW--\"\nheaders = {\n    'content-type': \"multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW\",\n    'Authorization': \"Bearer ACCESS_TOKEN\"\n    }\n\nresponse = requests.request(\"POST\", url, data=payload, headers=headers)\n\nprint(response.text)",
 			"settings":
 			{
-				"buffer_size": 48738104,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "gabai/gabuser.py",
-			"settings":
-			{
-				"buffer_size": 2790,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
+				"buffer_size": 1944,
+				"line_ending": "Windows",
+				"name": "import requests"
 			}
 		}
 	],
@@ -331,9 +323,11 @@
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/activity/activity.py",
 		"/C/Users/Damez/Desktop/settings.json",
-		"/E/github/Trusty-cogs/hockey/menu.py",
+		"/E/github/Trusty-cogs/gabai/gabuser.py",
 		"/E/github/Trusty-cogs/serverstats/serverstats.py",
+		"/E/github/Trusty-cogs/hockey/menu.py",
 		"/E/github/Trusty-cogs/gabai/info.json",
 		"/E/github/Trusty-cogs/tweets/tweets.py",
 		"/E/github/Trusty-cogs/twitch/twitch.py",
@@ -357,7 +351,6 @@
 		"/E/github/Trusty-cogs/backup/backup.py",
 		"/E/github/Trusty-cogs/anime/anime.py",
 		"/E/github/Trusty-cogs/addimage/addimage.py",
-		"/E/github/Trusty-cogs/activity/activity.py",
 		"/E/github/Trusty-cogs/fun/fun.py",
 		"/E/github/Trusty-cogs/imagemaker/imagemaker.py",
 		"/E/github/Trusty-cogs/imgflip/imgflip.py",
@@ -457,8 +450,7 @@
 		"/E/github/Trusty-cogs/convertinfo.py",
 		"/E/github/Trusty-cogs/stickyroles/info.json",
 		"/E/github/Trusty-cogs/welcome/info.json",
-		"/E/github/Trusty-cogs/autorole/info.json",
-		"/E/github/Trusty-cogs/cleverbot/info.json"
+		"/E/github/Trusty-cogs/autorole/info.json"
 	],
 	"find":
 	{
@@ -477,6 +469,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"'",
 			"check_roles",
 			"152963007767511040",
 			"anyone",
@@ -603,8 +596,7 @@
 			"get_attachment_images",
 			"em = await self.make_embed(member)",
 			"get_welcome_channel",
-			"self.escape",
-			"get_text"
+			"self.escape"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -612,6 +604,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"\"",
 			"gab_menu",
 			"datetime.now().timestamp()",
 			"datetime.now()",
@@ -668,15 +661,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 985,
+						"buffer_size": 993,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								985,
-								985
+								315,
+								315
 							]
 						],
 						"settings":
@@ -703,15 +696,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10090,
+						"buffer_size": 10699,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8264,
-								8264
+								3973,
+								3973
 							]
 						],
 						"settings":
@@ -721,10 +714,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1512.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -754,96 +747,71 @@
 						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 4,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 3,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7651,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								479,
+								479
+							]
+						],
+						"settings":
+						{
+							"auto_name": "{",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 3,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
 					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "activity/activity.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 19960,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4491,
-								4491
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1227.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
 					"buffer": 4,
-					"file": "/C/Users/Damez/Desktop/settings.json",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 48738104,
+						"buffer_size": 1944,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								588,
-								588
+								1944,
+								1944
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"auto_name": "import requests",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "gabai/gabuser.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2790,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								531,
-								531
-							]
-						],
-						"settings":
-						{
-							"auto_name": "",
-							"syntax": "Packages/Python/Python.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
 					"type": "text"
 				}
 			]
@@ -866,11 +834,18 @@
 				0,
 				1,
 				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.5,
 			1.0
 		],
 		"rows":
@@ -904,7 +879,7 @@
 	"project": "trusty-cogs.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 73.0
 	},
 	"save_all_on_build": false,
 	"select_file":
