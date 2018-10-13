@@ -126,6 +126,8 @@ class Hockey(getattr(commands, "Cog", object)):
                 data = await resp.json()
             if data["dates"] != []:
                 games = [game["link"] for game in data["dates"][0]["games"] if game["status"]["abstractGameState"] != "Final"]
+                # Set the created_gdc setting to False incase the previous days games were None
+                await self.config.created_gdc.set(False)
             else:
                 games = []
                 # Only try to create game day channels if there's no games for the day
