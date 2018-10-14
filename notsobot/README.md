@@ -5,5 +5,16 @@
 
 
 **Requirements for ImageMagick**
+https://imagemagick.org/script/download.php
+
+Install the latest source in Ubuntu with:
 `sudo apt-get install libmagickwand-dev`
 https://linuxconfig.org/how-to-install-imagemagick-7-on-ubuntu-18-04-linux
+
+
+`wget ftp://ftp.imagemagick.org/pub/ImageMagick/ImageMagick.tar.gz
+tar xvfz ImageMagick.tar.gz
+cd ImageMagick-*
+./configure --disable-shared
+make
+sudo make install`
