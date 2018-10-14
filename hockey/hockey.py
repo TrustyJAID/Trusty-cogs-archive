@@ -1431,16 +1431,26 @@ class Hockey(getattr(commands, "Cog", object)):
 
     @hockeyset_commands.command(hidden=True)
     @checks.admin_or_permissions(manage_messages=True)
-    async def leaderboardset(self, ctx, user:discord.Member, points):
+    async def leaderboardset(self, ctx, user:discord.Member, season:int, weekly:int=None, total:int=None):
         """
             Allows moderators to set a users points on the leaderboard
         """
+        if weekly is None:
+            weekly = season
+        if total is None:
+            total = season
         leaderboard = await self.config.guild(ctx.guild).leaderboard()
         if leaderboard == {} or leaderboard is None:
             await ctx.send("There is no current leaderboard for this server!")
             return
         if str(user.id) not in leaderboard:
-            leaderboard[str(user.id)] = {"season":points, "weekly":points}
+            leaderboard[str(user.id)] = {"season":season, "weekly":weekly, "total":total}
+        else:
+            del leaderboard[str(user.id)]
+            leaderboard[str(user.id)] = {"season":season, "weekly":weekly, "total":total}
+        await self.config.guild(ctx.guild).leaderboard.set(leaderboard)
+        await ctx.send(f"Done, {user.display_name} now has {season} points on the season, {weekly} points for the week, and {total} votes overall.")
+
 
     async def post_leaderboard(self, ctx, leaderboard_type):
         """
@@ -1470,7 +1480,7 @@ class Hockey(getattr(commands, "Cog", object)):
                            ctx.author.display_name, user_position+1, leaderboard_type))
         await hockey_menu(ctx, leaderboard_type, leaderboard_list)
 
-    @hockey_commands.command(hidden=True)
+    @hockey_commands.command()
     async def leaderboard(self, ctx, leaderboard_type:str="seasonal"):
         """
             Shows the current server leaderboard either seasonal or weekly
