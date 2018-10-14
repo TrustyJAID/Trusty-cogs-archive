@@ -275,7 +275,7 @@ class Starboard(getattr(commands, "Cog", object)):
         if msg.embeds != []:
             em = msg.embeds[0]
             if msg.content != "":
-                if em.description != "Embed.Empty":
+                if em.description != discord.Embed.Empty:
                     em.description = "{}\n\n{}".format(msg.content, em.description)
                 else:
                     em.description = msg.content
