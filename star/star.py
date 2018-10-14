@@ -321,12 +321,14 @@ class Star:
 
             threshold = self.settings[server.id]["threshold"]
             count = reaction.count
+            if count is None:
+                count = 0
             if await self.check_is_posted(server, msg):
                 channel = self.bot.get_channel(self.settings[server.id]["channel"])
                 msg_id, count2 = await self.get_posted_message(server, msg)
                 if msg_id is not None:
                     msg_edit = await self.bot.get_message(channel, msg_id)
-                    await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count2))
+                    await self.bot.edit_message(msg_edit, new_content="{} **#{}**".format(reaction.emoji, count))
                     return
             if count < threshold:
                 store = {"original_message":msg.id, "new_message":None,"count":count}
