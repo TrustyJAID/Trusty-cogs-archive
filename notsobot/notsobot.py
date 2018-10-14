@@ -248,7 +248,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
             if gif is False:
                 for user in mentions:
                     if user.avatar:
-                        urls.append('https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(user))
+                        urls.append(user.avatar_url_as(static_format="png"))
                     else:
                         urls.append(user.default_avatar_url)
                     limit += 1
@@ -293,7 +293,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                         name = url[8:] if url.startswith('https://') else url[7:]
                         member = self.find_member(message.guild, name, 2)
                         if member:
-                            img_urls.append('https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(member) if member.avatar else member.default_avatar_url)
+                            img_urls.append(member.avatar_url_as(static_format="png") if member.avatar else member.default_avatar_url)
                             count += 1
                             continue
                         if msg:
@@ -315,7 +315,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                         name = url[8:] if url.startswith('https://') else url[7:]
                         member = self.find_member(message.guild, name, 2)
                         if member:
-                            img_urls.append('https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(member) if member.avatar else member.default_avatar_url)
+                            img_urls.append(member.avatar_url_as(static_format="png") if member.avatar else member.default_avatar_url)
                             count += 1
                             continue
                         if msg:
@@ -593,7 +593,9 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 url = url[0]
             else:
                 return
-            gif_dir = str(bundled_data_path(self)/'gif/')
+            gif_dir = str(bundled_data_path(self))+'/gif/'
+            if not os.path.exists(gif_dir):
+                os.makedirs(gif_dir)
             check = await self.isgif(url)
             if check is False:
                 await ctx.send("Invalid or Non-GIF!")
@@ -601,8 +603,9 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 return
             x = await ctx.message.channel.send( "ok, processing (this might take a while for big gifs)")
             rand = self.random()
-            gifin = gif_dir+'/1_{0}.gif'.format(rand)
-            gifout = gif_dir+'/2_{0}.gif'.format(rand)
+            gifin = gif_dir+'1_{0}.gif'.format(rand)
+            gifout = gif_dir+'2_{0}.gif'.format(rand)
+            print(url)
             await self.download(url, gifin)
             if os.path.getsize(gifin) > 5000000 and ctx.message.author.id != self.bot.owner.id:
                 await ctx.send(":no_entry: `GIF Too Large (>= 5 mb).`")
@@ -618,18 +621,21 @@ class NotSoBot(getattr(commands, "Cog", object)):
             if type(result) == str:
                 await ctx.send(result)
                 return
-            if framerate != None:
-                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'/%d_{0}.png'.format(rand), '-r', framerate, gifout]
-            else:
-                args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'/%d_{0}.png'.format(rand), gifout]
+            try:
+                if framerate != None:
+                    args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'%d_{0}.png'.format(rand), '-r', framerate, gifout]
+                else:
+                    args = ['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'%d_{0}.png'.format(rand), gifout]
+            except Exception as e:
+                print("Some error has occured:"+e)
             print(gifout)
-            await self.run_process(args)
+            await self.run_process(args, True)
             file = discord.File(gifout, filename='gmagik.gif')
             await ctx.send(file=file)
             for image in glob.glob(gif_dir+"*_{0}.png".format(rand)):
                 os.remove(image)
-            # os.remove(gifin)
-            # os.remove(gifout)
+            os.remove(gifin)
+            os.remove(gifout)
             await x.delete()
         except Exception as e:
             print(e)
@@ -649,7 +655,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
             b = await self.bytes_download(url)
             img = wand.image.Image(file=b)
             i = img.clone()
-            font_path = str(bundled_data_path(self)/'impact.ttf')
+            font_path = str(bundled_data_path(self))+'/impact.ttf'
             if size != None:
                 color = wand.color.Color('{0}'.format(color))
                 font = wand.font.Font(path=font_path, size=int(size), color=color)
@@ -698,7 +704,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 url = user
             if type(user) == discord.User or type(user) == discord.Member:
                 if user.avatar:
-                    avatar = 'https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(user)
+                    avatar = user.avatar_url_as(static_format="png")
                 else:
                     avatar = user.default_avatar_url
             if url:
@@ -706,38 +712,39 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 if not get_images:
                     return
                 avatar = get_images[0]
-            path = str(bundled_data_path(self)/self.random(True))
+            path = str(bundled_data_path(self))+"/"+self.random(True)
             path2 = path[:-3]+'gif'
             await self.download(avatar, path)
-            t_path = str(bundled_data_path(self)/'triggered.png')
+            t_path = str(bundled_data_path(self))+'/triggered.jpg'
+            print(t_path)
             await self.run_process(['convert',
                 'canvas:none',
                 '-size', '512x680!',
                 '-resize', '512x680!',
                 '-draw', 'image over -60,-60 640,640 "{0}"'.format(path),
-                '-draw', 'image over 0,512 0,0 "{0}"'.format(t_path),
+                '-draw', 'image over 0,586 0,0 "{0}"'.format(t_path),
                 '(',
                     'canvas:none',
                     '-size', '512x680!',
                     '-draw', 'image over -45,-50 640,640 "{0}"'.format(path),
-                    '-draw', 'image over 0,512 0,0 "{0}"'.format(t_path),
+                    '-draw', 'image over 0,586 0,0 "{0}"'.format(t_path),
                 ')',
                 '(',
                     'canvas:none',
                     '-size', '512x680!',
                     '-draw', 'image over -50,-45 640,640 "{0}"'.format(path),
-                    '-draw', 'image over 0,512 0,0 "{0}"'.format(t_path),
+                    '-draw', 'image over 0,586 0,0 "{0}"'.format(t_path),
                 ')',
                 '(',
                     'canvas:none',
                     '-size', '512x680!',
                     '-draw', 'image over -45,-65 640,640 "{0}"'.format(path),
-                    '-draw', 'image over 0,512 0,0 "{0}"'.format(t_path),
+                    '-draw', 'image over 0,586 0,0 "{0}"'.format(t_path),
                 ')',
                 '-layers', 'Optimize',
                 '-set', 'delay', '2',
             path2])
-            file = discord.File(path2, filename='triggered.gif')
+            file = discord.File(path2, filename='/triggered.gif')
             await ctx.send(file=file)
             os.remove(path)
             os.remove(path2)
@@ -759,7 +766,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 url = user
             if type(user) == discord.User or type(user) == discord.Member:
                 if user.avatar:
-                    avatar = 'https://discordapp.com/api/users/{0.id}/avatars/{0.avatar}.jpg'.format(user)
+                    avatar = user.avatar_url_as(static_format="png")
                 else:
                     avatar = user.default_avatar_url
             if url:
@@ -767,7 +774,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 if not get_images:
                     return
                 avatar = get_images[0]
-            path = str(bundled_data_path(self)/self.random(True))
+            path = str(bundled_data_path(self))+"/"+self.random(True)
             await self.download(avatar, path)
             await self.run_process(['convert',
                 '(',
@@ -786,7 +793,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
     @commands.cooldown(1, 5)
     async def triggered2(self, ctx, user:str=None, url:str=None):
         """Generate a Triggered Image for a User or Image"""
-        t_path = str(bundled_data_path(self)/'triggered.png')
+        t_path = str(bundled_data_path(self))+'/triggered.jpeg'
         path = await self.do_triggered(ctx, user, url, t_path)
         if path is False:
             await ctx.send(':warning: **Command Failed.**')
@@ -803,7 +810,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
     @commands.cooldown(1, 5)
     async def triggered3(self, ctx, user:str=None, url:str=None):
         """Generate a Triggered2 Image for a User or Image"""
-        t_path = str(bundled_data_path(self)/'triggered2.png')
+        t_path = str(bundled_data_path(self))+'/triggered2.png'
         path = await self.do_triggered(ctx, user, url, t_path)
         if path is False:
             await ctx.send(':warning: **Command Failed.**')
@@ -851,7 +858,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
     async def ascii(self, ctx, *, text:str):
         """Convert text into ASCII"""
         if len(text) > 1000:
-            await ctx.send("2 long asshole")
+            await ctx.send("Text is too long!")
             return
         if text == 'donger' or text == 'dong':
             text = "8====D"
@@ -870,7 +877,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
         await ctx.send(msg, file=file)
 
     def generate_ascii(self, image):
-        font = PIL.ImageFont.truetype(str(bundled_data_path(self)/'FreeMonoBold.ttf'), 15, encoding="unic")
+        font = PIL.ImageFont.truetype(str(bundled_data_path(self))+'/FreeMonoBold.ttf', 15, encoding="unic")
         image_width, image_height = image.size
         aalib_screen_width= int(image_width/24.9)*10
         aalib_screen_height= int(image_height/41.39)*10
@@ -948,7 +955,9 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 return
             for url in get_images:
                 rand = self.random()
-                gif_dir = str(bundled_data_path(self)/'/gascii/')
+                gif_dir = str(bundled_data_path(self)) + '/gascii/'
+                if not os.path.os.path.exists(gif_dir):
+                    os.makedirs(gif_dir)
                 location = gif_dir+'1_{0}.gif'.format(rand)
                 location2 = gif_dir+'2_{0}.gif'.format(rand)
                 x = await ctx.message.channel.send( "ok, processing")
@@ -962,14 +971,15 @@ class NotSoBot(getattr(commands, "Cog", object)):
                     await ctx.send(result)
                     return
                 list_imgs = glob.glob(gif_dir+"*_{0}.png".format(rand))
-                if len(list_imgs) > 120 and ctx.message.author.id != "130070621034905600":
+                if len(list_imgs) > 120 and ctx.message.author.id != self.bot.owner.id:
                     await ctx.send("Sorry, GIF has too many frames!")
                     for image in list_imgs:
                         os.remove(image)
                     os.remove(location)
                     return
-                await self.run_process(['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', str(bundled_data_path(self)/'/gascii/')+'%d_{0}.png'.format(rand), location2])
+                await self.run_process(['ffmpeg', '-y', '-nostats', '-loglevel', '0', '-i', gif_dir+'%d_{0}.png'.format(rand), location2])
                 await x.delete()
+                print("it gets here")
                 file = discord.File(location2, filename='gascii.gif')
                 await ctx.send(file=file)
                 for image in list_imgs:
@@ -977,7 +987,8 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 os.remove(location)
                 os.remove(location2)
         except Exception as e:
-            await ctx.send(e)
+            print(e)
+            await ctx.send("Whoops something went wrong!")
 
     @commands.command(pass_context=True)
     async def rip(self, ctx, name:str=None, *, text:str=None):
@@ -1203,27 +1214,6 @@ class NotSoBot(getattr(commands, "Cog", object)):
         kek = kek
         await ctx.send(kek)
 
-    async def get_emote_image(self, em, one=False, apple=False):
-        em = em.replace('⠀', '').replace(' ', '')
-        emote = em.lower()
-        emote = emote.encode("unicode_escape").decode()
-        if "\\U000" in emote and emote.count("\\U000") == 1:
-            emote = emote.replace("\\U000", '')
-        elif emote.count("\\U000") == 2:
-            emote = emote.split("\\U000")
-            emote = '{0}-{1}'.format(emote[1], emote[2])
-        else:
-            emote = emote.replace("\\u", '')
-        if em == '🏳️‍🌈':
-            emote = '1f308'
-        if one:
-            path = str(bundled_data_path(self)/'emojione/{0}.svg'.format(emote))
-        elif apple:
-            path = str(bundled_data_path(self)/'apple_emoji/{0}.png'.format(emote))
-        else:
-            path = str(bundled_data_path(self)/'twemoji/{0}.svg'.format(emote))
-        return path
-
     async def png_svg(self, path, size):
         with open(path, 'rb') as f:
             path = f.read()
@@ -1235,207 +1225,12 @@ class NotSoBot(getattr(commands, "Cog", object)):
     fp_emotes = {
         #redacted spam
     }
-    @commands.command(pass_context=True, aliases=['hugemoji', 'hugeemoji'])
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    async def e(self, ctx, *ems:str):
-        """Returns a large emoji image"""
-        try:
-            if len(ems) == 0:
-                await ctx.send(':no_entry: Please input emotes to enlargen.')
-                return
-            if len(ems) > 50:
-                await ctx.send(':no_entry: `Max emoji limit (<= 50)`')
-                return
-            size = 1024
-            for s in ems:
-                if s.isdigit():
-                    size = int(s)
-            if size > 2048:
-                size = 2048
-            one = False
-            apple_emote = False
-            steam = False
-            for em in ems:
-                if em == 'emojione' or em == 'one':
-                    one = True
-                elif em == 'apple' or em == 'ios':
-                    apple_emote = True
-                elif em == 'steam':
-                    steam = True
-            if len(self.twitch_cache) == 0:
-                twitch_images_load = await self.get_json('https://twitchemotes.com/api_cache/v3/images.json')
-                twitch_sub_load = await self.get_json('https://twitchemotes.com/api_cache/v3/subscriber.json')
-                self.twitch_cache.append(twitch_images_load)
-                self.twitch_cache.append(twitch_sub_load)
-            else:
-                twitch_images_load = self.twitch_cache[0]
-                twitch_sub_load = self.twitch_cache[1]
-            list_imgs = []
-            count = -1
-            for em in ems:
-                if em == 'emojione' or em == 'one' or em == 'apple' or em == 'ios' or em == 'steam':
-                    continue
-                if str(em).isdigit():
-                    continue
-                if em == ' ' or em == '​':
-                    continue
-                found = False
-                gif = False
-                count += 1
-                path = await self.get_emote_image(em, one, apple_emote)
-                if os.path.isfile(path) is False:
-                    match = self.emote_regex.match(ems[count])
-                    if match != None:
-                        emote = 'https://cdn.discordapp.com/emojis/{0}.png'.format(str(match.group('id')))
-                        path = await self.bytes_download(emote)
-                        if sys.getsizeof(path) == 88:
-                            continue
-                        else:
-                            found = True
-                else:
-                    found = True
-                    if not apple_emote:
-                        path = await self.png_svg(path, size)
-                if not found:
-                    match = em.strip(':')
-                    if match in self.fp_emotes:
-                        found = True
-                        url = self.fp_emotes[match]
-                        path = await self.bytes_download(url)
-                if not found:
-                    match = em.strip(':')
-                    if match in [x[:-4] for x in self.fp_dir]:
-                        try:
-                            f = self.fp_dir[self.fp_dir.index(match+'.png')]
-                        except:
-                            f = self.fp_dir[self.fp_dir.index(match+'.gif')]
-                            gif = True
-                        found = True
-                        path = str(bundled_data_path(self)/'fp/{0}'.format(f))
-                if not found:
-                    frankerz_path = str(bundled_data_path(self)/'frankerz_emotes.txt')
-                    frankerz_emotes = []
-                    with open(frankerz_path) as f:
-                        for line in f:
-                            frankerz_emotes.append(json.loads(line))
-                        f.close()
-                    for page in frankerz_emotes:
-                        for emote in page['emoticons']:
-                            if emote['name'] == em:
-                                found = True
-                                try:
-                                    url = 'https:'+emote['urls']['4']
-                                except:
-                                    try:
-                                        url = 'https:'+emote['urls']['3']
-                                    except:
-                                        try:
-                                            url = 'https:'+emote['urls']['2']
-                                        except:
-                                            url = 'https:'+emote['urls']['1']
-                                path = await self.bytes_download(url)
-                                break
-                    if not found:
-                        load = twitch_images_load
-                        for emote in load['images']:
-                            if load['images'][emote]['code'] == em:
-                                found = True
-                                url = 'https://static-cdn.jtvnw.net/emoticons/v1/{0}/3.0'.format(emote)
-                                path = await self.bytes_download(url)
-                                break
-                    if not found:
-                        load = twitch_sub_load
-                        for channel in load['channels']:
-                            for emote in load['channels'][channel]['emotes']:
-                                if emote['code'] == em:
-                                    found = True
-                                    url = 'https://static-cdn.jtvnw.net/emoticons/v1/{0}/3.0'.format(emote)
-                                    path = await self.bytes_download(url)
-                                    break
-                    if not found:
-                        if em in self.emojis.keys():
-                            path = await self.png_svg(await self.get_emote_image(self.emojis[em]), size)
-                            found = True
-                    if not found and steam:
-                        steam_url = "https://steamcommunity-a.akamaihd.net/economy/emoticon/{0}".format(em.lower())
-                        s_e = await self.bytes_download(steam_url)
-                        if sys.getsizeof(s_e) != 88:
-                            path = s_e
-                            found = True
-                if found:
-                    list_imgs.append(path)
-            if len(list_imgs) == 0:
-                if ems:
-                    for s in ems:
-                        for w in s:
-                            if w in alphabet:
-                                list_imgs.append(await self.png_svg(await self.get_emote_image(self.regional_map[w]), size))
-                if not list_imgs:
-                    em = [e for e in em]
-                    path = await self.get_emote_image(em[0])
-                    if os.path.isfile(path):
-                        for e in em:
-                            path = await self.get_emote_image(e)
-                            if os.path.isfile(path):
-                                list_imgs.append(await self.png_svg(path, size))
-                if not list_imgs:
-                    await ctx.send(":warning: `Emoji Invalid/Not Found`")
-                    return
-            if len(list_imgs) > 1:
-                imgs = [PIL.Image.open(i).convert('RGBA') for i in list_imgs]
-                min_shape = sorted([(np.sum(i.size), i.size) for i in imgs])[0][1]
-                imgs_comb = np.hstack((np.asarray(i.resize(min_shape)) for i in imgs))
-                imgs_comb = PIL.Image.fromarray(imgs_comb)
-                b = BytesIO()
-                imgs_comb.save(b, 'png')
-                b.seek(0)
-            else:
-                b = list_imgs[0]
-            try:
-                file = discord.File(b, filename='emote.gif' if gif and len(list_imgs) == 1 else 'emote.png')
-                await ctx.send(file=file)
-            except:
-                await ctx.send('sorry, file 2 big (> 8 mb)')
-            await asyncio.sleep(5)
-            try:
-                self.bot.pruned_messages.append(ctx.message)
-                await ctx.message.delete()
-            except:
-                pass
-        except Exception as e:
-            exc_type, exc_obj, tb = sys.exc_info()
-            f = tb.tb_frame
-            lineno = tb.tb_lineno
-            filename = f.f_code.co_filename
-            linecache.checkcache(filename)
-            line = linecache.getline(filename, lineno, f.f_globals)
-            await ctx.send(code.format('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj)))
-
-    @commands.command(pass_context=True, aliases=['steamemoji', 'steame', 'semoji'])
-    async def se(self, ctx, em:str):
-        """Returns a steam emoji image"""
-        em = em.lower()
-        desc = None
-        if em == ':b1:' or em == 'b1':
-            b = str(bundled_data_path(self)/'b1.png')
-        else:
-            url = "https://steamcommunity-a.akamaihd.net/economy/emoticonhover/{0}".format(em)
-            txt = await self.get_text(url)
-            if not txt:
-                await ctx.send(":warning: `Emoticon Not Found/Invalid`\nRemember to do :steam_emoticon: (optional ':').")
-                return
-            root = etree.fromstring(txt, etree.HTMLParser())
-            base = root.find('.//img[@class="emoticon_large"]')
-            b = BytesIO(base64.b64decode(base.attrib['src'][22:]))
-            desc = '**{0}**'.format(root.find('.//div[@class="emoticon_hover_desc"]').text)
-        file = discord.File(b, filename='steam.png')
-        await ctx.send(desc, file=file)
 
     @commands.command(pass_context=True)
     @commands.cooldown(3, 5)
     async def b1(self, ctx):
         """cool"""
-        file = discord.File(str(bundled_data_path(self)/'b1.png'))
+        file = discord.File(str(bundled_data_path(self))+'/b1.png')
         await ctx.send(file=file)
 
     @commands.group(pass_context=True, invoke_without_command=True)
@@ -1624,7 +1419,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 return
             b = await self.bytes_download(url)
             if mark == 'brazzers' or mark is None:
-                wmm = str(bundled_data_path(self)/'brazzers.png')
+                wmm = str(bundled_data_path(self))+'/brazzers.png'
             else:
                 check = await self.isimage(mark)
                 if check == False:
@@ -1677,6 +1472,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
     @commands.command(aliases=['jpglitch'], pass_context=True)
     @commands.cooldown(2, 5)
     async def glitch(self, ctx, url:str=None, iterations:int=None, amount:int=None, seed:int=None):
+        """Glitch a gif or image"""
         try:
             if iterations is None:
                 iterations = random.randint(1, 30)
@@ -1713,19 +1509,21 @@ class NotSoBot(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     async def glitch2(self, ctx, *urls:str):
+
         try:
             get_images = await self.get_images(ctx, urls=urls)
             if not get_images:
                 return
             for url in get_images:
-                path = str(bundled_data_path(self)/self.random(True))
+                path = str(bundled_data_path(self))+"/"+self.random(True)
                 await self.download(url, path)
                 args = ['convert', '(', path, '-resize', '1024x1024>', ')', '-alpha', 'on', '(', '-clone', '0', '-channel', 'RGB', '-separate', '-channel', 'A', '-fx', '0', '-compose', 'CopyOpacity', '-composite', ')', '(', '-clone', '0', '-roll', '+5', '-channel', 'R', '-fx', '0', '-channel', 'A', '-evaluate', 'multiply', '.3', ')', '(', '-clone', '0', '-roll', '-5', '-channel', 'G', '-fx', '0', '-channel', 'A', '-evaluate', 'multiply', '.3', ')', '(', '-clone', '0', '-roll', '+0+5', '-channel', 'B', '-fx', '0', '-channel', 'A', '-evaluate', 'multiply', '.3', ')', '(', '-clone', '0', '-channel', 'A', '-fx', '0', ')', '-delete', '0', '-background', 'none', '-compose', 'SrcOver', '-layers', 'merge', '-rotate', '90', '-wave', '1x5', '-rotate', '-90', path]
                 await self.run_process(args)
                 file = discord.File(path, filename='glitch2.png')
                 await ctx.send(file=file)
                 os.remove(path)
-        except:
+        except Exception as e:
+            print(e)
             try:
                 os.remove(path)
             except:
@@ -1741,7 +1539,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 await ctx.send('Invalid or Non-Image!')
                 return
             b = await self.bytes_download(url)
-            bean_path = str(bundled_data_path(self)/'bean.png')
+            bean_path = str(bundled_data_path(self))+'/bean.png'
             bean = PIL.Image.open(bean_path)
             img = PIL.Image.open(b)
             width, height = bean.size
@@ -2089,3 +1887,5 @@ class NotSoBot(getattr(commands, "Cog", object)):
 
     def __unload(self):
         self.bot.loop.create_task(self.session.close())
+
+    __del__ = __unload
