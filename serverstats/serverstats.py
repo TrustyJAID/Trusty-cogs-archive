@@ -39,18 +39,17 @@ class ServerStats(getattr(commands, "Cog", object)):
         text_channels = len([x for x in guild.text_channels])
         voice_channels = len([x for x in guild.voice_channels])
         passed = (datetime.datetime.utcnow() - guild.created_at).days
-        created_at = _("{} is on {} servers now! \nServer created {}. That's over {} days ago!".format(
+        created_at = _("{} has joined a new server!\n That's {} servers now! \nServer created {}. That's over {} days ago!".format(
                         channel.guild.me.mention,
                         len(self.bot.guilds),
                         guild.created_at.strftime("%d %b %Y %H:%M"),
                         passed))
 
-        colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
-        colour = int(colour, 16)
+        colour = guild.roles[-1].colour
 
         em = discord.Embed(
             description=created_at,
-            colour=discord.Colour(value=colour),
+            colour=colour,
             timestamp=guild.created_at)
         em.add_field(name="Region", value=str(guild.region))
         em.add_field(name="Users", value="{}/{}".format(online, total_users))
@@ -61,12 +60,8 @@ class ServerStats(getattr(commands, "Cog", object)):
         if guild.features != []:
             em.add_field(name="Guild Features", value=", ".join(feature for feature in guild.features))
         em.set_footer(text="guild ID: {}".format(guild.id))
-
-        if guild.icon_url:
-            em.set_author(name=guild.name, icon_url=guild.icon_url)
-            em.set_thumbnail(url=guild.icon_url)
-        else:
-            em.set_author(name=guild.name) 
+        em.set_author(name=guild.name, icon_url=guild.icon_url_as(format="png"))
+        em.set_thumbnail(url=guild.icon_url_as(format="png"))
         await channel.send(embed=em)
 
     async def on_guild_remove(self, guild):
@@ -81,18 +76,17 @@ class ServerStats(getattr(commands, "Cog", object)):
         text_channels = len([x for x in guild.text_channels])
         voice_channels = len([x for x in guild.voice_channels])
         passed = (datetime.datetime.utcnow() - guild.created_at).days
-        created_at = _("{} is on {} servers now! \nServer created {}. That's over {} days ago!".format(
+        created_at = _("{} has left a server!\n That's {} servers now! \nServer created {}. That's over {} days ago!".format(
                         channel.guild.me.mention,
                         len(self.bot.guilds),
                         guild.created_at.strftime("%d %b %Y %H:%M"),
                         passed))
 
-        colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
-        colour = int(colour, 16)
+        colour = guild.roles[-1].colour
 
         em = discord.Embed(
             description=created_at,
-            colour=discord.Colour(value=colour),
+            colour=colour,
             timestamp=guild.created_at)
         em.add_field(name="Region", value=str(guild.region))
         em.add_field(name="Users", value="{}/{}".format(online, total_users))
@@ -103,12 +97,9 @@ class ServerStats(getattr(commands, "Cog", object)):
         if guild.features != []:
             em.add_field(name="Guild Features", value=", ".join(feature for feature in guild.features))
         em.set_footer(text="guild ID: {}".format(guild.id))
+        em.set_author(name=guild.name, icon_url=guild.icon_url_as(format="png"))
+        em.set_thumbnail(url=guild.icon_url_as(format="png"))
 
-        if guild.icon_url:
-            em.set_author(name=guild.name, icon_url=guild.icon_url)
-            em.set_thumbnail(url=guild.icon_url)
-        else:
-            em.set_author(name=guild.name) 
         await channel.send(embed=em)
 
     @commands.command(pass_context=True)
