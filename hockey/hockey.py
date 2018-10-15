@@ -1491,11 +1491,17 @@ class Hockey(getattr(commands, "Cog", object)):
             count += 1
         leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
         if user_position is not None:
+            user = leaderboard[user_position][1]
+            wins = user["season"]
+            total = user["total"]
+            losses = user["total"] - user["season"]
             position = "{}, you're #{} on the {} leaderboard! ".format(
                         ctx.author.display_name, user_position+1, leaderboard_type)
             if leaderboard_type == "season":
+                percent = (wins/total)*100
                 position += f"You have {wins}/{total} correct ({percent:.4}%)."
             elif leaderboard_type == "worst":
+                percent = (losses/total)*100
                 position += f"You have {losses}/{total} incorrect ({percent:.4}%)."
             await ctx.send(position)
         await hockey_menu(ctx, leaderboard_type, leaderboard_list)
