@@ -1460,7 +1460,10 @@ class Hockey(getattr(commands, "Cog", object)):
         if leaderboard == {} or leaderboard is None:
             await ctx.send("There is no current leaderboard for this server!")
             return
-        leaderboard = sorted(leaderboard.items(), key=lambda i: i[1][leaderboard_type], reverse=True)
+        if leaderboard_type != "worst":
+            leaderboard = sorted(leaderboard.items(), key=lambda i: i[1][leaderboard_type], reverse=True)
+        else:
+            leaderboard = sorted(leaderboard.items(), key=lambda i: i[1]["total"]-i[1]["season"], reverse=True)
         msg_list = []
         count = 1
         user_position = None
@@ -1489,6 +1492,8 @@ class Hockey(getattr(commands, "Cog", object)):
             await self.post_leaderboard(ctx, "season")
         if leaderboard_type in ["weekly", "week"]:
             await self.post_leaderboard(ctx, "weekly")
+        if leaderboard_type in ["worst"]:
+            await self.post_leaderboard(ctx, "worst")
 
     @hockey_commands.command(hidden=True)
     @checks.mod_or_permissions(manage_messages=True)
