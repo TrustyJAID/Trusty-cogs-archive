@@ -102,11 +102,11 @@ class AddImage(getattr(commands, "Cog", object)):
             if channel.permissions_for(channel.guild.me).attach_files:
                 await channel.trigger_typing()
                 image = await self.get_image(alias, guild)
-                list_images = await self.config.guild(guild).images()
-                list_images.remove(image)
+                guild_images = await self.config.guild(guild).images()
+                guild_images.remove(image)
                 image["count"] += 1
-                list_images.append(image)
-                await self.config.images.set(list_images)
+                guild_images.append(image)
+                await self.config.guild(guild).images.set(guild_images)
                 file = discord.File(image["file_loc"])
                 await channel.send(file=file)
 
