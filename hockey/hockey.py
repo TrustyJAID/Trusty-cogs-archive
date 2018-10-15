@@ -1485,7 +1485,7 @@ class Hockey(getattr(commands, "Cog", object)):
                 msg_list.append(f"#{count}. {member_mention}: {wins}/{total} correct ({percent:.4}%)\n")
             else:
                 total = member_id[1]["total"]
-                losses = member_id[1]["season"] - member_id[1]["season"]
+                losses = member_id[1]["total"] - member_id[1]["season"]
                 percent = (losses/total)*100
                 msg_list.append(f"#{count}. {member_mention}: {losses}/{total} incorrect ({percent:.4}%)\n")
             count += 1
