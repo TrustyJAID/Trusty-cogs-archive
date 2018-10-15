@@ -1476,18 +1476,28 @@ class Hockey(getattr(commands, "Cog", object)):
             else:
                 member_mention = member.mention
             if leaderboard_type == "weekly":
-                points = member_id[1][leaderboard_type]
+                points = member_id[1]["weekly"]
                 msg_list.append("#{}. {}: {}\n".format(count, member_mention, points))
-            else:
+            elif leaderboard_type == "season":
                 total = member_id[1]["total"]
                 wins = member_id[1]["season"]
                 percent = (wins/total)*100
-                msg_list.append(f"#{count}. {member_mention}: {wins}/{total} ({percent:.4}%)\n")
+                msg_list.append(f"#{count}. {member_mention}: {wins}/{total} correct ({percent:.4}%)\n")
+            else:
+                total = member_id[1]["total"]
+                losses = member_id[1]["season"] - member_id[1]["season"]
+                percent = (losses/total)*100
+                msg_list.append(f"#{count}. {member_mention}: {losses}/{total} incorrect ({percent:.4}%)\n")
             count += 1
         leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
         if user_position is not None:
-            await ctx.send("{}, you're #{} on the {} leaderboard!".format(
-                           ctx.author.display_name, user_position+1, leaderboard_type))
+            position = "{}, you're #{} on the {} leaderboard! ".format(
+                        ctx.author.display_name, user_position+1, leaderboard_type)
+            if leaderboard_type == "season":
+                position += f"You have {wins}/{total} correct ({percent:.4}%)."
+            elif leaderboard_type == "worst":
+                position += f"You have {losses}/{total} incorrect ({percent:.4}%)."
+            await ctx.send(position)
         await hockey_menu(ctx, leaderboard_type, leaderboard_list)
 
     @hockey_commands.command()
