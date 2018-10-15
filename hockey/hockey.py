@@ -1475,7 +1475,14 @@ class Hockey(getattr(commands, "Cog", object)):
                 member_mention = "User has left the server {}".format(member_id[0])
             else:
                 member_mention = member.mention
-            msg_list.append("#{}. {}: {}\n".format(count, member_mention, member_id[1][leaderboard_type]))
+            if leaderboard_type != "worst":
+                points = member_id[1][leaderboard_type]
+                msg_list.append("#{}. {}: {}\n".format(count, member_mention, points))
+            else:
+                total = member_id[1]["total"]
+                wins = member_id[1]["season"]
+                percent = (wins/total)*100
+                msg_list.append("#{0}. {1}: {2:.4}% Correct\n".format(count, member_mention, percent))
             count += 1
         leaderboard_list = [msg_list[i:i + 10] for i in range(0, len(msg_list), 10)]
         if user_position is not None:
