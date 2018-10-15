@@ -168,10 +168,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     595af69 [Hockey] Un-hide leaderboard command and fix leaderboardset command\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     382fe19 [Addimage] Fixed issue for some images not saving Update command structure Hide global commands\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 977,
+				"buffer_size": 1005,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -179,10 +179,10 @@
 			}
 		},
 		{
-			"file": "notsobot/notsobot.py",
+			"file": "addimage/addimage.py",
 			"settings":
 			{
-				"buffer_size": 100938,
+				"buffer_size": 12281,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -290,12 +290,14 @@
 	[
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
+		"/E/github/Trusty-cogs/addimage",
 		"/E/github/Trusty-cogs/anime",
 		"/E/github/Trusty-cogs/notsobot",
 		"/E/github/Trusty-cogs/serverstats"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/addimage/imageentry.py",
 		"/E/github/Trusty-cogs/hockey/hockey.py",
 		"/E/github/Trusty-cogs/anime/anime.py",
 		"/E/github/Trusty-cogs/destiny/destiny.py",
@@ -422,8 +424,7 @@
 		"/E/github/yaml_output/readyplayerone.yaml",
 		"/E/github/Trusty-cogs/blizzard/blizzard.py",
 		"/E/github/Trusty-cogs/info.json",
-		"/E/github/Trusty-cogs/backup/info.json",
-		"/E/github/Trusty-cogs/anime/info.json"
+		"/E/github/Trusty-cogs/backup/info.json"
 	],
 	"find":
 	{
@@ -442,6 +443,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"to_json",
+			"from_json",
+			"ImageEntry",
+			"get_image",
 			"edit",
 			"vw",
 			"bundled_data_path(self))+",
@@ -565,11 +570,7 @@
 			"await self.bot.delete_message(xx)",
 			"await self.bot.delete_message(msg)",
 			"aiohttp.Timeout(",
-			"isimage",
-			"str(bundled_data_path(self))(",
-			"b1",
-			"await file",
-			"file = discord.File("
+			"isimage"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -626,7 +627,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -634,15 +635,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 977,
+						"buffer_size": 1005,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								205,
-								205
+								244,
+								244
 							]
 						],
 						"settings":
@@ -660,24 +661,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "notsobot/notsobot.py",
-					"semi_transient": true,
+					"file": "addimage/addimage.py",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 100938,
+						"buffer_size": 12281,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1017,
-								1017
+								9262,
+								9262
 							]
 						],
 						"settings":
@@ -687,10 +688,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 4014.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
