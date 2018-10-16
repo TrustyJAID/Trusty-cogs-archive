@@ -905,14 +905,26 @@ class Hockey(getattr(commands, "Cog", object)):
         pass
 
     @hockey_commands.command(hidden=True)
+    @checks.is_owner()
     async def rempickem(self, ctx):
         await self.config.guild(ctx.guild).pickems.set([])
         await ctx.send("Done.")
 
     @hockey_commands.command(hidden=True)
+    @checks.is_owner()
     async def remleaderboard(self, ctx):
         await self.config.guild(ctx.guild).leaderboard.set({})
         await ctx.send("Done.")
+
+    @hockey_commands.command(hidden=True)
+    @checks.admin_or_permissions(manage_messages=True)
+    async def reset(self, ctx):
+        msg = await ctx.send("Restarting...")
+        self.loop.cancel()
+        await msg.edit(content=msg.content+"loop closed...")
+        self.loop = self.bot.loop.create_task(self.get_team_goals())
+        await msg.edit(content=msg.content+"restarted")
+        # await ctx.send("Done.")
 
     @commands.group()
     @checks.admin_or_permissions(manage_channels=True)
@@ -964,7 +976,7 @@ class Hockey(getattr(commands, "Cog", object)):
 
     @hockeyset_commands.command(hidden=True)
     @checks.is_owner()
-    async def reset(self, ctx):
+    async def resetgames(self, ctx):
         all_teams = await self.config.teams()
         for team in await self.config.teams():
             all_teams.remove(team)
