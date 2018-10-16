@@ -28,7 +28,7 @@ from redbot.core.data_manager import bundled_data_path
 try:
     import aalib
     AALIB_INSTALLED = True
-except ImportError:
+except:
     AALIB_INSTALLED = False
 
 code = "```py\n{0}\n```"
