@@ -1,7 +1,6 @@
 # https://github.com/NotSoSuper/NotSoBot
 
 import asyncio, aiohttp, discord
-import aalib
 import os, sys, linecache, traceback, glob
 import re, json, random, math, html
 import wand, wand.color, wand.drawing
@@ -25,6 +24,12 @@ from concurrent.futures._base import CancelledError
 import random, uuid
 
 from redbot.core.data_manager import bundled_data_path
+
+try:
+    import aalib
+    AALIB_INSTALLED = True
+except ImportError:
+    AALIB_INSTALLED = False
 
 code = "```py\n{0}\n```"
 
@@ -898,6 +903,9 @@ class NotSoBot(getattr(commands, "Cog", object)):
     @commands.command(pass_context=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def iascii(self, ctx, url:str=None):
+        if not AALIB_INSTALLED:
+            await ctx.send("aalib couldn't be found on this machine!")
+            return
         try:
             get_images = await self.get_images(ctx, urls=url, limit=5)
             if not get_images:
@@ -948,6 +956,9 @@ class NotSoBot(getattr(commands, "Cog", object)):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def gascii(self, ctx, url:str=None):
         """Gif to ASCII"""
+        if not AALIB_INSTALLED:
+            await ctx.send("aalib couldn't be found on this machine!")
+            return
         try:
             get_images = await self.get_images(ctx, urls=url, gif=True, limit=2)
             if not get_images:
