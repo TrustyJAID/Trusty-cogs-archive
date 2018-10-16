@@ -351,10 +351,10 @@ class Tweets(getattr(commands, "Cog", object)):
                     else:
                         await channel_send.send(post_url)
                 except Exception as e:
-                    if "Cannot connect to host" in e:
+                    if "Cannot connect to host" in str(e):
                         error_channel = self.bot.get_channel(await self.config.error_channel())
                         await error_channel.send("{0} from <#{1}>({1}): {2}".format(username, channel, e))
-                    if "Errno" in e:
+                    if "Errno" in str(e):
                         error_channel = self.bot.get_channel(await self.config.error_channel())
                         await error_channel.send("{0} from <#{1}>({1}): {2}".format(username, channel, e))
                     else:
