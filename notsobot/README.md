@@ -9,7 +9,7 @@
 https://imagemagick.org/script/download.php
 
 Install the latest source in Ubuntu with:
-`sudo apt-get install libmagickwand-dev`
+`sudo apt-get install libmagickwand-dev, libaa1-dev`
 https://linuxconfig.org/how-to-install-imagemagick-7-on-ubuntu-18-04-linux
 
 
