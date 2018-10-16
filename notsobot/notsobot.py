@@ -6,7 +6,7 @@ import re, json, random, math, html
 import wand, wand.color, wand.drawing
 import PIL, PIL.Image, PIL.ImageFont, PIL.ImageOps, PIL.ImageDraw
 import numpy as np
-import cairosvg, jpglitch, urbandict
+import cairosvg, jpglitch
 import hashlib, base64
 from .pixelsort import sorter, sorting, interval
 from .pixelsort import util as ps_util
