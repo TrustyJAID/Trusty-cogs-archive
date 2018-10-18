@@ -118,9 +118,9 @@ class Badges:
         barcode = barcode.resize((555,125), Image.ANTIALIAS)
         template.paste(barcode, (400,520), barcode)
         # font for user information
-        font1 = ImageFont.truetype("data/badges/ARIALUNI.TTF", 30)
+        font1 = ImageFont.truetype("data/badges/arial.ttf", 30)
         # font for extra information
-        font2 = ImageFont.truetype("data/badges/ARIALUNI.TTF", 24)
+        font2 = ImageFont.truetype("data/badges/arial.ttf", 24)
         draw = ImageDraw.Draw(template)
         # adds username
         
