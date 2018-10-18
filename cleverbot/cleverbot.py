@@ -6,7 +6,7 @@ import aiohttp
 import discord
 
 API_URL = "https://www.cleverbot.com/getreply"
-IO_API_URL = "https://cleverbot.io/1.0/ask"
+IO_API_URL = "https://cleverbot.io/1.0"
 
 
 class CleverbotError(Exception):
@@ -53,7 +53,7 @@ class Cleverbot(getattr(commands, "Cog", object)):
                 await ctx.send("The owner needs to set the credentials first.\n"
                                                      "See: `[p]cleverbot apikey` or `[p]cleverbot ioapikey`")
             except APIError:
-                await ctx.send("Error contacting the API.")
+                await ctx.send("Error contacting the API. Error code: {}".format(APIError))
             except InvalidCredentials:
                 await ctx.send("The token that has been set is not valid.\n"
                                                      "See: `[p]cleverbot apikey`")
@@ -125,17 +125,17 @@ class Cleverbot(getattr(commands, "Cog", object)):
     async def make_cleverbotio_instance(self, payload):
         """Makes the cleverbot.io instance if one isn't created for the user"""
         del payload["text"]
-        async with self.session.post("https://cleverbot.io/1.0/create/", json=payload) as r:
+        async with self.session.post(IO_API_URL+"/create/", json=payload) as r:
             if r.status == 200:
                 return
             elif r.status == 400:
                 raise InvalidCredentials()
             else:
-                raise APIError()            
+                raise APIError("Error making instance: " + str(r.status))            
 
     async def get_cleverbotio_response(self, payload, text):
         payload["text"] = text
-        async with self.session.post(IO_API_URL, json=payload) as r:
+        async with self.session.post(IO_API_URL+"/ask/", json=payload) as r:
             if r.status == 200:
                 data = await r.json()
             elif r.status == 400:
@@ -143,7 +143,7 @@ class Cleverbot(getattr(commands, "Cog", object)):
                 await self. make_cleverbotio_instance(payload)
                 return await self.get_cleverbotio_response(payload, text)
             else:
-                raise APIError()
+                raise APIError("Error getting response: " + str(r.status))
         return data["response"]
 
     async def get_cleverbotcom_response(self, payload, author):
@@ -157,7 +157,7 @@ class Cleverbot(getattr(commands, "Cog", object)):
             elif r.status == 503:
                 raise OutOfRequests()
             else:
-                raise APIError()
+                raise APIError(str(r.status))
         return data["output"]
 
 
@@ -199,7 +199,7 @@ class Cleverbot(getattr(commands, "Cog", object)):
                     await channel.send("The owner needs to set the credentials first.\n"
                                                          "See: `[p]cleverbot apikey`")
                 except APIError:
-                    await channel.send("Error contacting the API.")
+                    await ctx.send("Error contacting the API. Error code: {}".format(APIError))
                 except InvalidCredentials:
                     await channel.send("The token that has been set is not valid.\n"
                                                          "See: `[p]cleverbot apikey`")
