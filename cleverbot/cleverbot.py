@@ -52,8 +52,8 @@ class Cleverbot(getattr(commands, "Cog", object)):
             except NoCredentials:
                 await ctx.send("The owner needs to set the credentials first.\n"
                                                      "See: `[p]cleverbot apikey` or `[p]cleverbot ioapikey`")
-            except APIError:
-                await ctx.send("Error contacting the API. Error code: {}".format(APIError))
+            except APIError as e:
+                await ctx.send("Error contacting the API. Error code: {}".format(e))
             except InvalidCredentials:
                 await ctx.send("The token that has been set is not valid.\n"
                                                      "See: `[p]cleverbot apikey`")
@@ -172,7 +172,7 @@ class Cleverbot(getattr(commands, "Cog", object)):
         io_key = await self.config.io_key()
         io_user = await self.config.io_user()
         if io_key is None:
-            raise NoCredentials()
+            raise NoCredentials("Hi")
         else:
             return io_user, io_key
 
@@ -198,8 +198,8 @@ class Cleverbot(getattr(commands, "Cog", object)):
                 except NoCredentials:
                     await channel.send("The owner needs to set the credentials first.\n"
                                                          "See: `[p]cleverbot apikey`")
-                except APIError:
-                    await ctx.send("Error contacting the API. Error code: {}".format(APIError))
+                except APIError as e:
+                    await ctx.send("Error contacting the API. Error code: {}".format(e))
                 except InvalidCredentials:
                     await channel.send("The token that has been set is not valid.\n"
                                                          "See: `[p]cleverbot apikey`")
