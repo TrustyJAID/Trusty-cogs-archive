@@ -49,7 +49,7 @@ def full_width(txt):
 def draw_text(txt, image, k=0, x=0, y=30):
 	'''takes a image and places txt on it'''
 	print('adding text:', txt.encode('utf-8'))
-	font_path = main_dir+"/resources/msjhbd.ttc"
+	font_path = main_dir+"/resources/msgothic.ttc"
 	draw = ImageDraw.Draw(image)
 
 	#autofit
