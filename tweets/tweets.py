@@ -103,9 +103,9 @@ class Tweets(getattr(commands, "Cog", object)):
                       retry_errors=[500, 502, 503, 504])
 
     async def autotweet_restart(self):
-        if self.mystream.running:
+        if self.mystream is not None:
             self.mystream.disconnect()
-            self.loop.cancel()
+        self.loop.cancel()
         self.loop = self.bot.loop.create_task(self.start_stream())
 
     async def tweet_menu(self, ctx, post_list: list,
