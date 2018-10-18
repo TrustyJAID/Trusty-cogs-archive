@@ -3,7 +3,6 @@ from redbot.core import Config
 from redbot.core import checks
 from redbot.core import commands
 from .message_entry import StarboardMessage
-import re
 from copy import copy
 
 class Starboard(getattr(commands, "Cog", object)):
@@ -271,7 +270,6 @@ class Starboard(getattr(commands, "Cog", object)):
     async def build_embed(self, guild, msg):
         channel = msg.channel
         author = msg.author
-        url = "https://discordapp.com/channels/{}/{}/{}".format(guild.id, channel.id, msg.id)
         if msg.embeds != []:
             em = msg.embeds[0]
             if msg.content != "":
@@ -280,7 +278,7 @@ class Starboard(getattr(commands, "Cog", object)):
                 else:
                     em.description = msg.content
                 if not author.bot:
-                    em.set_author(name=author.display_name, url=url, icon_url=author.avatar_url)
+                    em.set_author(name=author.display_name, url=msg.jump_url, icon_url=author.avatar_url)
         else:
             em = discord.Embed(timestamp=msg.created_at)
             try:
@@ -289,11 +287,11 @@ class Starboard(getattr(commands, "Cog", object)):
                 print(e)
                 pass
             em.description = msg.content
-            em.set_author(name=author.display_name, url=url, icon_url=author.avatar_url)
+            em.set_author(name=author.display_name, url=msg.jump_url, icon_url=author.avatar_url)
             if msg.attachments != []:
                 em.set_image(url=msg.attachments[0].url)
         em.timestamp = msg.created_at
-        # em.description = em.description +"\n\n[Click Here]({})".format(url)
+        em.description = em.description +"\n\n[Click Here to view context]({})".format(msg.jump_url)
         em.set_footer(text='{} | {}'.format(channel.guild.name, channel.name))
         return em
 
