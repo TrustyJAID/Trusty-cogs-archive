@@ -118,14 +118,17 @@ class Cleverbot(getattr(commands, "Cog", object)):
             payload["input"] = text
             return await self.get_cleverbotcom_response(payload, author)
         except NoCredentials:
+            guild = author.guild
+            if guild is None:
+                return
             payload["user"], payload["key"] = await self.get_io_credentials()
-            payload["nick"] = str("{}#{}".format(author.name, author.discriminator))
+            payload["nick"] = str("{}#{}".format(guild.me.name, guild.me.discriminator))
             return await self.get_cleverbotio_response(payload, text)
 
     async def make_cleverbotio_instance(self, payload):
         """Makes the cleverbot.io instance if one isn't created for the user"""
         del payload["text"]
-        async with self.session.post(IO_API_URL+"/create/", json=payload) as r:
+        async with self.session.post(IO_API_URL+"/create", json=payload) as r:
             if r.status == 200:
                 return
             elif r.status == 400:
@@ -172,7 +175,7 @@ class Cleverbot(getattr(commands, "Cog", object)):
         io_key = await self.config.io_key()
         io_user = await self.config.io_user()
         if io_key is None:
-            raise NoCredentials("Hi")
+            raise NoCredentials()
         else:
             return io_user, io_key
 
