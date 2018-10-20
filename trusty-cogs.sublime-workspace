@@ -176,7 +176,7 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     9168c3a [Cleverbot] provide the error code not the class\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     724bf37 [Starboard] Add context jump link to description\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
 				"buffer_size": 958,
@@ -195,10 +195,10 @@
 			}
 		},
 		{
-			"file": "cleverbot/cleverbot.py",
+			"file": "starboard/starboard.py",
 			"settings":
 			{
-				"buffer_size": 9106,
+				"buffer_size": 15795,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -366,6 +366,7 @@
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/cleverbot/cleverbot.py",
 		"/E/github/Trusty-cogs/conversions/conversions.py",
 		"/E/github/Trusty-cogs/starboard/starboard.py",
 		"/E/github/Trusty-cogs/emojireact/emojireact.py",
@@ -404,7 +405,6 @@
 		"/E/github/Trusty-cogs/destiny/__init__.py",
 		"/E/github/Trusty-cogs/destiny/info.json",
 		"/E/github/Trusty-cogs/halo/halo.py",
-		"/E/github/Trusty-cogs/cleverbot/cleverbot.py",
 		"/E/github/Trusty-cogs/blockchain/blockchain.py",
 		"/E/github/Trusty-cogs/backup/backup.py",
 		"/E/github/Trusty-cogs/fun/fun.py",
@@ -497,7 +497,7 @@
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 27.0
 	},
 	"find_in_files":
 	{
@@ -696,7 +696,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -730,7 +730,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -765,19 +765,19 @@
 				},
 				{
 					"buffer": 2,
-					"file": "cleverbot/cleverbot.py",
+					"file": "starboard/starboard.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9106,
+						"buffer_size": 15795,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1312,
-								1312
+								11559,
+								11559
 							]
 						],
 						"settings":
@@ -787,10 +787,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 4248.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
