@@ -72,6 +72,38 @@ class AddImage(getattr(commands, "Cog", object)):
                 if image["command_name"].lower() == alias.lower():
                     return image
 
+    async def local_perms(self, message):
+        """Check the user is/isn't locally whitelisted/blacklisted.
+            https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/release/3.0.0/redbot/core/global_checks.py
+        """
+        if await self.bot.is_owner(message.author):
+            return True
+        elif message.guild is None:
+            return True
+        guild_settings = self.bot.db.guild(message.guild)
+        local_blacklist = await guild_settings.blacklist()
+        local_whitelist = await guild_settings.whitelist()
+
+        _ids = [r.id for r in message.author.roles if not r.is_default()]
+        _ids.append(message.author.id)
+        if local_whitelist:
+            return any(i in local_whitelist for i in _ids)
+
+        return not any(i in local_blacklist for i in _ids)
+
+    async def global_perms(self, message):
+        """Check the user is/isn't globally whitelisted/blacklisted.
+            https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/release/3.0.0/redbot/core/global_checks.py
+        """
+        if await self.bot.is_owner(message.author):
+            return True
+
+        whitelist = await self.bot.db.whitelist()
+        if whitelist:
+            return message.author.id in whitelist
+
+        return message.author.id not in await self.bot.db.blacklist()
+
 
     async def on_message(self, message):
         if len(message.content) < 2 or message.guild is None:
@@ -85,6 +117,10 @@ class AddImage(getattr(commands, "Cog", object)):
         except ValueError:
             return
         alias = await self.first_word(msg[len(prefix):])
+        if not await self.local_perms(message):
+            return
+        if not await self.global_perms(message):
+            return
 
         if alias in [x["command_name"] for x in await self.config.images()]:
             if channel.permissions_for(channel.guild.me).attach_files:
