@@ -1,4 +1,4 @@
-from .decode import Encoding
+from .encoding import Encoding
 
 def setup(bot):
     n = Encoding(bot)
