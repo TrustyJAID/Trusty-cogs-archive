@@ -1,8 +1,10 @@
 import discord
 from redbot.core import commands
+from redbot.core.utils.chat_formatting import pagify, box
 import binascii
 import random
 import hashlib
+from string import ascii_lowercase as lc, ascii_uppercase as uc
 
 
 
@@ -44,6 +46,38 @@ class Encoding(getattr(commands, "Cog", object)):
             return False
         return False
 
+    @commands.group(name='hash', invoke_without_command=True)
+    async def hash_cmd(self, ctx, *, txt:str):
+        """
+            MD5 Encrypt Text
+        """
+        md5 = hashlib.md5(txt.encode()).hexdigest()
+        await ctx.send('**MD5**\n'+md5)
+
+    @hash_cmd.command(name='sha1')
+    async def hash_sha1(self, ctx, *, txt:str):
+        """
+            SHA1 Encrypt Text
+        """
+        sha = hashlib.sha1(txt.encode()).hexdigest()
+        await ctx.send('**SHA1**\n'+sha)
+
+    @hash_cmd.command(name='sha256')
+    async def hash_sha256(self, ctx, *, txt:str):
+        """
+            SHA256 Encrypt Text
+        """
+        sha256 = hashlib.sha256(txt.encode()).hexdigest()
+        await ctx.send('**SHA256**\n'+sha256)
+
+    @hash_cmd.command(name='sha512')
+    async def hash_sha512(self, ctx, *, txt:str):
+        """
+            SHA512 Encrypt Text
+        """
+        sha512 = hashlib.sha512(txt.encode()).hexdigest()
+        await ctx.send('**SHA512**\n'+sha512)
+
 
     @commands.group(name="encode")
     async def _encode(self, ctx: commands.Context):
@@ -57,19 +91,48 @@ class Encoding(getattr(commands, "Cog", object)):
 
     @_encode.command(name="binary")
     async def encode_binary(self, ctx: commands.Context, *, message: str):
+        """
+            Encode text into binary sequences of 8
+        """
         ascii_bin = ' '.join(bin(x)[2:].zfill(8) for x in message.encode('UTF-8'))
         await ctx.send(ascii_bin)
 
     @_decode.command(name="binary")
     async def decode_binary(self, ctx: commands.Context, *, message: str):
+        """
+            Decide binary sequences of 8
+        """
         msg = message.replace(" ", "")
         bin_ascii = "".join([chr(int(msg[i:i+8],2)) for i in range(0,len(msg),8)])
         await ctx.send(bin_ascii)
 
+    def rot_encode(self, n):
+        """
+            https://stackoverflow.com/questions/47580337/short-rot-n-decode-function-in-python
+        """
+        lookup = str.maketrans(lc + uc, lc[n:] + lc[:n] + uc[n:] + uc[:n])
+        return lambda s: s.translate(lookup)
+
+    @_encode.command(name="rot", aliases=["caeser"])
+    async def caeser_cipher(self, ctx, key:int, *, message:str):
+        """
+            Encode a caeser cipher message with specified key
+        """
+        await ctx.send(self.rot_encode(key)(message))
+
+    @_decode.command(name="rot", aliases=["caeser"])
+    async def caeser_cipher(self, ctx, key:int, *, message:str):
+        """
+            Decode a caeser cipher message with specified key
+        """
+        await ctx.send(self.rot_encode(-key)(message))
+
 
     @_encode.command(name="dna")
     async def dna_encode(self, ctx: commands.Context, *, message: str):
-        """Encodes a string into DNA 4 byte ACGT format"""
+        """
+            Encodes a string into DNA 4 byte ACGT format
+        """
         dna = {"00": "A", "01": "T", "10": "G", "11": "C"}
         message = message.strip(" ")
         binary = ' '.join(bin(x)[2:].zfill(8) for x in message.encode('UTF-8')).replace(" ", "")
@@ -86,8 +149,10 @@ class Encoding(getattr(commands, "Cog", object)):
 
 
     @_decode.command(name="dna")
-    async def dna_decode(self,ctx: commands.Context, *, message: str):
-        """Decodes a string of DNA in 4 byte ACGT format."""
+    async def dna_decode(self ,ctx: commands.Context, *, message: str):
+        """
+            Decodes a string of DNA in 4 byte ACGT format.
+        """
         message = message.strip(" ")
         mapping = {}
         replacement = ""
@@ -104,11 +169,9 @@ class Encoding(getattr(commands, "Cog", object)):
                 pass
             replacement = ""
         num = 1
-        new_msg = ""
+        new_msg = "Possible solutions:\n"
         for result in mapping.values():
             new_msg += str(num) + ": " + result + "\n"
             num += 1
-        embed = discord.Embed(title=message,
-                              description="```markdown\n" + new_msg[:1950] + "```",
-                              timestamp=ctx.message.created_at)
-        await ctx.send(embed=embed)
+        for page in pagify(new_msg, shorten_by=20):
+            await ctx.send(f"```\n{page}\n```")
