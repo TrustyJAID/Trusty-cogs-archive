@@ -18,7 +18,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Emojireact | **Release** | Have your bot react to emojis in messages with the emoji! |
 | Badges | **Release** | <details><summary>Create your own badge with from discord information.</summary> Includes templates for fake CIA, NSA, FBI, Discord, and every NHL hockey team. Requirements: pillow, pybarcode</details> |
 | Tweets | **Release** | <details><summary>A modified version of Palmtree5's twitter cog utilising twitter streams to setup a twitter channel to post user tweets.</summary> Requirements: tweepy</details> |
-| Mock | **Release** | Mock the user who last posted! |
+| Mock | **Release** | <details><summary>Mock the user who last posted!</summary>Note: This requires not having the `--dev` flag enabled, however if you need both install the dev cog in my repo.</details> |
 | Translate | **Release** | Add flag emojis to messages to translate to that language or translate messages by command. (Uses Google Translate and may incur some fees) |
 | AddImage | **Release** | <details><summary>Allows you to add images to be posted on command.</summary> Stores the image in the bot folder then uploads the image directly. Owners may add images globally.</details> |
 | Triggersize | **Release** | <details><summary>Posts various sized images based on specific triggered command lengths.</summary> May be customized manually for different images or by default express ones true rage.</details> |
@@ -28,6 +28,8 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | ServerStats | **Release** | This cog provides a ton of useful development functions for gathering channel data and user data as well as providing a way to setup a channel to monitor which servers are adding the bot. |
 | Runescape | **Beta** | a cog to grab Runescape 3 stats and profile information. |
 | Fun | **Release**| The fun cog from Appu's Selfbot rewritten for redbot V3 including adding reactions and other "fun" commands. |
+| Gabai | **Beta** | A cog to verify a user is on gab before letting them join the server. |
+| Notsobot | **Beta**| Working cog for many of NotSoBot's commands. Has lots of requirements, view the cog README.md for details. |
 
 
 ## Works in Progress
@@ -37,7 +39,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | --- | --- | --- |
 | Anime | **Alpha**| <details><summary>A cog that gets what current anime episodes are airing and posts them on discord when they start airing.</summary> There was an update to the API being used and I need to rewrite for the new API.</details> |
 | Halo | **Work in Progress**| Cogs for accessing information from the Halo video games API systems. |
-| Notsobot | **Work in Progress**| Work on converting some notsobot commands to redbot. Hopefully avoiding Image Magick. |
+| Chatterbot | **Alpha** | Teach your bot how to talk by watching conversations on servers and reply. Uses chatterbot library. NOTE: This cog is not recommended to be used at this time. After a month of usage it caused the whole bot to slow down while it searched for responses. I recommend looking at cleverbot for the time being. |
 
 
 ## Rewritten Cogs Originally Made by others 
@@ -45,11 +47,11 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 | Name | Status | Description (Click to see full status)
 | --- | --- | --- |
-| Autorole | **Release**| Automaticall apply roles when a user joins the server. |
+| Autorole | **Release**| Automatically apply roles when a user joins the server. |
 | Stickyroles | **Release**| Keep user roles when they leave the server and re-join. Useful for muted roles. |
 | Welcome | **Beta**| Welcomes users to the server. |
 | Modlogs | **Beta**| A more in-depth modlog cog for more information about users joining/leaving and messages edited/deleted. |
-| Cleverbot | **Release**| Have your bot respond with cleverbot responses. |
+| Cleverbot | **Release**| <details><summary>Have your bot respond with cleverbot responses.</summary>Cleverbot.com requires a paid API key, cleverbot.io is supported </details> |
 | Insult | **Release**| Insult a user! |
 
 ## Special cogs
@@ -57,16 +59,13 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 | Name | Status | Description (Click to see full status)
 | --- | --- | --- |
-| Trustyavatar | **Release** | The cog that controls TrustyBot's changing Avatar image. It may be manually customized to ones liking. |
-| Trustybot | **Alpha** | A collection of commands for Messing around with. Some functions may find their way to a more versatile cog eventually. |
+| Trustyavatar | **Release** | The cog that controls TrustyBot's changing Avatar image. |
+| Trustybot | **Alpha** | Hard coded commands meant for personal use. |
 | Backup | **Release** | Backs up all messages on a server. Use with caution and ensure any backups are stored on an encrypted drive. |
-| gab | **Release** | A cog to verify a user is on gab before letting them join the server. |
 | QPosts | **Release** | Gathers new Q posts from 8ch.net and posts them in discord. |
 | Juche | **Release** | Corrects dates posted in discord with the current Juche year. |
-| Dev | **Release** | A copy of the developer commands in redbot with `sudo` replacing `mock` like V2. NOTE:This bypasses the `--dev` flag. |
+| Dev | **Release** | A copy of the developer commands in redbot with `sudo` replacing `mock` like V2. NOTE:This bypasses the `--dev` flag and is not recommended unless you know what you're doing. |
 | Hue | **Release** | A cog to control Philips Hue lights through discord. Not tested with bots outside the home network. |
-| Chatterbot | **Alpha** | Teach your bot how to talk by watching conversations on servers and reply. Uses chatterbot library. NOTE: This cog is not recommended to be used at this time. After a month of usage it caused the whole bot to slow down while it searched for responses. I recommend looking at cleverbot for the time being.
-| Blockchain | **Alpha** | a cog to download and the bitcoin blockchain for hidden files and data. Requires bitcoin RPC connection and complicated setup **don't use** unless you know what you're doing. |
 | Unity4J | **Release** | Hard coded cog for one server. Do not use. |
 
 Any questions you can find me and TrustyBot over on [my server](https://discord.gg/wVVrqej) or on the [Redbot Cog Support server](https://discord.gg/GET4DVk)
