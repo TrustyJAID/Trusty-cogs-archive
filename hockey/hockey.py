@@ -663,7 +663,7 @@ class Hockey(getattr(commands, "Cog", object)):
                     continue
                 pickem_list = [Pickems.from_json(p) for p in pickem_list_json]
                 time_now = datetime.now()
-                if time_now.isoweekday() == 0:
+                if time_now.weekday() == 6:
                     # Reset the weekly leaderboard if it's Sunday
                     leaderboard = await self.config.guild(guild).leaderboard()
                     if leaderboard is None:
@@ -925,6 +925,16 @@ class Hockey(getattr(commands, "Cog", object)):
         self.loop = self.bot.loop.create_task(self.get_team_goals())
         await msg.edit(content=msg.content+"restarted")
         # await ctx.send("Done.")
+
+    @hockey_commands.command(hidden=True)
+    @checks.is_owner()
+    async def clear_weekly(self, ctx):
+        leaderboard = await self.config.guild(ctx.guild).leaderboard()
+        if leaderboard is None:
+            leaderboard = {}
+        for user in leaderboard:
+            leaderboard[str(user)]["weekly"] = 0
+        await self.config.guild(ctx.guild).leaderboard.set(leaderboard)
 
     @commands.group()
     @checks.admin_or_permissions(manage_channels=True)
