@@ -22,7 +22,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Translate | **Release** | Add flag emojis to messages to translate to that language or translate messages by command. (Uses Google Translate and may incur some fees) |
 | AddImage | **Release** | <details><summary>Allows you to add images to be posted on command.</summary> Stores the image in the bot folder then uploads the image directly. Owners may add images globally.</details> |
 | Triggersize | **Release** | <details><summary>Posts various sized images based on specific triggered command lengths.</summary> May be customized manually for different images or by default express ones true rage.</details> |
-| Encoding | **Release** | Allows one to encode or decode in Binary and DNA sequencing (ACGT). As well has hasning strings and caeser cipher text. |
+| Encoding | **Release** | Allows one to encode or decode in Binary and DNA sequencing (ACGT). As well has hashing strings and caeser cipher text. |
 | Compliment | **Release** | Compliment a user! |
 | Activity | **Release** |  Track users posting on a server and kick people who have been inactive for the set time. |
 | ServerStats | **Release** | This cog provides a ton of useful development functions for gathering channel data and user data as well as providing a way to setup a channel to monitor which servers are adding the bot. |
