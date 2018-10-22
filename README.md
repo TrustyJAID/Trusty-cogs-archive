@@ -80,7 +80,7 @@ Any questions you can find me and TrustyBot over on [my server](https://discord.
 * Appu - Fun cog
 * Ivan Seidel (isnowillegal.com) - Trump command
 * Bruno Lemos (isnowillegal.com) - Trump command
-* Jo\u00e3o Pedro (isnowillegal.com) - Trump command
+* João Pedro (isnowillegal.com) - Trump command
 * RePulsR - Modlogs cog
 * NotSoSuper - Notsobot cog
 * Aziz - Translate cog
