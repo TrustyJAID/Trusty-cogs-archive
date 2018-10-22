@@ -176,10 +176,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     724bf37 [Starboard] Add context jump link to description\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     e8ed95d [Cleverbot] Make single io instance instead of one per user, does not work in DM\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 958,
+				"buffer_size": 990,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -199,6 +199,15 @@
 			"settings":
 			{
 				"buffer_size": 15795,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "cleverbot/cleverbot.py",
+			"settings":
+			{
+				"buffer_size": 9191,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -360,9 +369,7 @@
 	[
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
-		"/E/github/Trusty-cogs/starboard",
-		"/E/github/Trusty-cogs/trustyavatar",
-		"/E/github/Trusty-cogs/tweets"
+		"/E/github/Trusty-cogs/cleverbot"
 	],
 	"file_history":
 	[
@@ -497,7 +504,7 @@
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 41.0
 	},
 	"find_in_files":
 	{
@@ -512,6 +519,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"apierror",
 			"re.",
 			"re",
 			"import re",
@@ -638,8 +646,7 @@
 			"this command is for gifs",
 			"do_vw",
 			"bytes_download",
-			"/cogs/notsobot/vw",
-			"def r"
+			"/cogs/notsobot/vw"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -704,15 +711,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 958,
+						"buffer_size": 990,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								186,
-								186
+								959,
+								959
 							]
 						],
 						"settings":
@@ -760,7 +767,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
@@ -790,11 +797,41 @@
 						"translation.y": 4248.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
 					"buffer": 3,
+					"file": "cleverbot/cleverbot.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9191,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4431,
+								4431
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1989.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
 					"file": "tweets/tweets.py",
 					"semi_transient": false,
 					"settings":
@@ -820,11 +857,11 @@
 						"translation.y": 664.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 5,
 					"file": "notsobot/info.json",
 					"semi_transient": false,
 					"settings":
@@ -850,11 +887,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 6,
 					"file": "notsobot/README.md",
 					"semi_transient": false,
 					"settings":
@@ -878,11 +915,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 7,
 					"file": "hockey/hockey.py",
 					"semi_transient": false,
 					"settings":
@@ -908,11 +945,11 @@
 						"translation.y": 15964.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 8,
 					"file": "hockey/menu.py",
 					"semi_transient": false,
 					"settings":
@@ -938,11 +975,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 9,
 					"file": "notsobot/notsobot.py",
 					"semi_transient": false,
 					"settings":
@@ -968,7 +1005,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 6,
 					"type": "text"
 				}
 			]
