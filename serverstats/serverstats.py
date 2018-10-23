@@ -8,6 +8,7 @@ import aiohttp
 from io import BytesIO
 from redbot.core.i18n import Translator
 from redbot.core.utils.chat_formatting import pagify, box
+from typing import Union
 
 _ = Translator("ServerStats", __file__)
 
@@ -180,8 +181,10 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command(hidden=True)
     @checks.is_owner()
-    async def whois(self, ctx, member:discord.User):
+    async def whois(self, ctx, member:Union[int, discord.User]):
         """Shows if a user is on any other servers the bot is on"""
+        if type(member) == int:
+            member = await self.bot.get_user_info(member)
         guild_list = []
         for guild in self.bot.guilds:
             members = [member.id for member in guild.members]
@@ -194,7 +197,8 @@ class ServerStats(getattr(commands, "Cog", object)):
             for page in pagify(msg, ["\n"]):
                 await ctx.send(page)
         else:
-            await ctx.send("Not in any shared servers!")
+            msg = f"{member.name}#{member.discriminator} ({member.id}) is not in any shared servers!"
+            await ctx.send(msg)
 
     @commands.command(hidden=True)
     @checks.is_owner()
