@@ -321,9 +321,14 @@ class Starboard(getattr(commands, "Cog", object)):
         if str(react) == str(payload.emoji):
             threshold = await self.config.guild(guild).threshold()
             try:
-                count = [reaction.count for reaction in msg.reactions if str(reaction.emoji) == str(payload.emoji)][0]
+                reaction = [r for r in msg.reactions if str(r.emoji) == str(payload.emoji)][0]
+                count = reaction.count
             except IndexError:
                 count = 0
+            async for user in reaction.users():
+                # This makes sure that the user cannot add their own count to the starboard threshold
+                if msg.author.id == user.id and count != 0:
+                    count -= 1
             if await self.check_is_posted(guild, msg):
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
                 msg_id, count2 = await self.get_posted_message(guild, msg)
