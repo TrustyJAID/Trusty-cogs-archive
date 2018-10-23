@@ -14,8 +14,8 @@ class Spoiler(getattr(commands, "Cog", object)):
         self.config.register_global(**default)
 
 
-    @commands.command()
-    async def spoiler(self, ctx, *, spoiler_msg):
+    @commands.command(name="spoiler", aliases=["spoilers"])
+    async def _spoiler(self, ctx, *, spoiler_msg):
         """
             Post spoilers in chat, react to the message to see the spoilers
         """
