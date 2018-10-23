@@ -184,7 +184,11 @@ class ServerStats(getattr(commands, "Cog", object)):
     async def whois(self, ctx, member:Union[int, discord.User]):
         """Shows if a user is on any other servers the bot is on"""
         if type(member) == int:
-            member = await self.bot.get_user_info(member)
+            try:
+                member = await self.bot.get_user_info(member)
+            except discord.errors.NotFound:
+                await ctx.send(f"{member} doesn't seem to be a discord user.")
+                return
         guild_list = []
         for guild in self.bot.guilds:
             members = [member.id for member in guild.members]
