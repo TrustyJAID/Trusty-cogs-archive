@@ -1,0 +1,21 @@
+{
+    "author" : [
+        "TrustyJAID"
+    ],
+    "description" : "Post spoiler messages through the bot.",
+    "install_msg" : "Use `[p]spoiler spoiler message` to post a spoiler message and people to react to get spoilers.",
+    "min_python_version" : [
+        3,
+        6,
+        6
+    ],
+    "name" : "Spoiler",
+    "permissions" : ["manage_messages", "add_reactions"],
+    "requirements" : [],
+    "short" : "Spoiler messages",
+    "tags" : [
+        "general",
+        "utility",
+        "spoiler"
+    ]
+}

@@ -30,6 +30,8 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Fun | **Release**| The fun cog from Appu's Selfbot rewritten for redbot V3 including adding reactions and other "fun" commands. |
 | Gabai | **Beta** | A cog to verify a user is on gab before letting them join the server. |
 | Notsobot | **Beta**| Working cog for many of NotSoBot's commands. Has lots of requirements, view the cog README.md for details. |
+| Spoiler | **Beta**| Post spoiler messages in chat and react to the message to view the spoilers. |
+
 
 
 ## Works in Progress
