@@ -2,6 +2,10 @@ import discord
 from redbot.core import Config, checks, commands
 
 
+__version__ = "1.1.0"
+__author__ = "TrustyJAID"
+
+
 class Spoiler(getattr(commands, "Cog", object)):
     """
         Post spoilers in chat without spoining the text for everyone
@@ -9,9 +13,9 @@ class Spoiler(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
-        default = {"messages":[]}
+        default_guild = {"messages":[]}
         self.config = Config.get_conf(self, 545496534746)
-        self.config.register_global(**default)
+        self.config.register_guild(**default_guild)
 
 
     @commands.command(name="spoiler", aliases=["spoilers"])
@@ -19,19 +23,31 @@ class Spoiler(getattr(commands, "Cog", object)):
         """
             Post spoilers in chat, react to the message to see the spoilers
         """
-        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-            await ctx.message.delete()
+        if not ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+            await ctx.send("I don't have `manage_messages` permission.")
+            return
+        if not ctx.channel.permissions_for(ctx.guild.me).add_reactions:
+            await ctx.send("I don't have `add_reactions` permission.")
+            return
+        await ctx.message.delete()
+
         new_msg = await ctx.send("**__SPOILERS__** (React to this message to view)")
-        if ctx.channel.permissions_for(ctx.guild.me).add_reactions:
-            await new_msg.add_reaction("✅")
-        msg_list = await self.config.messages()
-        spoiler_obj = {"message_id":new_msg.id, "spoiler_text":spoiler_msg}
+        await new_msg.add_reaction("✅")
+        msg_list = await self.config.guild(ctx.guild).messages()
+        spoiler_obj = {"message_id":new_msg.id, "spoiler_text":spoiler_msg, "author":ctx.author.id}
         msg_list.append(spoiler_obj)
-        await self.config.messages.set(msg_list)
+        await self.config.guild(ctx.guild).messages.set(msg_list)
+
+    async def make_embed(self, channel, spoiler_obj):
+        msg = await channel.get_message(spoiler_obj["message_id"])
+        author = await self.bot.get_user_info(spoiler_obj["author"])
+        name = f"{author.name}#{author.discriminator} Spoiled"
+        em = discord.Embed(description = spoiler_obj["spoiler_text"], timestamp=msg.created_at)
+        em.set_author(name=name, icon_url=getattr(author, "avatar_url", discord.Embed.Empty))
+        em.set_footer(text='{} | #{}'.format(channel.guild.name, channel.name))
+        return em
 
     async def on_raw_reaction_add(self, payload):
-        if payload.message_id not in [m["message_id"] for m in await self.config.messages()]:
-            return
         if str(payload.emoji) != "✅":
             return
         channel = self.bot.get_channel(id=payload.channel_id)
@@ -39,15 +55,18 @@ class Spoiler(getattr(commands, "Cog", object)):
             guild = channel.guild
         except:
             return
+        if payload.message_id not in [m["message_id"] for m in await self.config.guild(guild).messages()]:
+            return
         user = guild.get_member(payload.user_id)
         if user.bot:
             return
-        msg_list = await self.config.messages()
-        spoiler_text = " "
+        msg_list = await self.config.guild(guild).messages()
+        spoiler_obj = None
         for msg in msg_list:
             if payload.message_id == msg["message_id"]:
-                spoiler_text = msg["spoiler_text"]
-        try:
-            await user.send(spoiler_text)
-        except Exception as e:
-            print(e)
+                spoiler_obj = msg
+        if spoiler_obj is not None:
+            try:
+                await user.send(embed = await self.make_embed(channel, spoiler_obj))
+            except Exception as e:
+                print(e)

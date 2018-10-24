@@ -3,7 +3,7 @@
         "TrustyJAID"
     ],
     "description" : "Post spoiler messages through the bot.",
-    "install_msg" : "Use `[p]spoiler spoiler message` to post a spoiler message and people to react to get spoilers.",
+    "install_msg" : "Use `[p]spoiler spoiler message` to post a spoiler message, react to be DM'd the spoiler.",
     "min_python_version" : [
         3,
         6,
