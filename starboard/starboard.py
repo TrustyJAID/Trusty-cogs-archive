@@ -19,7 +19,38 @@ class Starboard(getattr(commands, "Cog", object)):
     @checks.admin_or_permissions(manage_channels=True)
     async def starboard(self, ctx):
         """Commands for managing the starboard"""
-        pass
+        if ctx.invoked_subcommand is None:
+            guild = ctx.guild
+            enabled = await self.config.guild(guild).enabled()
+            if enabled:
+                channel = self.bot.get_channel(await self.config.guild(guild).channel())
+                emoji = await self.config.guild(guild).emoji()
+                role = ", ".join(guild.get_role(r).name for r in await self.config.guild(guild).role())
+                ignore = await self.config.guild(guild).ignore()
+                if ignore != []:
+                    ignored_channels = ", ".join(self.bot.get_channel(chn).mention for chn in ignore)
+                    ignored_channels += ", {}".format(channel.mention) 
+                else:
+                    ignored_channels = channel.mention
+                threshold = await self.config.guild(guild).threshold()
+                if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+                    em = discord.Embed(title="Starboard settings for {}".format(ctx.guild.name))
+                    em.add_field(name="Enabled", value=str(enabled))
+                    em.add_field(name="Emoji", value=str(emoji))
+                    em.add_field(name="Starboard Channel", value=channel.mention)
+                    em.add_field(name="Roles Allowed", value=role)
+                    em.add_field(name="Ignored Channels", value=ignored_channels)
+                    em.add_field(name="Threshold", value=threshold)
+                    await ctx.send(embed=em)
+                else:
+                    msg = f"Starboard Settings for {guild.name}\n"
+                    msg += f"Enabled: {enabled}\n"
+                    msg += f"Emoji: {str(emoji)}\n"
+                    msg += f"Starboard Channel:{channel.mention}\n"
+                    msg += f"Roles Allowed: {role}\n"
+                    msg += f"Ignored Channels: {ignored_channels}\n"
+                    msg += f"Threshold: {threshold}"
+                    await ctx.send(msg)
 
     @starboard.group(pass_context=True, name="role", aliases=["roles"])
     async def _roles(self, ctx):
@@ -40,8 +71,9 @@ class Starboard(getattr(commands, "Cog", object)):
 
     @commands.command()
     async def star(self, ctx, msg_id, channel:discord.TextChannel=None):
-        """Manually star a message
-           Do `[p]star <msg_id> <channel_id>` Deaults to the current channel if not provided"""
+        """
+            Manually star a message
+        """
         if channel is None:
             channel = ctx.message.channel
         guild = channel.guild
@@ -83,7 +115,13 @@ class Starboard(getattr(commands, "Cog", object)):
     
     @starboard.command(pass_context=True, name="setup", aliases=["set"])
     async def setup_starboard(self, ctx, channel: discord.TextChannel=None, emoji="⭐", role:discord.Role=None):
-        """Sets the starboard channel, emoji and role"""
+        """
+            Setup the starboard on this server
+
+            Default channel is the current channel
+            Default emoji is ⭐
+            Default role is everyone
+        """
         guild = ctx.message.guild
         if channel is None:
             channel = ctx.message.channel
@@ -113,19 +151,23 @@ class Starboard(getattr(commands, "Cog", object)):
 
     @starboard.command(name="disable")
     async def disable_starboard(self, ctx):
-        """Disables the starboard for this guild."""
+        """Disables the starboard for this server."""
         await self.config.guild(ctx.guild).enabled.set(False)
         await ctx.send("Starboard disabled here!")
 
     @starboard.command(name="enable")
     async def enable_starboard(self, ctx):
-        """Enables the starboard for this guild."""
+        """Enables the starboard for this server."""
         await self.config.guild(ctx.guild).enabled.set(True)
         await ctx.send("Starboard enabled here!")
 
     @starboard.command(name="ignore")
     async def toggle_channel_ignore(self, ctx, channel:discord.TextChannel=None):
-        """Adds channel to ignored list of channels"""
+        """
+            Toggles channel to be ignored by starboard
+            
+            The starboard channel is always ignored by default
+        """
         if channel is None:
             channel = ctx.message.channel
         ignore_list = await self.config.guild(ctx.guild).ignore()
@@ -217,12 +259,10 @@ class Starboard(getattr(commands, "Cog", object)):
     @_roles.command(pass_context=True, name="remove", aliases=["del", "rem"])
     async def remove_role(self, ctx, role:discord.Role):
         """Remove a role allowed to add messages to the starboard"""
-        if not await self.config.guild(guild).enabled():
-            await ctx.send(
-                                        "I am not setup for the starboard on this guild!\
-                                         \nuse starboard set to set it up.")
-            return
         guild = ctx.message.guild
+        if not await self.config.guild(guild).enabled():
+            await ctx.send("I am not setup for the starboard on this guild! use starboard set to set it up.")
+            return
         everyone_role = await self.get_everyone_role(guild)
         guild_roles = await self.config.guild(guild).role()
         if role.id in guild_roles:
