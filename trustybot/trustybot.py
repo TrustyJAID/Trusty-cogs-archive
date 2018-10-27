@@ -140,7 +140,7 @@ class TrustyBot(getattr(commands, "Cog", object)):
         """Donate to the development of TrustyBot!"""
         await ctx.send("Help support me  and development of TrustyBot by buying my album or donating bitcoin on my website :smile: https://trustyjaid.com/")
     
-    @commands.command(aliases=["dnd"])
+    @commands.command()
     async def donotdo(self, ctx, number=None):
         if number is None:
             await ctx.send(choice(donotdo))
