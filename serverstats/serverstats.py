@@ -105,7 +105,9 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     async def emoji(self, ctx, emoji):
-        # print(emoji)
+        """
+            Post a large size server emoji in chat
+        """
         if emoji is discord.Emoji:
             await ctx.channel.trigger_typing()
             emoji_name = emoji.name
@@ -133,6 +135,9 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     async def avatar(self, ctx, member:discord.Member=None):
+        """
+            Display a users avatar in chat
+        """
         if member is None:
             member = ctx.message.author
         guild = ctx.message.guild
@@ -380,6 +385,9 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command()
     @checks.is_owner()
     async def getroles(self, ctx):
+        """
+            Displays all roles and their associated ID in chat
+        """
         guild = ctx.message.guild
         msg = ""
         for role in guild.roles:
@@ -390,6 +398,9 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command()
     async def rolestats(self, ctx):
+        """
+            Display number of members in each role
+        """
         guild = ctx.message.guild
         em = discord.Embed()
         msg = ""
@@ -539,6 +550,9 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command(aliases=["serveremojis"])
     async def guildemojis(self, ctx, *, guildname=None):
+        """
+            Display all server emojis in a menu that can be scrolled through
+        """
         msg = ""
         guild = None
         if guildname is not None:
