@@ -399,15 +399,15 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command()
     async def rolestats(self, ctx):
         """
-            Display number of members in each role
+            Display number of members in each role by role hierarchy 
         """
         guild = ctx.message.guild
-        em = discord.Embed()
         msg = ""
-        for role in guild.roles:
+        for role in sorted(guild.roles, reverse=True):
             msg += "{}: {} \n".format(role.mention, len(role.members))
-        em.description = msg
-        await ctx.send(embed=em)
+        for page in pagify(msg, ["\n"]):
+            em = discord.Embed(description=page)
+            await ctx.send(embed=em)
 
     async def check_highest(self, data):
         highest = 0
