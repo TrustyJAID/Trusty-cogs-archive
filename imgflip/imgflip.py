@@ -1,9 +1,8 @@
-from redbot.core import commands
-from redbot.core import Config
-from redbot.core import checks
+from redbot.core import commands, checks, Config
 from random import choice
-import asyncio
 import aiohttp
+from typing import Union
+from redbot.core.utils.chat_formatting import pagify
 
 class Imgflip(getattr(commands, "Cog", object)):
 
@@ -12,8 +11,8 @@ class Imgflip(getattr(commands, "Cog", object)):
         self.config = Config.get_conf(self, 356889977)
         default_global = {"username": "", "password": ""}
         self.config.register_global(**default_global)
-        self.url = "https://api.imgflip.com/caption_image?template_id={0}&username={1}&password={2}"
-        self.search = "https://api.imgflip.com/get_memes?username={0}&password={1}"
+        self.url = "https://api.imgflip.com/caption_image"
+        self.search = "https://api.imgflip.com/get_memes"
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
 
@@ -26,7 +25,7 @@ class Imgflip(getattr(commands, "Cog", object)):
                 if meme.lower() in memes["name"].lower():
                     return memes["id"]
         except:
-            await self.get_memes()
+            return
 
     @commands.command(alias=["listmemes"])
     async def getmemes(self, ctx):
@@ -35,57 +34,61 @@ class Imgflip(getattr(commands, "Cog", object)):
         await self.get_memes(ctx)
 
     async def get_memes(self, ctx):
-        url = self.search.format(await self.config.username(), await self.config.password())
-        memelist = "```[p]meme or id;text1;text2\n\n"
+        url = self.search
         async with self.session.get(self.search) as r:
             results = await r.json()
-        for memes in results["data"]["memes"]:
-            memelist += memes["name"] + ", "
-            if len(memelist) > 1500:
-                await ctx.send(memelist + "```")
-                memelist = "```"
-        await ctx.send(memelist[:len(memelist)-2] + 
-                           "``` Find a meme https://imgflip.com/memetemplates click blank template and get the Template ID for more!")
+        memelist = ", ".join(m["name"] for m in results["data"]["memes"])
+        memelist += "Find a meme <https://imgflip.com/memetemplates> click blank template and get the Template ID for more!"
+        for page in pagify(memelist, [","]):
+            await ctx.send(page)
+        
 
     @commands.command()
-    async def meme(self, ctx, *, memeText: str):
-        """ Pulls a custom meme from imgflip"""
-        msg = memeText.split(";")
-        await ctx.trigger_typing()
-        if len(msg) == 1:
-            meme, text1, text2 = msg[0], " ", " "
-        if len(msg) == 2:
-            meme, text1, text2 = msg[0], msg[1], " "
-        if len(msg) == 3:
-            meme, text1, text2 = msg[0], msg[1], msg[2]
-        else:
-            await ctx.send("Too many text entries! Imgflip allows a maximum of 2 text fields in their API.")
-            return
+    async def meme(self, ctx, meme_name:Union[int, str], text_1:str=" ", text_2:str=" "):
+        """ 
+            Create custom memes from imgflip
+            
+            All arguments with spaces require \"quotation marks\" to work
+            e.g. `[p]meme \"Two Buttons\" \"Make meme in discord\" \"Make meme in paint\"`
+            
+            Do `[p]getmemes` to see which meme names will work
 
-        text_lines = len(msg) - 1
-        meme = msg.pop(0)
-        
-        text1 = text1[:20] if len(text1) > 20 else text1
-        text2 = text1[:20] if len(text2) > 20 else text2
+            You can get meme ID's from https://imgflip.com/memetemplates
+            click blank template and use the Template ID in place of meme_name
+        """
+        await ctx.trigger_typing()
+                
+        text_1 = text_1[:20] if len(text_1) > 20 else text_1
+        text_2 = text_2[:20] if len(text_2) > 20 else text_2
         username = await self.config.username()
         password = await self.config.password()
-        if not meme.isdigit():
-            meme = await self.get_meme_id(meme)
-        url = self.url.format(meme, username, password)
-        for i in range(0, text_lines):
-            url += "&text{}={}".format(i, msg[i])
-        if text_lines == 0:
-            url += "&text0=%20"
+        if type(meme_name) is str:
+            meme = await self.get_meme_id(meme_name)
+        else:
+            meme = meme_name
+        if meme is None:
+            await ctx.send("{} doesn't appear to be a meme I can use".format(meme_name))
         try:
-            async with self.session.get(url) as r:
+            params = {
+                "template_id":meme,
+                "username": await self.config.username(),
+                "password": await self.config.password(),
+                "text0":text_1,
+                "text1":text_2
+
+            }
+            async with self.session.post(self.url, params=params) as r:
                 result = await r.json()
-            if result["data"] != []:
+            if result["success"]:
                 url = result["data"]["url"]
                 await ctx.send(url)
-        except:
+            if not result["success"]:
+                await ctx.send(result["error_message"])
+        except Exception as e:
+            print(e)
             await ctx.send("That meme wasn't found!")
 
-    @commands.group(name='imgflipset', aliases=["memeset"])
+    @commands.command(name='imgflipset', aliases=["memeset"])
     @checks.is_owner()
     async def imgflip_set(self, ctx, username:str, password:str):
         """Command for setting required access information for the API"""
