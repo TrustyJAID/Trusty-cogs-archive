@@ -19,6 +19,9 @@ numbs = {
 }
 
 
+class GuildNotFoundError(Exception):
+    pass
+
 class ServerStats(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
@@ -238,29 +241,48 @@ class ServerStats(getattr(commands, "Cog", object)):
             await ctx.send(page)
 
     @commands.command()
-    @checks.is_owner()
-    async def topmembers(self, ctx, number:int=10, guild_id:int=None):
+    @checks.mod_or_permissions(manage_messages=True)
+    async def topmembers(self, ctx, number:int=10, guild_name:Union[int, str]=None):
         """Lists top 10 members on the server by join date"""
-        if guild_id is not None:
-            guild = self.bot.get_guild(id=guild_id)
-        else:
-            guild = ctx.message.guild
+        guild = ctx.guild
+        if guild_name is not None:
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
         member_list = sorted(guild.members, key=lambda m: m.joined_at)
-        new_msg = ""
+        new_msg = "__**First {} members of {}**__\n".format(number, guild.name)
         for member in member_list[:number]:
             new_msg += "{}. {}\n".format((member_list.index(member)+1), member.name)
 
         for page in pagify(new_msg, ['\n']):
             await ctx.send(page)
+
+    async def get_guild_obj(self, guild_name):
+        if type(guild_name) == int:
+            page_guild = [g for g in self.bot.guilds if int(guild_name) == g.id]
+        if type(guild_name) == str:
+            page_guild = [g for g in self.bot.guilds if guild_name.lower() in g.name.lower()]
+        try:
+            if guild_name is not None:
+                guilds = [g for g in self.bot.guilds]
+                guild = guilds[guilds.index(page_guild[0])]
+        except IndexError as e:
+            raise GuildNotFoundError
+        return guild
     
     @commands.command()
     @checks.is_owner()
-    async def listchannels(self, ctx, guild_id:discord.guild=None):
+    async def listchannels(self, ctx, *, guild_name:Union[int, str]=None):
         """Lists channels and their position and ID for a server"""
-        if guild_id is None:
-            guild = ctx.message.guild
-        else:
-            guild = guild_id
+        guild = ctx.guild
+        if guild_name is not None:
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
         channels = {}
         msg = "__**{}({})**__\n".format(guild.name, guild.id)
         for channel in guild.channels:
@@ -358,44 +380,49 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command()
     @checks.is_owner()
-    async def getguild(self, ctx, guild_name:Union[int, str]=None):
+    async def getguild(self, ctx, *, guild_name:Union[int, str]=None):
         """Menu to view info on all servers the bot is on"""
         guilds = [guild for guild in self.bot.guilds]
         page = 0
         if guild_name is not None:
-            if type(guild_name) == int:
-                page_guild = [guild for guild in self.bot.guilds if int(guild_name) == guild.id]
-            if type(guild_name) == str:
-                page_guild = [guild for guild in self.bot.guilds if guild_name.lower() in guild.name.lower()]
-        try:
-            if guild_name is not None:
-                page = guilds.index(page_guild[0])
-        except IndexError as e:
-            await ctx.send("{} guild was not found.".format(guild_name))
-            return
+            try:
+                guild = await self.get_guild_obj(guild_name)
+                page = guilds.index(guild)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
+            
 
         await self.guild_menu(ctx, guilds, None, page)
 
     
     @commands.command()
-    @checks.is_owner()
-    async def nummembers(self, ctx, *, guild_name=None):
+    @checks.mod_or_permissions(manage_messages=True)
+    async def nummembers(self, ctx, *, guild_name:Union[int, str]=None):
         """Checks the number of members on the server"""
+        guild = ctx.guild
         if guild_name is not None:
-            for guild in self.bot.guilds:
-                if guild.name == guild_name:
-                    await ctx.send(len(guild.members))
-        else:
-            guild = ctx.message.guild
-            await ctx.send(len(guild.members))
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
+
+        await ctx.send("{} has {} members.".format(guild.name, len(guild.members)))
 
     @commands.command()
-    @checks.is_owner()
-    async def getroles(self, ctx):
+    @checks.mod_or_permissions(manage_messages=True)
+    async def getroles(self, ctx, *, guild_name:Union[int, str]=None):
         """
             Displays all roles and their associated ID in chat
         """
-        guild = ctx.message.guild
+        guild = ctx.guild
+        if guild_name is not None:
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
         msg = ""
         for role in guild.roles:
             msg += ("{} ({})\n".format(role.name, role.id))
@@ -404,11 +431,18 @@ class ServerStats(getattr(commands, "Cog", object)):
             await ctx.send(page)
 
     @commands.command()
-    async def rolestats(self, ctx):
+    @checks.mod_or_permissions(manage_messages=True)
+    async def rolestats(self, ctx, *, guild_name:Union[int, str]=None):
         """
             Display number of members in each role by role hierarchy 
         """
-        guild = ctx.message.guild
+        guild = ctx.guild
+        if guild_name is not None:
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
         msg = ""
         for role in sorted(guild.roles, reverse=True):
             msg += "{}: {} \n".format(role.mention, len(role.members))
@@ -448,14 +482,15 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command(aliases=["serverstats"])
     @checks.mod_or_permissions(manage_messages=True)
-    async def server_stats(self, ctx, *, guild_id:int=None):
+    async def server_stats(self, ctx, *, guild_name:Union[int, str]=None):
         """Gets total messages on the server and per-channel basis as well as most single user posts"""
-        if guild_id is None:
-            guild = ctx.message.guild
-        else:
-            for guilds in self.bot.guilds:
-                if guild_id == guilds.id:
-                    guild = guilds
+        guild = ctx.guild
+        if guild_name is not None:
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
         channel = ctx.message.channel
         total_msgs = 0
         msg = ""
@@ -556,23 +591,18 @@ class ServerStats(getattr(commands, "Cog", object)):
                 return await message.delete()
 
     @commands.command(aliases=["serveremojis"])
-    async def guildemojis(self, ctx, *, guildname=None):
+    async def guildemojis(self, ctx, *, guild_name:Union[int, str]=None):
         """
             Display all server emojis in a menu that can be scrolled through
         """
+        guild = ctx.guild
+        if guild_name is not None:
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
         msg = ""
-        guild = None
-        if guildname is not None:
-            for guilds in self.bot.guilds:
-                if guilds.name == guildname:
-                    guild = guilds
-        else:
-            guild = ctx.message.guild
-
-        if guild is None:
-            ctx.send("I don't see that guild!")
-            return
-        
         embed = discord.Embed(timestamp=ctx.message.created_at)
         embed.set_author(name=guild.name, icon_url=guild.icon_url)
         regular = []
