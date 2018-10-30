@@ -2,8 +2,8 @@
     "author" : [
         "TrustyJAID"
     ],
-    "description" : "Covfefeify any words!",
-    "install_msg" : "Use [p]covefy <word> to covefy a word",
+    "description" : "Covfefeify almost any word!",
+    "install_msg" : "Use [p]covefy <word> to convert almost any word into covfefe",
     "min_python_version" : [
         3,
         6,
