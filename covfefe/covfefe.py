@@ -8,6 +8,9 @@ class Covfefe(getattr(commands, "Cog", object)):
         self.bot = bot
     
     async def covfefe(self, x, k='aeiouy])'):
+        """
+            https://codegolf.stackexchange.com/a/123697
+        """
         try:
             b,c,v=re.findall(f'(.*?[{k}([^{k}.*?([{k}',x)[0];return b+c+(('bcdfgkpstvz'+c)['pgtvkgbzdfs'.find(c)]+v)*2
         except:
