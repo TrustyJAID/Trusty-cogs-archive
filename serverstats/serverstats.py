@@ -318,7 +318,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         else:
             # message edits don't return the message object anymore lol
             await message.edit(embed=em)
-        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"]
+        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"] and react.message.id == message.id
         try:
             react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
@@ -358,15 +358,22 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command()
     @checks.is_owner()
-    async def getguild(self, ctx, guild_name=None):
+    async def getguild(self, ctx, guild_name:Union[int, str]=None):
         """Menu to view info on all servers the bot is on"""
         guilds = [guild for guild in self.bot.guilds]
+        page = 0
         if guild_name is not None:
-            if guild_name.isdigit():
-                page = [guild for guild in self.bot.guilds if int(guild_name) == guild.id][0]
-                page = guilds.index(page)
-        else:
-            page = 0
+            if type(guild_name) == int:
+                page_guild = [guild for guild in self.bot.guilds if int(guild_name) == guild.id]
+            if type(guild_name) == str:
+                page_guild = [guild for guild in self.bot.guilds if guild_name.lower() in guild.name.lower()]
+        try:
+            if guild_name is not None:
+                page = guilds.index(page_guild[0])
+        except IndexError as e:
+            await ctx.send("{} guild was not found.".format(guild_name))
+            return
+
         await self.guild_menu(ctx, guilds, None, page)
 
     
@@ -510,7 +517,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         else:
             # message edits don't return the message object anymore lol
             await message.edit(embed=em)
-        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"]
+        check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"] and react.message.id == message.id
         try:
             react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
