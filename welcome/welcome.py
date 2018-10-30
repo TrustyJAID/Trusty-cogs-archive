@@ -23,8 +23,8 @@ class Welcome(getattr(commands, "Cog", object)):
         self.config = Config.get_conf(self, 144465786453)
         self.config.register_guild(**default_settings)
 
-    @commands.group(pass_context=True, no_pm=True)
-    @checks.admin_or_permissions(manage_guild=True)
+    @commands.group(no_pm=True)
+    @checks.admin_or_permissions(manage_channels=True)
     async def welcomeset(self, ctx):
         """Sets welcome module settings"""
         guild = ctx.message.guild
@@ -40,7 +40,7 @@ class Welcome(getattr(commands, "Cog", object)):
             msg += "```"
             await ctx.send(msg)
 
-    @welcomeset.group(pass_context=True, name="msg")
+    @welcomeset.group(name="msg")
     async def welcomeset_msg(self, ctx):
         """Manage welcome messages
         """
@@ -48,7 +48,7 @@ class Welcome(getattr(commands, "Cog", object)):
                 isinstance(ctx.invoked_subcommand, commands.Group):
             return
 
-    @welcomeset_msg.command(pass_context=True, name="add", no_pm=True)
+    @welcomeset_msg.command(name="add", no_pm=True)
     async def welcomeset_msg_add(self, ctx, *, format_msg):
         """Adds a welcome message format for the guild to be chosen at random
 
@@ -68,7 +68,7 @@ class Welcome(getattr(commands, "Cog", object)):
         await ctx.send("Welcome message added for the guild.")
         await self.send_testing_msg(ctx, msg=format_msg)
 
-    @welcomeset_msg.command(pass_context=True, name="del", no_pm=True)
+    @welcomeset_msg.command(name="del", no_pm=True)
     async def welcomeset_msg_del(self, ctx):
         """Removes a welcome message from the random message list
         """
@@ -96,7 +96,7 @@ class Welcome(getattr(commands, "Cog", object)):
         await self.config.guild(guild).GREETING.set(guild_settings)
         await ctx.send("**This message was deleted:**\n{}".format(choice))
 
-    @welcomeset_msg.command(pass_context=True, name="list", no_pm=True)
+    @welcomeset_msg.command(name="list", no_pm=True)
     async def welcomeset_msg_list(self, ctx):
         """Lists the welcome messages of this guild
         """
@@ -142,37 +142,37 @@ class Welcome(getattr(commands, "Cog", object)):
                                     "messages to {0.mention}".format(channel))
         await self.send_testing_msg(ctx)
 
-    @welcomeset.group(pass_context=True, name="bot", no_pm=True)
+    @welcomeset.group(name="bot", no_pm=True)
     async def welcomeset_bot(self, ctx):
         """Special welcome for bots"""
         if ctx.invoked_subcommand is None or \
                 isinstance(ctx.invoked_subcommand, commands.Group):
             return
 
-    @welcomeset_bot.command(pass_context=True, name="msg", no_pm=True)
+    @welcomeset_bot.command(name="msg", no_pm=True)
     async def welcomeset_bot_msg(self, ctx, *, format_msg=None):
         """Set the welcome msg for bots.
 
         Leave blank to reset to regular user welcome"""
         guild = ctx.message.guild
-        guild_settings = await self.config.guild(guild).BOT_MSG()
+        guild_settings = await self.config.guild(guild).BOTS_MSG()
         guild_settings = format_msg
-        await self.config.guild(guild).BOT_MSG.set(guild_settings)
+        await self.config.guild(guild).BOTS_MSG.set(guild_settings)
         if format_msg is None:
             await ctx.send("Bot message reset. Bots will now be welcomed as regular users.")
         else:
             await ctx.send("Bot welcome message set for the guild.")
-            await self.send_testing_msg(ctx, bot=True)
+            await self.send_testing_msg(ctx, bot=True, msg=format_msg)
 
     # TODO: Check if have permissions
-    @welcomeset_bot.command(pass_context=True, name="role", no_pm=True)
+    @welcomeset_bot.command(name="role", no_pm=True)
     async def welcomeset_bot_role(self, ctx, role: discord.Role=None):
         """Set the role to put bots in when they join.
 
         Leave blank to not give them a role."""
         guild = ctx.message.guild
         guild_settings = await self.config.guild(guild).BOTS_ROLE()
-        guild_settings = role.name if role else role
+        guild_settings = role.id if role else role
         await self.config.guild(guild).BOTS_ROLE.set(guild_settings)
         await ctx.send("Bots that join this guild will "
                            "now be put into the {} role".format(role.name))
@@ -227,7 +227,7 @@ class Welcome(getattr(commands, "Cog", object)):
             await ctx.send("I will test without embedds.")
             await self.send_testing_msg(ctx)
 
-    async def make_embed(self, member, msg):
+    async def make_embed(self, member:discord.Member, msg:str):
         em = discord.Embed(description=msg.format(member, member.guild),timestamp=member.joined_at)
         em.set_author(name=member.name+"#"+member.discriminator, icon_url=member.avatar_url)
         em.set_thumbnail(url=member.avatar_url_as(format='png'))
@@ -255,7 +255,7 @@ class Welcome(getattr(commands, "Cog", object)):
             try:
                 if is_embed:
                     em = await self.make_embed(member, msg)
-                    await channel.send(embed=em)
+                    await member.send(embed=em)
                 else:
                     await member.send(msg.format(member, guild))
             except:
@@ -269,8 +269,7 @@ class Welcome(getattr(commands, "Cog", object)):
                   'likely deleted. User joined: {}'.format(member.name))
             return
         # we can stop here
-        if only_whisper and not bot_welcome:
-            return
+        
         if not self.speak_permissions(guild, channel.id):
             print("Permissions Error. User that joined: "
                   "{0.name}".format(member))
@@ -280,21 +279,32 @@ class Welcome(getattr(commands, "Cog", object)):
         # try to add role if needed
         if bot_role:
             try:
-                role = discord.utils.get(guild.roles, name=bot_role)
-                await member.add_role(role)
-            except:
+                role = guild.get_role(bot_role)
+                await member.add_roles(role)
+            except Exception as e:
+                print(e)
                 print('welcome.py: unable to add {} role to {}. '
                       'Role was deleted, network error, or lacking '
                       'permissions'.format(bot_role, member))
             else:
                 print('welcome.py: added {} role to '
                       'bot, {}'.format(role, member))
-        # finally, welcome them
-        if is_embed:
-            em = await self.make_embed(member, msg)
-            await channel.send(embed=em)
-        else:
-            await channel.send(msg.format(member, guild))
+
+        if only_whisper and not bot_welcome:
+            return
+        if bot_welcome:
+            # finally, welcome them
+            if is_embed:
+                em = await self.make_embed(member, bot_welcome)
+                await channel.send(embed=em)
+            else:
+                await channel.send(bot_welcome.format(member, guild))
+        elif not member.bot:
+            if is_embed:
+                em = await self.make_embed(member, msg)
+                await channel.send(embed=em)
+            else:
+                await channel.send(msg.format(member, guild))
 
     def get_welcome_channel(self, guild, guild_settings):
         try:
@@ -326,6 +336,7 @@ class Welcome(getattr(commands, "Cog", object)):
                        "`{0.mention}".format(channel))
         if self.speak_permissions(guild, await self.config.guild(guild).CHANNEL()):
             msg = await self.config.guild(guild).BOTS_MSG() if bot else rand_msg
+            print(msg)
             if not bot and await self.config.guild(guild).WHISPER():
                 if is_embed:
                     em = await self.make_embed(member, msg)
