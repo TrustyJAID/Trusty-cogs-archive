@@ -14,7 +14,10 @@ default_settings = {
         }
 
 class Autorole(getattr(commands, "Cog", object)):
-    """Autorole commands. Rewritten for V3 from https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/autorole/autorole.py"""
+    """
+        Autorole commands. Rewritten for V3 from 
+        https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/autorole/autorole.py
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -48,17 +51,21 @@ class Autorole(getattr(commands, "Cog", object)):
 
         try:
             if message.content == self.users[user.id]:
-                roleid = await self.config.guild(guild).ROLE()
+                roles_id = await self.config.guild(guild).ROLE()
                 try:
                     roles = guild.roles
                 except AttributeError:
                     print("This guild has no roles... what even?\n")
                     return
 
-                role = discord.utils.get(roles, id=roleid)
+                roles = [discord.utils.get(guild.roles, id=x) for x in roles_id]
                 try:
-                    await user.add_roles(user)
-                    await message.delete()
+                    for role in roles:
+                        if role is None:
+                            continue
+                        await user.add_roles(role)
+                    if message.channel.permissions_for(guild.me).manage_messages:
+                        await message.delete()
                     if user.id in self.messages:
                         self.messages.pop(user.id, None)
                 except discord.Forbidden:
@@ -74,9 +81,7 @@ class Autorole(getattr(commands, "Cog", object)):
                                     string.digits) for _ in range(6))
         # <3 Stackoverflow http://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python/23728630#23728630
         self.users[member.id] = key
-        ch = discord.utils.get(
-            self.bot.get_all_channels(),
-            id=await self.config.guild(guild).AGREE_CHANNEL())
+        ch = guild.get_channel(await self.config.guild(guild).AGREE_CHANNEL())
         msg = await self.config.guild(guild).AGREE_MSG()
         try:
             msg = msg.format(key=key,
@@ -200,37 +205,19 @@ class Autorole(getattr(commands, "Cog", object)):
 
     @autorole.command(pass_context=True, no_pm=True)
     @checks.admin_or_permissions(manage_roles=True)
-    async def agreement(self, ctx, channel: str,
-                        *, msg: str=None):
+    async def agreement(self, ctx, channel: discord.TextChannel=None, *, msg: str=None):
         """Set the channel and message that will be used for accepting the rules.
         This is not needed and is completely optional
 
-        Entering only \"clear\" will disable this."""
+        Entering nothing will disable this."""
         guild = ctx.message.guild
 
-        if not channel:
-            await ctx.send_help()
-            return
-
-        if channel.startswith("<#"):
-            channel = channel[2:-1]
-
-        if channel == "clear":
+        if channel is None:
             await self.config.guild(guild).AGREE_CHANNEL.set(None)
             await ctx.send("Agreement channel cleared")
         else:
-            ch = discord.utils.get(guild.channels, name=channel)
-            if ch is None:
-                ch = discord.utils.get(guild.channels, id=channel)
-            if ch is None:
-                await ctx.send("Channel not found!")
-                return
-            try:
-                await self.config.guild(guild).AGREE_CHANNEL.set(ch.id)
-            except AttributeError as e:
-                await ctx.send("Something went wrong...")
+            await self.config.guild(guild).AGREE_CHANNEL.set(channel.id)
             if msg is None:
                 msg = "{name} please enter this code: {key}"
             await self.config.guild(guild).AGREE_MSG.set(msg)
-            await ctx.send("Agreement channel "
-                               "set to {}".format(ch.name))
+            await ctx.send("Agreement channel set to {}".format(channel.mention))
