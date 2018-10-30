@@ -176,10 +176,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     98d4f4a [Serverstats] Pagify and show hierarchy in rolestats command\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     70ffd71 [ImgFlip] Improve usability and provide better information on how to use the commands\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 970,
+				"buffer_size": 995,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -187,10 +187,10 @@
 			}
 		},
 		{
-			"file": "serverstats/serverstats.py",
+			"file": "hockey/menu.py",
 			"settings":
 			{
-				"buffer_size": 24847,
+				"buffer_size": 3760,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -297,16 +297,19 @@
 	"expanded_folders":
 	[
 		"/E/github/Trusty-cogs",
-		"/E/github/Trusty-cogs/__pycache__",
-		"/E/github/Trusty-cogs/faces",
-		"/E/github/Trusty-cogs/serverstats",
-		"/E/github/Trusty-cogs/spoiler",
-		"/E/github/Trusty-cogs/starboard",
-		"/E/github/Trusty-cogs/trustybot",
-		"/E/github/Trusty-cogs/tweets"
+		"/E/github/Trusty-cogs/__pycache__"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/hockey/oilers.py",
+		"/E/github/Trusty-cogs/hue/hue.py",
+		"/E/github/Trusty-cogs/imgflip/imgflip.py",
+		"/E/github/Trusty-cogs/cleverbot/cleverbot.py",
+		"/E/github/Trusty-cogs/serverstats/serverstats.py",
+		"/E/github/Trusty-cogs/autorole/autorole.py",
+		"/E/github/Trusty-cogs/TODO.md",
+		"/E/github/Trusty-cogs/covfefe/covfefe.py",
+		"/E/github/Trusty-cogs/covfefe/info.json",
 		"/C/Users/Damez/Downloads/destiny2.bms",
 		"/C/Users/Damez/Downloads/SourcePublic_v2 (1).cpp",
 		"/I/Destiny 2/bin/x64/oo2core_3_win64.dll",
@@ -317,7 +320,6 @@
 		"/E/github/Trusty-cogs/README.md",
 		"/E/github/Trusty-cogs/spoiler/info.json",
 		"/E/github/Trusty-cogs/spoiler/spoiler.py",
-		"/E/github/Trusty-cogs/serverstats/serverstats.py",
 		"/E/github/Trusty-cogs/trustybot/trustybot.py",
 		"/E/github/Trusty-cogs/spoiler/__init__.py",
 		"/E/github/Trusty-cogs/hockey/menu.py",
@@ -353,7 +355,6 @@
 		"/E/github/Trusty-cogs/notsobot/info.json",
 		"/E/github/Trusty-cogs/notsobot/README.md",
 		"/E/github/Trusty-cogs/hockey/hockey.py",
-		"/E/github/Trusty-cogs/cleverbot/cleverbot.py",
 		"/E/github/Trusty-cogs/trustyavatar/trustyavatar.py",
 		"/E/github/Trusty-cogs/conversions/conversions.py",
 		"/E/github/Trusty-cogs/emojireact/emojireact.py",
@@ -386,7 +387,6 @@
 		"/E/github/Trusty-cogs/backup/backup.py",
 		"/E/github/Trusty-cogs/fun/fun.py",
 		"/E/github/Trusty-cogs/imagemaker/imagemaker.py",
-		"/E/github/Trusty-cogs/imgflip/imgflip.py",
 		"/E/github/Trusty-cogs/runescape/runescape.py",
 		"/E/github/Trusty-cogs/translate/translate.py",
 		"/E/github/Trusty-cogs/triggersize/triggersize.py",
@@ -409,17 +409,14 @@
 		"/E/github/Trusty-cogs/dev/info.json",
 		"/E/github/Trusty-cogs/tarot/tarotreading.py",
 		"/E/github/Trusty-cogs/stickyroles/stickyroles.py",
-		"/E/github/Trusty-cogs/hue/hue.py",
 		"/E/github/Trusty-cogs/insult/insult.py",
 		"/E/github/Trusty-cogs/mock/mock.py",
 		"/E/github/Trusty-cogs/modlogs/modlogs.py",
 		"/E/github/Trusty-cogs/rekt/rekt.py",
 		"/E/github/Trusty-cogs/serverwhitelist/serverwhitelist.py",
 		"/E/github/Trusty-cogs/faces/faces.py",
-		"/E/github/Trusty-cogs/covfefe/covfefe.py",
 		"/E/github/Trusty-cogs/compliment/compliment.py",
 		"/E/github/Trusty-cogs/chatter/chatter.py",
-		"/E/github/Trusty-cogs/autorole/autorole.py",
 		"/E/github/Trusty-cogs/unity4j/unity4j.py",
 		"/E/github/Trusty-cogs/welcome/welcome.py",
 		"/E/github/Trusty-cogs/compliment/compliments.py",
@@ -431,10 +428,7 @@
 		"/E/github/NotSoBot-master/bot.py",
 		"/E/github/NotSoBot-master/bot0.py",
 		"/E/github/NotSoBot-master/message_queue_bot.py",
-		"/E/github/NotSoBot-master/pixelsort/util.py",
-		"/E/github/NotSoBot-master/message_queue_api.py",
-		"/E/github/NotSoBot-master/vw/macintoshplus.py",
-		"/E/github/Trusty-cogs/notsobot/__init__.py"
+		"/E/github/NotSoBot-master/pixelsort/util.py"
 	],
 	"find":
 	{
@@ -453,6 +447,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"asyncio",
+			"Union",
+			"menu",
+			"guild_menu",
+			"union",
 			"dopkg",
 			"pagify",
 			"self, *,",
@@ -575,11 +574,6 @@
 			"run_process",
 			"download",
 			"isgif",
-			"check_func",
-			"check",
-			"check_func",
-			"command_check",
-			"self.cursor",
 			"check_func"
 		],
 		"highlight": true,
@@ -647,15 +641,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 970,
+						"buffer_size": 995,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								198,
-								198
+								851,
+								851
 							]
 						],
 						"settings":
@@ -673,24 +667,30 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
-				},
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
 				{
 					"buffer": 1,
-					"file": "serverstats/serverstats.py",
+					"file": "hockey/menu.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 24847,
+						"buffer_size": 3760,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								17185,
-								17185
+								2156,
+								2279
 							]
 						],
 						"settings":
@@ -699,18 +699,13 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 6784.0,
+						"translation.x": 24.0,
+						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				}
-			]
-		},
-		{
-			"sheets":
-			[
 			]
 		}
 	],
@@ -810,7 +805,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 0,
+	"selected_group": 1,
 	"settings":
 	{
 	},
