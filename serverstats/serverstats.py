@@ -285,8 +285,11 @@ class ServerStats(getattr(commands, "Cog", object)):
                 return
         channels = {}
         msg = "__**{}({})**__\n".format(guild.name, guild.id)
-        for channel in guild.channels:
-            msg += "{} ({}): {}\n".format(channel.mention, channel.id, channel.position)
+        for category in guild.by_category():
+            if category[0] is not None:
+                msg += "{} ({}): Position {}\n".format(category[0].mention, category[0].id, category[0].position)
+            for channel in category[1]:
+                msg += "{} ({}): Position {}\n".format(channel.mention, channel.id, channel.position)
         for page in pagify(msg, ["\n"]):
             await ctx.send(page)
 
