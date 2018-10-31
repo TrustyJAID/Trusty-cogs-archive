@@ -17,6 +17,8 @@ import io
 from redbot.core.i18n import Translator
 from redbot.core.utils.chat_formatting import pagify, box
 
+from discord import Webhook, AsyncWebhookAdapter
+
 _ = Translator("TrustyBot", __file__)
 
 numbs = {
@@ -95,6 +97,26 @@ class TrustyBot(getattr(commands, "Cog", object)):
         if ctx.channel.permissions_for(ctx.guild).manage_messages:
             await ctx.message.delete()
         await ctx.send(msg)
+
+    @commands.command(hidden=True, aliases=["hooksay"])
+    async def websay(self, ctx, user:discord.User, *, msg):
+        """Say things as another user"""
+        if not ctx.channel.permissions_for(ctx.guild.me).manage_webhooks:
+            await ctx.send("I don't have manage_webhooks permission.")
+            return
+        if ctx.channel.permissions_for(ctx.guild).manage_messages:
+            await ctx.message.delete()
+        guild = ctx.guild
+        webhook = None
+        for hook in await guild.webhooks():
+            if hook.name == user.display_name:
+                webhook = hook
+        if webhook is None:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(user.avatar_url_as(format="png")) as a:
+                    avatar = bytes(await a.read())
+            webhook = await ctx.channel.create_webhook(name=user.display_name, avatar=avatar)
+        await webhook.send(msg)
 
 
     @commands.command()
