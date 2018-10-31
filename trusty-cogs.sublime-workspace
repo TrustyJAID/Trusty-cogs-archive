@@ -176,10 +176,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     70ffd71 [ImgFlip] Improve usability and provide better information on how to use the commands\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     164875b [Hockey] Fix role mention for roles without accent\n\n\nUntracked files:\n\tdestiny/\n\nChanges:\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 995,
+				"buffer_size": 1012,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -297,15 +297,22 @@
 	"expanded_folders":
 	[
 		"/E/github/Trusty-cogs",
-		"/E/github/Trusty-cogs/__pycache__"
+		"/E/github/Trusty-cogs/__pycache__",
+		"/E/github/Trusty-cogs/modlogs",
+		"/E/github/Trusty-cogs/welcome"
 	],
 	"file_history":
 	[
+		"/I/GinsorD2AudioTool/Security.Cryptography.pdb",
+		"/I/GinsorD2AudioTool/Security.Cryptography.xml",
+		"/E/github/Trusty-cogs/welcome/welcome.py",
+		"/E/github/Trusty-cogs/serverstats/serverstats.py",
+		"/E/github/Trusty-cogs/hockey/helper.py",
+		"/E/github/Trusty-cogs/hockey/hockey.py",
 		"/E/github/Trusty-cogs/hockey/oilers.py",
 		"/E/github/Trusty-cogs/hue/hue.py",
 		"/E/github/Trusty-cogs/imgflip/imgflip.py",
 		"/E/github/Trusty-cogs/cleverbot/cleverbot.py",
-		"/E/github/Trusty-cogs/serverstats/serverstats.py",
 		"/E/github/Trusty-cogs/autorole/autorole.py",
 		"/E/github/Trusty-cogs/TODO.md",
 		"/E/github/Trusty-cogs/covfefe/covfefe.py",
@@ -354,7 +361,6 @@
 		"/E/github/Trusty-cogs/decode/decode.py",
 		"/E/github/Trusty-cogs/notsobot/info.json",
 		"/E/github/Trusty-cogs/notsobot/README.md",
-		"/E/github/Trusty-cogs/hockey/hockey.py",
 		"/E/github/Trusty-cogs/trustyavatar/trustyavatar.py",
 		"/E/github/Trusty-cogs/conversions/conversions.py",
 		"/E/github/Trusty-cogs/emojireact/emojireact.py",
@@ -394,7 +400,6 @@
 		"/E/github/hockey.txt",
 		"/E/github/Trusty-cogs/halo/info.json",
 		"/E/github/Trusty-cogs/hockey/standings.py",
-		"/E/github/Trusty-cogs/hockey/helper.py",
 		"/C/Users/Damez/Desktop/Events.xml",
 		"/E/github/Trusty-cogs/juche/juche.py",
 		"/E/github/Trusty-cogs/hockey/pickems.json",
@@ -418,7 +423,6 @@
 		"/E/github/Trusty-cogs/compliment/compliment.py",
 		"/E/github/Trusty-cogs/chatter/chatter.py",
 		"/E/github/Trusty-cogs/unity4j/unity4j.py",
-		"/E/github/Trusty-cogs/welcome/welcome.py",
 		"/E/github/Trusty-cogs/compliment/compliments.py",
 		"/E/github/Trusty-cogs/twitch/twitch_follower.py",
 		"/E/github/Trusty-cogs/twitch/twitch_profile.py",
@@ -426,13 +430,11 @@
 		"/E/github/Trusty-cogs/trusty-cogs.sublime-project",
 		"/E/github/Trusty-cogs/badges/__init__.py",
 		"/E/github/NotSoBot-master/bot.py",
-		"/E/github/NotSoBot-master/bot0.py",
-		"/E/github/NotSoBot-master/message_queue_bot.py",
-		"/E/github/NotSoBot-master/pixelsort/util.py"
+		"/E/github/NotSoBot-master/bot0.py"
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 27.0
 	},
 	"find_in_files":
 	{
@@ -447,6 +449,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"pass_context=True, ",
+			"BOTS_MSG",
+			"BOTS_ROLE",
 			"asyncio",
 			"Union",
 			"menu",
@@ -571,10 +576,7 @@
 			"scoring_team",
 			"teams",
 			"bytes_download",
-			"run_process",
-			"download",
-			"isgif",
-			"check_func"
+			"run_process"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -582,6 +584,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"",
 			"self, ctx, *,",
 			"ctx.send",
 			"\"",
@@ -641,15 +644,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 995,
+						"buffer_size": 1012,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								851,
-								851
+								211,
+								211
 							]
 						],
 						"settings":
@@ -667,7 +670,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
@@ -703,7 +706,7 @@
 						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -805,7 +808,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 1,
+	"selected_group": 0,
 	"settings":
 	{
 	},

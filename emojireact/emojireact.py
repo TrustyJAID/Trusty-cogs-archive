@@ -11,7 +11,7 @@ class EmojiReactions(getattr(commands, "Cog", object)):
         self.config.register_guild(**default_guild)
 
     @commands.group()
-    @checks.admin_or_permissions(manage_message=True)
+    @checks.admin_or_permissions(manage_messages=True)
     async def emojireact(self, ctx):
         if ctx.invoked_subcommand is None:          
             try:
