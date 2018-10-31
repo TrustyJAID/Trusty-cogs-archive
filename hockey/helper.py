@@ -18,11 +18,11 @@ async def get_team_role(guild, home_team, away_team):
     away_role = None
     
     for role in guild.roles:
-        if "Montreal Canadiens" in home_team and "Montreal Canadiens" in role.name:
+        if "Montréal Canadiens" in home_team and "Montreal Canadiens" in role.name:
             home_role = role.mention
         elif role.name == home_team:
             home_role = role.mention
-        if "Montreal Canadiens" in away_team and "Montreal Canadiens" in role.name:
+        if "Montréal Canadiens" in away_team and "Montreal Canadiens" in role.name:
             away_role = role.mention
         elif role.name == away_team:
             away_role = role.mention
