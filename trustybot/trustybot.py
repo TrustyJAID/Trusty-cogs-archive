@@ -107,16 +107,12 @@ class TrustyBot(getattr(commands, "Cog", object)):
         if ctx.channel.permissions_for(ctx.guild).manage_messages:
             await ctx.message.delete()
         guild = ctx.guild
-        webhook = None
-        for hook in await guild.webhooks():
-            if hook.name == user.display_name:
-                webhook = hook
-        if webhook is None:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(user.avatar_url_as(format="png")) as a:
-                    avatar = bytes(await a.read())
-            webhook = await ctx.channel.create_webhook(name=user.display_name, avatar=avatar)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(user.avatar_url_as(format="png")) as a:
+                avatar = bytes(await a.read())
+        webhook = await ctx.channel.create_webhook(name=user.display_name, avatar=avatar)
         await webhook.send(msg)
+        await webhook.delete()
 
 
     @commands.command()
