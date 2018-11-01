@@ -99,7 +99,7 @@ class TrustyBot(getattr(commands, "Cog", object)):
         await ctx.send(msg)
 
     @commands.command(hidden=True, aliases=["hooksay"])
-    async def websay(self, ctx, user:discord.User, *, msg):
+    async def websay(self, ctx, member:discord.Member, *, msg):
         """Say things as another user"""
         if not ctx.channel.permissions_for(ctx.guild.me).manage_webhooks:
             await ctx.send("I don't have manage_webhooks permission.")
@@ -112,8 +112,9 @@ class TrustyBot(getattr(commands, "Cog", object)):
             if hook.name == guild.me.name:
                 webhook = hook
         if webhook is None:
-            webhook = await ctx.channel.create_webhook(name=ctx.guild.me.name)
-        await webhook.send(msg, username=user.display_name, avatar_url=user.avatar_url_as(format="png"))
+            webhook = await ctx.channel.create_webhook(name=guild.me.name)
+        avatar = member.avatar_url_as(format="png")
+        await webhook.send(msg, username=member.display_name, avatar_url=avatar)
 
     @commands.command()
     async def pingtime(self, ctx):
