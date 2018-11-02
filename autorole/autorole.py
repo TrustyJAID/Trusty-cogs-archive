@@ -61,7 +61,7 @@ class Autorole(getattr(commands, "Cog", object)):
             if  self.users[user.id].lower() in message.content.lower():
                 roles_id = await self.config.guild(guild).ROLE()
                 del self.users[user.id]
-                roles = [guild.get_role(x) for x in roles_id if guild.get_role(x) is not None]
+                roles = [role for role in guild.roles if role.id in roles_id]
                 for role in roles:
                     await user.add_roles(role, reason="Agreed to the rules")
 
@@ -102,7 +102,7 @@ class Autorole(getattr(commands, "Cog", object)):
     async def _auto_give(self, member):
         guild = member.guild
         roles_id = await self.config.guild(guild).ROLE()
-        roles = [guild.get_role(x) for x in roles_id if guild.get_role(x) is not None]
+        roles = [role for role in guild.roles if role.id in roles_id]
         agree_channel = guild.get_channel(await self.config.guild(guild).AGREE_CHANNEL())
         if not agree_channel.permissions_for(guild.me).manage_roles:
             await self._no_perms(agree_channel)
@@ -231,7 +231,12 @@ class Autorole(getattr(commands, "Cog", object)):
             Entering nothing will clear this.
         """
         guild = ctx.message.guild
-
+        if await self.config.guild(guild).ROLE() == []:
+            await ctx.send("No roles have been set for autorole.")
+            return
+        if not await self.config.guild(guild).ENABLED():
+            await ctx.send("Autorole has been disabled, enable it first.")
+            return
         if channel is None:
             await self.config.guild(guild).AGREE_CHANNEL.set(None)
             await ctx.send("Agreement channel cleared")
@@ -247,8 +252,14 @@ class Autorole(getattr(commands, "Cog", object)):
 
             Entering nothing will clear this.
         """
-        guild = ctx.message.guild
 
+        guild = ctx.message.guild
+        if await self.config.guild(guild).ROLE() == []:
+            await ctx.send("No roles have been set for autorole.")
+            return
+        if not await self.config.guild(guild).ENABLED():
+            await ctx.send("Autorole has been disabled, enable it first.")
+            return
         if key is None:
             await self.config.guild(guild).AGREE_KEY.set(None)
             await ctx.send("Agreement key cleared")
@@ -272,7 +283,12 @@ class Autorole(getattr(commands, "Cog", object)):
             Entering nothing will clear this.
         """
         guild = ctx.message.guild
-
+        if await self.config.guild(guild).ROLE() == []:
+            await ctx.send("No roles have been set for autorole.")
+            return
+        if not await self.config.guild(guild).ENABLED():
+            await ctx.send("Autorole has been disabled, enable it first.")
+            return
         if message is None:
             await self.config.guild(guild).AGREE_MSG.set(None)
             await ctx.send("Agreement message cleared")
@@ -301,7 +317,12 @@ class Autorole(getattr(commands, "Cog", object)):
             Entering nothing will disable this.
         """
         guild = ctx.message.guild
-
+        if await self.config.guild(guild).ROLE() == []:
+            await ctx.send("No roles have been set for autorole.")
+            return
+        if not await self.config.guild(guild).ENABLED():
+            await ctx.send("Autorole has been disabled, enable it first.")
+            return
         if channel is None:
             await self.config.guild(guild).AGREE_CHANNEL.set(None)
             await self.config.guild(guild).AGREE_MSG.set(None)
