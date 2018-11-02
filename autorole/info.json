@@ -11,7 +11,9 @@
         6
     ],
     "name" : "autorole",
-    "permissions" : [],
+    "permissions" : [
+        "manage_roles"
+    ],
     "requirements" : [],
     "short" : "Automatically apply a role to new users",
     "tags" : [
