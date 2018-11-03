@@ -14,7 +14,6 @@
     "permissions" : ["attach_files"],
     "requirements" : [
         "python-aalib",
-        "cairosvg",
         "imgurpython",
         "pyfiglet",
         "numpy",
