@@ -64,6 +64,8 @@ class Autorole(getattr(commands, "Cog", object)):
                 roles = [role for role in guild.roles if role.id in roles_id]
                 for role in roles:
                     await user.add_roles(role, reason="Agreed to the rules")
+                if agree_channel.permissions_for(guild.me).add_reactions:
+                    await message.add_reaction("✅")
 
     async def _agree_maker(self, member):
         guild = member.guild
