@@ -6,7 +6,7 @@ import re, json, random, math, html
 import wand, wand.color, wand.drawing
 import PIL, PIL.Image, PIL.ImageFont, PIL.ImageOps, PIL.ImageDraw
 import numpy as np
-import cairosvg, jpglitch
+import jpglitch
 import hashlib, base64
 from .pixelsort import sorter, sorting, interval
 from .pixelsort import util as ps_util
@@ -1224,18 +1224,6 @@ class NotSoBot(getattr(commands, "Cog", object)):
             kek += u"\u202E " + x + '\n'
         kek = kek
         await ctx.send(kek)
-
-    async def png_svg(self, path, size):
-        with open(path, 'rb') as f:
-            path = f.read()
-        s = bytes(str(size), encoding="utf-8")
-        b = path.replace(b"<svg ", b"<svg width=\"" + s + b"px\" height=\"" + s + b"px\" ")
-        path = BytesIO(cairosvg.svg2png(b))
-        return path
-
-    fp_emotes = {
-        #redacted spam
-    }
 
     @commands.command(pass_context=True)
     @commands.cooldown(3, 5)
