@@ -51,13 +51,13 @@ class Autorole(getattr(commands, "Cog", object)):
             return
         if channel.id != agree_channel.id:
             return
-
-        if not agree_channel.permissions_for(guild.me).manage_roles:
-            await self._no_perms(agree_channel)
+        if user.bot:
             return
 
-
         if user.id in self.users:
+            if not agree_channel.permissions_for(guild.me).manage_roles:
+                await self._no_perms(agree_channel)
+                return
             if  self.users[user.id].lower() in message.content.lower():
                 roles_id = await self.config.guild(guild).ROLE()
                 del self.users[user.id]
