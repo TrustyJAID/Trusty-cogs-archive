@@ -1399,7 +1399,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
         file = discord.File(b, filename='achievement.png')
         await ctx.send(file=file)
 
-    @commands.command(pass_context=True, aliases=['identify', 'captcha', 'whatis'])
+    @commands.command(pass_context=True, aliases=['identify', 'captcha'])
     async def i(self, ctx, *, url:str):
         """Identify an image/gif using Microsofts Captionbot API"""
         with aiohttp.ClientSession() as session:
