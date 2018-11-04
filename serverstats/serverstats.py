@@ -313,7 +313,7 @@ class ServerStats(getattr(commands, "Cog", object)):
 
         colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
         colour = int(colour, 16)
-        invite_link = "https://discord.trustyjaid.com"
+        invite_link = "https://discord.gg/"
 
         em = discord.Embed(
             description=created_at,
@@ -611,13 +611,12 @@ class ServerStats(getattr(commands, "Cog", object)):
         regular = []
         for emoji in guild.emojis:
             if emoji.animated:
-                regular.append("<a:{emoji.name}:{emoji.id}> = `:{emoji.name}:`\n".format(emoji=emoji))
+                regular.append(f"<a:{emoji.name}:{emoji.id}> = `:{emoji.name}:`\n")
             else:
-                regular.append("<:{emoji.name}:{emoji.id}> = `:{emoji.name}:`\n".format(emoji=emoji))
+                regular.append(f"<:{emoji.name}:{emoji.id}> = `:{emoji.name}:`\n")
         if regular != "":
             embed.description = regular
-        chunks, chunk_size = len(regular), len(regular)//4
-        x = [regular[i:i+chunk_size] for i in range(0, chunks, chunk_size)]
+        x = [regular[i:i+10] for i in range(0, len(regular), 10)]
         # if animated != "":
             # embed.add_field(name="Animated Emojis", value=animated[:1023])
         await self.emoji_menu(ctx, x)
