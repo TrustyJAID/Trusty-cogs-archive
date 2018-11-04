@@ -81,7 +81,7 @@ teams={
         "logo" : "https://nhl.bamcontent.com/images/photos/281726514/256x256/cut.png",
         "team_url" : "http://www.chicagoblackhawks.com",
         "timezone": "US/Central",
-        "invite" : "https://discord.gg/Pxpdkp2"
+        "invite" : "https://discord.gg/DkuRmj7"
     },
     "Colorado Avalanche" : {
         "away" : "#236192",
