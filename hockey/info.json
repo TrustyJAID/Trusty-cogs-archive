@@ -1,21 +1,25 @@
 {
-    "author" : [
+    "author":[
         "TrustyJAID"
     ],
-    "description" : "Gather hockey information from nhl.com and display in discord.",
-    "install_msg" : "User [p]hockey to see what commands are available.",
-    "min_python_version" : [
+    "description":"Gather hockey information from nhl.com and display in discord.",
+    "install_msg":"User [p]hockey to see what commands are available.",
+    "min_python_version":[
         3,
         6,
-        6
+        2
     ],
-    "name" : "Hockey",
-    "permissions" : ["embed_links", "manage_messages", "manage_channels"],
-    "requirements" : [
+    "name":"Hockey",
+    "permissions":[
+        "embed_links",
+        "manage_messages",
+        "manage_channels"
+    ],
+    "requirements":[
         "pytz"
     ],
-    "short" : "Hockey commands",
-    "tags" : [
+    "short":"Hockey commands",
+    "tags":[
         "general",
         "hockey",
         "utility"
