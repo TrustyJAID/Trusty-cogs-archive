@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"standings",
+				"standings_channel"
+			],
+			[
+				"Entr",
+				"EntryTableSize"
+			],
+			[
 				"post",
 				"post_list"
 			],
@@ -176,10 +184,10 @@
 	"buffers":
 	[
 		{
-			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     26bd968 [Emojireact] Fix permissions\n\n\nUntracked files:\n\tdestiny/\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
+			"contents": "Remote:   origin @ https://github.com/TrustyJAID/Trusty-cogs.git\nLocal:    V3 E:\\github\\Trusty-cogs\nHead:     a4858a0 [ServerStats] fix guildemoji command on servers with 1 emoji Change invite link in getguild menu, does not provide working link at the moment\n\n\nUntracked files:\n\tdestiny/\n\thockey/constants.py\n\thockey/gamedaychannels.py\n\nChanges:\n\tModified   hockey/embeds.py\n\tModified   hockey/game.py\n\tDeleted    hockey/goal.py\n\tModified   hockey/helper.py\n\tModified   hockey/hockey.py\n\tModified   hockey/menu.py\n\tModified   hockey/pickems.py\n\tModified   hockey/standings.py\n\tDeleted    hockey/teams.py\n\tModified   trusty-cogs.sublime-workspace\n\n\n# Movement:\n#    r = refresh status\n#    1-5 = jump to section\n#    n = next item, N = next section\n#    p = previous item, P = previous section\n#\n# Staging:\n#    s = stage file/section, S = stage all unstaged files\n#    ctrl+shift+s = stage all unstaged and untracked files\n#    u = unstage file/section, U = unstage all files\n#    backspace = discard file/section, shift+backspace = discard everything\n#\n# Commit:\n#    c = commit, C = commit -a (add unstaged)\n#    ctrl+shift+c = commit --amend (amend previous commit)\n#\n# Other:\n#    i = ignore file, I = ignore pattern\n#    enter = open file\n#    d = view diff\n#\n# Stashes:\n#    a = apply stash, A = pop stash\n#    z = create stash, Z = create stash including untracked files\n#    backspace = discard stash",
 			"settings":
 			{
-				"buffer_size": 938,
+				"buffer_size": 1409,
 				"line_ending": "Windows",
 				"name": "*git-status*: Trusty-cogs",
 				"read_only": true,
@@ -187,18 +195,19 @@
 			}
 		},
 		{
-			"file": "welcome/welcome.py",
+			"file": "hockey/hockey.py",
 			"settings":
 			{
-				"buffer_size": 15959,
+				"buffer_size": 50323,
+				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "emojireact/emojireact.py",
+			"file": "serverstats/serverstats.py",
 			"settings":
 			{
-				"buffer_size": 3383,
+				"buffer_size": 27000,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -207,7 +216,61 @@
 			"file": "hockey/menu.py",
 			"settings":
 			{
-				"buffer_size": 3760,
+				"buffer_size": 3791,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/helper.py",
+			"settings":
+			{
+				"buffer_size": 2248,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/embeds.py",
+			"settings":
+			{
+				"buffer_size": 19791,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/pickems.py",
+			"settings":
+			{
+				"buffer_size": 7985,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/game.py",
+			"settings":
+			{
+				"buffer_size": 24036,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/gamedaychannels.py",
+			"settings":
+			{
+				"buffer_size": 6635,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "hockey/standings.py",
+			"settings":
+			{
+				"buffer_size": 6391,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -315,23 +378,41 @@
 	[
 		"/E/github/Trusty-cogs",
 		"/E/github/Trusty-cogs/__pycache__",
-		"/E/github/Trusty-cogs/emojireact",
-		"/E/github/Trusty-cogs/modlogs",
-		"/E/github/Trusty-cogs/welcome"
+		"/E/github/Trusty-cogs/autorole",
+		"/E/github/Trusty-cogs/backup",
+		"/E/github/Trusty-cogs/hockey",
+		"/E/github/Trusty-cogs/serverstats",
+		"/E/github/Trusty-cogs/trustybot",
+		"/E/github/Trusty-cogs/unity4j"
 	],
 	"file_history":
 	[
+		"/E/github/Trusty-cogs/hockey/constants.py",
+		"/C/Users/Damez/AppData/Local/Packages/CanonicalGroupLimited.Ubuntu18.04onWindows_79rhkp1fndgsc/LocalState/rootfs/home/trusty/.local/share/Red-DiscordBot/cogs/Hockey/settings.json",
+		"/E/github/Trusty-cogs/hockey/teams.py",
+		"/C/Users/Damez/AppData/Local/Packages/CanonicalGroupLimited.Ubuntu18.04onWindows_79rhkp1fndgsc/LocalState/rootfs/home/trusty/.local/share/Red-DiscordBot/cogs/hockey/settings.json",
+		"/E/github/Trusty-cogs/hockey/oilers.py",
+		"/E/github/Trusty-cogs/autorole/autorole.py",
+		"/E/github/Trusty-cogs/notsobot/README.md",
+		"/E/github/Trusty-cogs/notsobot/info.json",
+		"/E/github/Trusty-cogs/notsobot/notsobot.py",
+		"/E/github/Trusty-cogs/autorole/info.json",
+		"/C/d2extract/SourcePublic_v2.cpp",
+		"/I/Destiny 2/packages/export/search.py",
+		"/I/Destiny 2/packages/export/0199-00000000.bin",
+		"/C/Users/Damez/Downloads/SourcePublic_v2.cpp",
+		"/E/github/Trusty-cogs/trustybot/trustybot.py",
+		"/E/github/Trusty-cogs/hockey/menu.py",
+		"/E/github/Trusty-cogs/welcome/welcome.py",
+		"/E/github/Trusty-cogs/emojireact/emojireact.py",
 		"/I/GinsorD2AudioTool/Security.Cryptography.pdb",
 		"/I/GinsorD2AudioTool/Security.Cryptography.xml",
-		"/E/github/Trusty-cogs/welcome/welcome.py",
 		"/E/github/Trusty-cogs/serverstats/serverstats.py",
 		"/E/github/Trusty-cogs/hockey/helper.py",
 		"/E/github/Trusty-cogs/hockey/hockey.py",
-		"/E/github/Trusty-cogs/hockey/oilers.py",
 		"/E/github/Trusty-cogs/hue/hue.py",
 		"/E/github/Trusty-cogs/imgflip/imgflip.py",
 		"/E/github/Trusty-cogs/cleverbot/cleverbot.py",
-		"/E/github/Trusty-cogs/autorole/autorole.py",
 		"/E/github/Trusty-cogs/TODO.md",
 		"/E/github/Trusty-cogs/covfefe/covfefe.py",
 		"/E/github/Trusty-cogs/covfefe/info.json",
@@ -345,16 +426,12 @@
 		"/E/github/Trusty-cogs/README.md",
 		"/E/github/Trusty-cogs/spoiler/info.json",
 		"/E/github/Trusty-cogs/spoiler/spoiler.py",
-		"/E/github/Trusty-cogs/trustybot/trustybot.py",
 		"/E/github/Trusty-cogs/spoiler/__init__.py",
-		"/E/github/Trusty-cogs/hockey/menu.py",
 		"/E/github/Trusty-cogs/tweets/tweets.py",
 		"/E/github/Trusty-cogs/spoiler/infor.json",
-		"/C/Users/Damez/Downloads/SourcePublic_v2.cpp",
 		"/E/github/Trusty-cogs/encoding/encoding.py",
 		"/E/github/Trusty-cogs/encoding/info.json",
 		"/E/github/Trusty-cogs/addimage/addimage.py",
-		"/E/github/Trusty-cogs/notsobot/notsobot.py",
 		"/E/github/NotSoBot-master/mods/Utils.py",
 		"/E/github/NotSoBot-master/mods/Nsfw.py",
 		"/E/github/NotSoBot-master/mods/Moderation.py",
@@ -377,11 +454,8 @@
 		"/E/github/NotSoBot-master/mods/Fun.py",
 		"/E/github/Trusty-cogs/encoding/__init__.py",
 		"/E/github/Trusty-cogs/decode/decode.py",
-		"/E/github/Trusty-cogs/notsobot/info.json",
-		"/E/github/Trusty-cogs/notsobot/README.md",
 		"/E/github/Trusty-cogs/trustyavatar/trustyavatar.py",
 		"/E/github/Trusty-cogs/conversions/conversions.py",
-		"/E/github/Trusty-cogs/emojireact/emojireact.py",
 		"/E/github/Trusty-cogs/badges/badges.py",
 		"/E/github/hockey.json",
 		"/E/github/settings.json",
@@ -422,7 +496,6 @@
 		"/E/github/Trusty-cogs/juche/juche.py",
 		"/E/github/Trusty-cogs/hockey/pickems.json",
 		"/E/github/Trusty-cogs/hockey/pickems.txt",
-		"/E/github/Trusty-cogs/hockey/teams.py",
 		"/E/github/Trusty-cogs/dev/__init__.py",
 		"/E/github/Trusty-cogs/dev/dev.py",
 		"/E/github/Trusty-cogs/hockey/__init__.py",
@@ -441,14 +514,7 @@
 		"/E/github/Trusty-cogs/compliment/compliment.py",
 		"/E/github/Trusty-cogs/chatter/chatter.py",
 		"/E/github/Trusty-cogs/unity4j/unity4j.py",
-		"/E/github/Trusty-cogs/compliment/compliments.py",
-		"/E/github/Trusty-cogs/twitch/twitch_follower.py",
-		"/E/github/Trusty-cogs/twitch/twitch_profile.py",
-		"/C/Users/Damez/AppData/Roaming/Sublime Text 3/Packages/Package Control/Package Control.sublime-settings",
-		"/E/github/Trusty-cogs/trusty-cogs.sublime-project",
-		"/E/github/Trusty-cogs/badges/__init__.py",
-		"/E/github/NotSoBot-master/bot.py",
-		"/E/github/NotSoBot-master/bot0.py"
+		"/E/github/Trusty-cogs/compliment/compliments.py"
 	],
 	"find":
 	{
@@ -467,6 +533,109 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"self",
+			"gdc",
+			"pickems",
+			"Game",
+			"tally_leaderboard",
+			"url = ",
+			"teams",
+			"13457745779",
+			"teams",
+			"self.teams",
+			"self.headshots",
+			"get_team",
+			"post_time_t",
+			"save_game_state",
+			"get_team",
+			"self",
+			"self.teams",
+			"self",
+			"get_team_standings",
+			"get_stats",
+			"asyncio",
+			"timezone",
+			"datetime",
+			"aiohttp",
+			"Standings",
+			"self",
+			"utc_to",
+			"utc_to_local",
+			"get_chn_name",
+			"gdc",
+			"self.create_pickem_object",
+			"self.tally_leaderboard()",
+			"create_pickem_object",
+			"tally_leaderboard",
+			"set_pickem_winner",
+			"self",
+			"delete_gdc",
+			"create_gdc",
+			"self.create_gdc(guild)",
+			"self.check_new_gdc",
+			"self.check_new_gdc()",
+			"check_new_gdc",
+			"goal_post_text",
+			"self.check_team_goals",
+			"goal_post_embed",
+			"game_state_embed(data)",
+			"Game.config",
+			"self.check_team_goals(data",
+			"self.check_team_goals",
+			"get_team_role",
+			"remove_goal_post",
+			"edit_team_goal",
+			"link",
+			"get_team",
+			"check_to_post",
+			"post_game_state",
+			"check_team_goals",
+			"self",
+			"post_automatic_standings",
+			"get_team",
+			"get_team_channels",
+			"await self.get_games",
+			"get_games",
+			"self.get_team_goals()",
+			"post_automatic_standings",
+			"get_team_standings",
+			"all_standing_embed",
+			"build_standing_embed",
+			"config",
+			"post_automatic_standings",
+			"post_automatic_standings()",
+			"whatis",
+			"cairosvg",
+			"await self.png_svg",
+			"png_svg",
+			"cairosvg",
+			"wand",
+			"_no_perms",
+			"get_games",
+			"data[\"dates",
+			"get_games",
+			"game_embed",
+			"get_games",
+			"get_day_games",
+			"get_day_game",
+			"get_day_games",
+			"get_day_game",
+			"get_next_game",
+			"check_new_gdc",
+			"get_day_games",
+			"get_day_games()",
+			"strftime",
+			"get_role",
+			"string",
+			"os",
+			"self.messages",
+			"pass_context=True, ",
+			"get_next_game",
+			"get_day_games",
+			"self.url",
+			"post_automatic_standings",
+			"check_valid_team",
+			"get_team_role",
 			"modlogset",
 			"await channel.send(",
 			"whisper",
@@ -491,110 +660,7 @@
 			"APIError",
 			"get_credentials",
 			"self.mystream",
-			"restart",
-			"urban",
-			"urbandict",
-			"urban",
-			"run_in_executor",
-			"reset",
-			"gmagik",
-			"generate_ascii",
-			"aalib",
-			"tally_leaderboard",
-			"3",
-			"to_json",
-			"from_json",
-			"ImageEntry",
-			"get_image",
-			"edit",
-			"vw",
-			"bundled_data_path(self))+",
-			"gascii",
-			"gmagik",
-			"download(self",
-			"download",
-			"random(",
-			"str(bundled_data_path(self)/",
-			"str(bundled_data_path(self",
-			"get_images",
-			"run_process",
-			"gist",
-			"aalib",
-			"get_emote_image",
-			"fp_dir",
-			"bundled_data_path",
-			"aalib",
-			"tally_leaderboard",
-			"'",
-			"check_roles",
-			"152963007767511040",
-			"anyone",
-			"nas",
-			"hockey_menu",
-			"datetime.now()",
-			"time.time()",
-			"print",
-			"'",
-			"228492507124596736",
-			"__del__ = __unload",
-			"print",
-			"find_channel",
-			"'",
-			"\t",
-			"self.session",
-			"game_start",
-			"create_pickem_object",
-			"file_send",
-			"strptime",
-			"timestamp",
-			"strptime",
-			"toggle",
-			"add_reaction",
-			"page",
-			"random_colour",
-			"color",
-			"mods",
-			"mods.n",
-			"'",
-			"get_day_games",
-			"get_next_game",
-			"bot",
-			"pickem_object",
-			"post_automatic_standings",
-			"main_dir",
-			"/cogs/notsobot/vw",
-			"/cogs/notsobot",
-			"created_at",
-			"pass_context=True",
-			"pass_context=True, ",
-			"\"\"",
-			"\" \"",
-			"\"  \"",
-			"getattr(commands, \"Cog\", object)",
-			"commands.Cog",
-			"print",
-			"  ",
-			"get_day_games",
-			"pintrest",
-			"aalib",
-			"get_next_game",
-			"now",
-			"utcnow",
-			"get_next_game",
-			"check_new_gdc",
-			"delete_gdc",
-			"twitch_follower",
-			"twitch_profile",
-			"twitch_follower",
-			"print",
-			"eval",
-			"rip",
-			"get_team",
-			"data.plays",
-			"teams",
-			"self.teams",
-			"teams",
-			"scoring_team"
+			"restart"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -602,6 +668,26 @@
 		"regex": false,
 		"replace_history":
 		[
+			"TEAMS",
+			"CONFIG_ID",
+			"TEAMS",
+			"GameDayChannels.utc_to_local",
+			"Pickems.create_pickem_object",
+			"Pickems.tally_leaderboard(self.bot)",
+			"GameDayChannels.create_gdc(self.bot, guild)",
+			"GameDayChannels.check_new_gdc(self.bot)",
+			"embeds.goal_post_text",
+			"Game.check_team_goals",
+			"embeds.goal_post_embed",
+			"embeds.game_state_embed(data)",
+			"config",
+			"Game.check_team_goals(self.bot, data",
+			"Game.check_team_goals",
+			"await Game.get_games",
+			"self.game_check_loop()",
+			"get_games",
+			"",
+			"BASE_URL",
 			"",
 			"self, ctx, *,",
 			"ctx.send",
@@ -654,7 +740,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -662,15 +748,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 938,
+						"buffer_size": 1409,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								166,
-								166
+								279,
+								279
 							]
 						],
 						"settings":
@@ -688,24 +774,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "welcome/welcome.py",
+					"file": "hockey/hockey.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 15959,
+						"buffer_size": 50323,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1105,
-								1105
+								16106,
+								16106
 							]
 						],
 						"settings":
@@ -713,6 +799,220 @@
 							"syntax": "Packages/Python/Python.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2465.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "serverstats/serverstats.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 27000,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								25174,
+								25174
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5166.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "hockey/menu.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3791,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								564,
+								564
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "hockey/helper.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2248,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								267,
+								267
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "hockey/embeds.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 19791,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								112,
+								60
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 6006.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 6,
+					"file": "hockey/pickems.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7985,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7332,
+								7332
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1674.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "hockey/game.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 24036,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5889,
+								5889
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5598.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "hockey/gamedaychannels.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6635,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								372,
+								376
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -722,20 +1022,20 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "emojireact/emojireact.py",
+					"buffer": 9,
+					"file": "hockey/standings.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3383,
+						"buffer_size": 6391,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								473,
-								473
+								4021,
+								4025
 							]
 						],
 						"settings":
@@ -748,43 +1048,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 0,
-			"sheets":
-			[
-				{
-					"buffer": 3,
-					"file": "hockey/menu.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3760,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2156,
-								2279
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 24.0,
-						"translation.y": 324.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
+					"stack_index": 9,
 					"type": "text"
 				}
 			]
@@ -818,7 +1082,7 @@
 		"cols":
 		[
 			0.0,
-			0.463620981388,
+			0.5,
 			1.0
 		],
 		"rows":
@@ -886,7 +1150,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 0,
+	"selected_group": 1,
 	"settings":
 	{
 	},
