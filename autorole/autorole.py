@@ -24,7 +24,7 @@ class Autorole(getattr(commands, "Cog", object)):
         self.config.register_guild(**default_settings)
         self.users = {}
 
-    async def _no_perms(self, channel):
+    async def _no_perms(self, channel=None):
         m = ("It appears that you haven't given this "
              "bot enough permissions to use autorole. "
              "The bot requires the \"Manage Roles\" and "
@@ -32,6 +32,9 @@ class Autorole(getattr(commands, "Cog", object)):
              "order to use autorole. You can change the "
              "permissions in the \"Roles\" tab of the "
              "guild settings.")
+        if channel is None:
+            print(m)
+            return
         if channel.permissions_for(channel.guild.me).send_messages:
             await channel.send(m)
         else:
@@ -55,7 +58,7 @@ class Autorole(getattr(commands, "Cog", object)):
             return
 
         if user.id in self.users:
-            if not agree_channel.permissions_for(guild.me).manage_roles:
+            if not guild.me.guild_permissions.manage_roles:
                 await self._no_perms(agree_channel)
                 return
             if  self.users[user.id].lower() in message.content.lower():
@@ -105,12 +108,11 @@ class Autorole(getattr(commands, "Cog", object)):
         guild = member.guild
         roles_id = await self.config.guild(guild).ROLE()
         roles = [role for role in guild.roles if role.id in roles_id]
-        agree_channel = guild.get_channel(await self.config.guild(guild).AGREE_CHANNEL())
-        if not agree_channel.permissions_for(guild.me).manage_roles:
-            await self._no_perms(agree_channel)
+        if not guild.me.guild_permissions.manage_roles:
+            await self._no_perms()
             return
         for role in roles:
-            await user.add_roles(role, reason="Joined the server")
+            await member.add_roles(role, reason="Joined the server")
 
     async def on_member_join(self, member):
         guild = member.guild
