@@ -42,8 +42,9 @@ class Spoiler(getattr(commands, "Cog", object)):
         msg = await channel.get_message(spoiler_obj["message_id"])
         author = await self.bot.get_user_info(spoiler_obj["author"])
         name = f"{author.name}#{author.discriminator} Spoiled"
-        em = discord.Embed(description = spoiler_obj["spoiler_text"], timestamp=msg.created_at)
-        em.set_author(name=name, icon_url=getattr(author, "avatar_url", discord.Embed.Empty))
+        spoiler_text = spoiler_obj["spoiler_text"] + f"\n\n [Click here for context]({msg.jump_url})"
+        em = discord.Embed(description = spoiler_text, timestamp=msg.created_at)
+        em.set_author(name=name, icon_url=getattr(author, "avatar_url", discord.Embed.Empty), url=msg.jump_url)
         em.set_footer(text='{} | #{}'.format(channel.guild.name, channel.name))
         return em
 
