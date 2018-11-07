@@ -10,14 +10,9 @@ from redbot.core import Config
 from redbot.core import checks
 from redbot.core.utils.chat_formatting import pagify
 from .tweet_entry import TweetEntry
+import tweepy as tw
 
-try:
-    import tweepy as tw
 
-    twInstalled = True
-except:
-    twInstalled = False
-import os
 
 numbs = {
     "next": "➡",
@@ -170,7 +165,11 @@ class Tweets(getattr(commands, "Cog", object)):
     @_tweets.command(name="send")
     @checks.is_owner()
     async def send_tweet(self, ctx, *, message: str):
-        """Allows the owner to send tweets through discord"""
+        """
+            Allows the owner to send tweets through discord
+
+            Upload an image to send an image with it as well.
+        """
         try:
             api = await self.authenticate()
             if ctx.message.attachments != []:
@@ -192,7 +191,13 @@ class Tweets(getattr(commands, "Cog", object)):
 
     @_tweets.command(pass_context=True, name="trends")
     async def trends(self, ctx, *, location: str = "United States"):
-        """Gets twitter trends for a given location"""
+        """
+            Gets twitter trends for a given location
+
+            You can provide a location and it will try to get
+            different trend information from that location
+            default is `United States`
+        """
         api = await self.authenticate()
         location_list = api.trends_available()
         country_id = None
@@ -252,7 +257,11 @@ class Tweets(getattr(commands, "Cog", object)):
 
     @_tweets.command(no_pm=True, name='gettweets')
     async def get_tweets(self, ctx, username: str, count: int = 10):
-        """Gets the specified number of tweets for the specified username"""
+        """
+            Display a users tweets as a scrollable message
+
+            defaults to 10 tweets
+        """
         cnt = count
         if count > 25:
             cnt = 25
@@ -411,7 +420,11 @@ class Tweets(getattr(commands, "Cog", object)):
 
     @_autotweet.command(name="replies")
     async def _replies(self, ctx, account):
-        """Enable or disable twitter replies from being posted for an account"""
+        """
+            Toggle an accounts replies being posted
+
+            This is checked on `autotweet` as well as `gettweets`
+        """
         account = account.lower()
         edited_account = None
         all_accounts = await self.config.accounts()
@@ -426,7 +439,10 @@ class Tweets(getattr(commands, "Cog", object)):
             edited_account["replies"] = not edited_account["replies"]
             all_accounts.append(edited_account)
             await self.config.accounts.set(all_accounts)
-            await ctx.send("posting twitter replies for {}".format(account))
+            if edited_account["replies"]:
+                await ctx.send(f"Posting {account} replies.")
+            else:
+                await ctx.send(f"No longer posting {account} replies.")
 
     async def get_followed_accounts(self) -> Generator[TweetEntry, None, None]:
         return (TweetEntry.from_json(d) for d in (await self.config.accounts()))
@@ -441,7 +457,12 @@ class Tweets(getattr(commands, "Cog", object)):
 
     @_autotweet.command(name="add")
     async def _add(self, ctx, account: str, channel: discord.TextChannel = None):
-        """Adds a twitter account to the specified channel"""
+        """
+            Adds a twitter account to the specified channel
+
+            `account` needs to be the @handle for the twitter account
+            `channel` has to be a valid server channel, defaults to the current channel
+        """
         api = await self.authenticate()
         try:
             user_id = None
@@ -465,18 +486,20 @@ class Tweets(getattr(commands, "Cog", object)):
             await ctx.send("I don't have permission to post in {}".format(channel.mention))
             return
         if not channel.permissions_for(ctx.guild.me).embed_links:
-            await ctx.send(
-                "I do not have embed links permission in {}, I recommend enabling that for pretty twitter posts!".format(
-                    channel.mention))
+            msg = (f"I do not have embed links permission in {channel.mention}, "
+                   "I recommend enabling that for pretty twitter posts!")
+            await ctx.send(msg)
         in_list = True if str(user_id) in [str(x["twitter_id"]) for x in await self.config.accounts()] else False
         added = await self.add_account(channel, user_id, screen_name)
         if added:
             await ctx.send("{0} Added to {1}!".format(account, channel.mention))
             if not in_list:
                 prefix_list = await self.bot.command_prefix(self.bot, ctx.message)
-                await ctx.send("Now do `{}autotweet restart` when you've finished adding all accounts!".format(prefix_list[0]))
+                msg = (f"Now do `{prefix_list[0]}autotweet restart` when you've "
+                       "finished adding all accounts!")
+                await ctx.send(msg)
         else:
-            await ctx.send("I am already posting {} tweets in {}".format(screen_name, channel.mention))
+            await ctx.send(f"I am already posting {screen_name} tweets in {channel.mention}")
         # await self.autotweet_restart()
 
     @_autotweet.command(name="list")
@@ -501,7 +524,10 @@ class Tweets(getattr(commands, "Cog", object)):
         await ctx.send(embed=embed)
 
     async def add_account(self, channel, user_id, screen_name):
-        """Adds a twitter account to the specified channel. Returns False if it is already in the channel."""
+        """
+            Adds a twitter account to the specified channel. 
+            Returns False if it is already in the channel.
+        """
         followed_accounts = await self.config.accounts()
 
         is_followed, twitter_account = await self.is_followed_account(user_id)
@@ -521,7 +547,14 @@ class Tweets(getattr(commands, "Cog", object)):
 
     @_autotweet.command(name="addlist")
     async def add_list(self, ctx, owner, list_name, channel: discord.TextChannel = None):
-        """Add an entire twitter list to a specified channel. The list must be public or the bot owner must own it."""
+        """
+            Add an entire twitter list to a specified channel.
+
+            The list must be public or the bot owner must own it.
+            `owner` is the owner of the list's @handle
+            `list_name` is the name of the list
+            `channel` is the channel where the tweets will be posted
+        """
         api = await self.authenticate()
         try:
             cursor = -1
@@ -572,7 +605,14 @@ class Tweets(getattr(commands, "Cog", object)):
 
     @_autotweet.command(name="remlist")
     async def rem_list(self, ctx, owner, list_name, channel: discord.TextChannel = None):
-        """Remove an entire twitter list from a specified channel. The list must be public or the bot owner must own it."""
+        """
+            Remove an entire twitter list from a specified channel. 
+
+            The list must be public or the bot owner must own it.
+            `owner` is the owner of the list's @handle
+            `list_name` is the name of the list
+            `channel` is the channel where the tweets will be posted
+        """
         api = await self.authenticate()
         try:
             cursor = -1
@@ -626,7 +666,12 @@ class Tweets(getattr(commands, "Cog", object)):
 
     @_autotweet.command(name="del", aliases=["delete", "rem", "remove"])
     async def _del(self, ctx, account, channel: discord.TextChannel = None):
-        """Removes a twitter account to the specified channel"""
+        """
+            Removes a twitter account to the specified channel
+
+            `account` must be the users @handle
+            `channel` is the channel where the account is currently being posted
+        """
         account = account.lower()
         api = await self.authenticate()
         if channel is None:
@@ -658,7 +703,7 @@ class Tweets(getattr(commands, "Cog", object)):
 
         1. Visit https://apps.twitter.com and apply for a developer account.
         2. Once your account is approved setup an application and follout the form
-        3. Supply the consumer_key, consumer_secret, access_token, and access_secret
+        3. Do `[p]tweetset creds consumer_key consumer_secret access_token access_secret`
         to the bot in a private channel (DM's preferred).
         """
         pass
