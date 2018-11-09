@@ -56,7 +56,9 @@ class TweetListener(tw.StreamListener):
 
 
 class Tweets(getattr(commands, "Cog", object)):
-    """Cog for displaying info from Twitter's API"""
+    """
+        Cog for displaying info from Twitter's API
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -66,6 +68,9 @@ class Tweets(getattr(commands, "Cog", object)):
         self.config.register_global(**default_global)
         self.mystream = None
         self.loop = bot.loop.create_task(self.start_stream())
+
+    ###################################################################
+    # Here is all the logic for handling tweets and tweet creation
 
     async def start_stream(self):
         await self.bot.wait_until_ready()
@@ -102,6 +107,94 @@ class Tweets(getattr(commands, "Cog", object)):
             self.mystream.disconnect()
         self.loop.cancel()
         self.loop = self.bot.loop.create_task(self.start_stream())
+
+    async def on_tweet_error(self, error):
+        """Posts tweet stream errors to a specified channel"""
+        if await self.config.error_channel() is not None:
+            channel = self.bot.get_channel(await self.config.error_channel())
+            await channel.send(error + "\n See here for more information <https://developer.twitter.com/en/docs/basics/response-codes.html>")
+            if "420" in error:
+                await channel.send("Maybe you should unload the cog for a while...")
+        return
+
+    async def build_tweet_embed(self, status):
+        username = status.user.screen_name
+        user_id = status.user.id
+        post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
+        em = discord.Embed(colour=discord.Colour(value=int(status.user.profile_link_color, 16)),
+                           url=post_url,
+                           timestamp=status.created_at)
+        if hasattr(status, "retweeted_status"):
+            em.set_author(name=status.user.name + " Retweeted", url=post_url,
+                          icon_url=status.user.profile_image_url)
+            status = status.retweeted_status
+            if hasattr(status, "extended_entities"):
+                em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
+            if hasattr(status, "extended_tweet"):
+                text = status.extended_tweet["full_text"]
+                if "media" in status.extended_tweet["entities"]:
+                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
+            else:
+                text = status.text
+        else:
+            em.set_author(name=status.user.name, url=post_url, icon_url=status.user.profile_image_url)
+            if hasattr(status, "extended_entities"):
+                em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
+            if hasattr(status, "extended_tweet"):
+                text = status.extended_tweet["full_text"]
+                if "media" in status.extended_tweet["entities"]:
+                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
+            else:
+                text = status.text
+        em.description = text.replace("&amp;", "\n\n")
+        em.set_footer(text="@" + username)
+        return em
+
+    async def on_tweet_status(self, status):
+        """Posts the tweets to the channel"""
+        username = status.user.screen_name
+        user_id = status.user.id
+        account = None
+        post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
+        for accounts in await self.get_followed_accounts():
+            if accounts.twitter_id == user_id:
+                account = accounts
+        if not account:
+            return
+        try:
+            if status.in_reply_to_screen_name is not None and not account.replies:
+                return
+            em = await self.build_tweet_embed(status)
+            channel_list = account.channel
+            for channel in channel_list:
+                try:
+                    channel_send = self.bot.get_channel(int(channel))
+                    if channel_send is None:
+                        await self.del_account(channel, user_id, username)
+                    if channel_send.permissions_for(channel_send.guild.me).embed_links:
+                        await channel_send.send(post_url, embed=em)
+                    else:
+                        await channel_send.send(post_url)
+                except Exception as e:
+                    msg = "{0} from <#{1}>({1}): {2}".format(username, channel, e)
+                    error_channel = self.bot.get_channel(await self.config.error_channel())
+                    if "FORBIDDEN" in str(e) or "403" in str(e):
+                        await error_channel.send("Removing " + msg)
+                        await self.del_account(channel, user_id, username)
+                    elif "NoneType" in str(e):
+                        await error_channel.send("Removing " + msg)
+                        await self.del_account(channel, user_id, username)
+                    else:
+                        await error_channel.send(msg)
+                        
+        except Exception as e:
+            print((f"Whoops! Something went wrong here."
+                   f"The error code is {e} {username}"))
+            if await self.config.error_channel() is not None:
+                error_channel = self.bot.get_channel(await self.config.error_channel())
+                await error_channel.send(str(e) + ": Username" + username)
+            return
+
 
     async def tweet_menu(self, ctx, post_list: list,
                          message: discord.Message = None,
@@ -156,6 +249,9 @@ class Tweets(getattr(commands, "Cog", object)):
                                              page=next_page, timeout=timeout)
             else:
                 return await message.delete()
+
+    ###################################################################
+    # here are all the commands for getting twitter info
 
     @commands.group(no_pm=True, name='tweets', aliases=["twitter"])
     async def _tweets(self, ctx):
@@ -290,92 +386,6 @@ class Tweets(getattr(commands, "Cog", object)):
                 await ctx.send("No tweets available to display!")
         else:
             await ctx.send("No username specified!")
-            return
-
-    async def on_tweet_error(self, error):
-        """Posts tweet stream errors to a specified channel"""
-        if await self.config.error_channel() is not None:
-            channel = self.bot.get_channel(await self.config.error_channel())
-            await channel.send(error + "\n See here for more information <https://developer.twitter.com/en/docs/basics/response-codes.html>")
-            if "420" in error:
-                await channel.send("Maybe you should unload the cog for a while...")
-        return
-
-    async def build_tweet_embed(self, status):
-        username = status.user.screen_name
-        user_id = status.user.id
-        post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-        em = discord.Embed(colour=discord.Colour(value=int(status.user.profile_link_color, 16)),
-                           url=post_url,
-                           timestamp=status.created_at)
-        if hasattr(status, "retweeted_status"):
-            em.set_author(name=status.user.name + " Retweeted", url=post_url,
-                          icon_url=status.user.profile_image_url)
-            status = status.retweeted_status
-            if hasattr(status, "extended_entities"):
-                em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
-            if hasattr(status, "extended_tweet"):
-                text = status.extended_tweet["full_text"]
-                if "media" in status.extended_tweet["entities"]:
-                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
-            else:
-                text = status.text
-        else:
-            em.set_author(name=status.user.name, url=post_url, icon_url=status.user.profile_image_url)
-            if hasattr(status, "extended_entities"):
-                em.set_image(url=status.extended_entities["media"][0]["media_url_https"])
-            if hasattr(status, "extended_tweet"):
-                text = status.extended_tweet["full_text"]
-                if "media" in status.extended_tweet["entities"]:
-                    em.set_image(url=status.extended_tweet["entities"]["media"][0]["media_url_https"])
-            else:
-                text = status.text
-        em.description = text.replace("&amp;", "\n\n")
-        em.set_footer(text="@" + username)
-        return em
-
-    async def on_tweet_status(self, status):
-        """Posts the tweets to the channel"""
-        username = status.user.screen_name
-        user_id = status.user.id
-        account = None
-        post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
-        for accounts in await self.get_followed_accounts():
-            if accounts.twitter_id == user_id:
-                account = accounts
-        if not account:
-            return
-        try:
-            if status.in_reply_to_screen_name is not None and not account.replies:
-                return
-            em = await self.build_tweet_embed(status)
-            channel_list = account.channel
-            for channel in channel_list:
-                try:
-                    channel_send = self.bot.get_channel(int(channel))
-                    if channel_send is None:
-                        await self.del_account(channel, user_id, username)
-                    if channel_send.permissions_for(channel_send.guild.me).embed_links:
-                        await channel_send.send(post_url, embed=em)
-                    else:
-                        await channel_send.send(post_url)
-                except Exception as e:
-                    if "Cannot connect to host" in str(e):
-                        error_channel = self.bot.get_channel(await self.config.error_channel())
-                        await error_channel.send("{0} from <#{1}>({1}): {2}".format(username, channel, e))
-                    if "Errno" in str(e):
-                        error_channel = self.bot.get_channel(await self.config.error_channel())
-                        await error_channel.send("{0} from <#{1}>({1}): {2}".format(username, channel, e))
-                    else:
-                        error_channel = self.bot.get_channel(await self.config.error_channel())
-                        await error_channel.send("Removing {0} from <#{1}>({1}): {2}".format(username, channel, e))
-                        await self.del_account(channel, user_id, username)
-        except Exception as e:
-            print("Whoops! Something went wrong here. \
-                The error code is " + str(e) + username)
-            if await self.config.error_channel() is not None:
-                error_channel = self.bot.get_channel(await self.config.error_channel())
-                await error_channel.send(str(e) + ": Username" + username)
             return
 
     @commands.group(name='autotweet')
