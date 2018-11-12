@@ -24,6 +24,10 @@ class Starboard(getattr(commands, "Cog", object)):
             enabled = await self.config.guild(guild).enabled()
             if enabled:
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
+                if channel is None:
+                    channel_mention = "None"
+                else:
+                    channel_mention = channel.mention
                 emoji = await self.config.guild(guild).emoji()
                 role = ", ".join(guild.get_role(r).name for r in await self.config.guild(guild).role())
                 ignore = await self.config.guild(guild).ignore()
@@ -37,7 +41,7 @@ class Starboard(getattr(commands, "Cog", object)):
                     em = discord.Embed(title="Starboard settings for {}".format(ctx.guild.name))
                     em.add_field(name="Enabled", value=str(enabled))
                     em.add_field(name="Emoji", value=str(emoji))
-                    em.add_field(name="Starboard Channel", value=channel.mention)
+                    em.add_field(name="Starboard Channel", value=channel_mention)
                     em.add_field(name="Roles Allowed", value=role)
                     em.add_field(name="Ignored Channels", value=ignored_channels)
                     em.add_field(name="Threshold", value=threshold)
