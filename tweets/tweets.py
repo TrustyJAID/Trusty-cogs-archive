@@ -91,7 +91,7 @@ class Tweets(getattr(commands, "Cog", object)):
             await asyncio.sleep(300)
 
     def start_stream_loop(self, tweet_list):
-        self.mystream.filter(follow=tweet_list, async=True)
+        self.mystream.filter(follow=tweet_list, is_async=True)
 
     async def authenticate(self):
         """Authenticate with Twitter's API"""

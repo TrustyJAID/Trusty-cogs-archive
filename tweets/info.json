@@ -15,7 +15,7 @@
         "embed_links"
     ],
     "requirements":[
-        "tweepy"
+        "git+https://github.com/tweepy/tweepy.git"
     ],
     "short":"Cog for getting info from Twitter",
     "tags":[
