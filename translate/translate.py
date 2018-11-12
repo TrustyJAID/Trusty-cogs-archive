@@ -5,9 +5,10 @@ from redbot.core import Config
 from redbot.core import checks
 from redbot.core.data_manager import bundled_data_path
 import json
-from .flags import flags
+from .flags import FLAGS
 
-'''Translator cog 
+"""
+Translator cog 
 
 Cog credit to aziz#5919 for the idea and 
  
@@ -18,10 +19,14 @@ Github                                              https://goo.gl/oQAQde
 Support the developer                               https://goo.gl/Brchj4
 Invite the bot to your guild                       https://goo.gl/aQm2G7
 Join the official development guild                https://discord.gg/uekTNPj
-'''
+"""
 
 
 class Translate(getattr(commands, "Cog", object)):
+    """
+        Translate messages using google translate
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
@@ -31,40 +36,52 @@ class Translate(getattr(commands, "Cog", object)):
         default = {"api_key":None}
         self.config.register_guild(**default_guild)
         self.config.register_global(**default)
-        # with open(str(cog_data_path(self) + "/flags.json"), "r") as file:
-            # self.flags = json.loads(file.read())
-        self.flags = flags
-        # self.settings = dataIO.load_json("data/translate/settings.json")
 
     @commands.command(pass_context=True)
     async def translate(self, ctx, to_language, *, message):
+        """
+            Translate messages with google translate
+        """
+        
         if await self.config.api_key() is None:
             await ctx.send("The bot owner needs to set an api key first!")
             return
-        if to_language in self.flags:
-            language_code = self.flags[to_language]["code"]
+        if to_language in FLAGS:
+            language_code = FLAGS[to_language]["code"]
         else:
             try:
-                language_code = [self.flags[lang]["code"] for lang in self.flags if (self.flags[lang]["name"].lower() in to_language.lower()) or (self.flags[lang]["country"].lower() in to_language.lower())][0]
+                language_code = [FLAGS[lang]["code"] for lang in FLAGS if (FLAGS[lang]["name"].lower() in to_language.lower()) or (FLAGS[lang]["country"].lower() in to_language.lower())][0]
             except IndexError:
                 await ctx.send("{} is not an available language!".format(to_language))
                 return
         
-        from_lang = await self.detect_language(message)
-        translated_text = await self.translate_text(from_lang[0][0]["language"], language_code, message)
+        original_lang = await self.detect_language(message)
+        from_lang = original_lang[0][0]["language"].upper()
+        to_lang = language_code.upper()
+        translated_text = await self.translate_text(original_lang[0][0]["language"], language_code, message)
         author = ctx.message.author
-        em = discord.Embed(colour=author.top_role.colour, description=translated_text)
-        em.set_author(name=author.display_name, icon_url=author.avatar_url)
-        em.set_footer(text="{} to {}".format(from_lang[0][0]["language"].upper(), language_code.upper()))
-        await ctx.send(embed=em)
+        user_name = f"{author.name}#{author.discriminator}"
+        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            em = discord.Embed(colour=author.top_role.colour, description=translated_text)
+            em.set_author(name=author.display_name, icon_url=author.avatar_url)
+            em.set_footer(text=f"{from_lang} to {to_language} Requested by {user_name}")
+            await ctx.send(embed=em)
+        else:
+            await ctx.send(translated_text)
 
     async def detect_language(self, text):
+        """
+            Detect the language from given text
+        """
         async with self.session.get(self.url + "/language/translate/v2/detect", params={"q":text, "key":await self.config.api_key()}) as resp:
                 data = await resp.json()
         return data["data"]["detections"]
 
 
     async def translate_text(self, from_lang, target, text):
+        """
+            request to translate the text
+        """
         formatting = "text"
         params = {"q":text, "target":target,"key":await self.config.api_key(), "format":formatting, "source":from_lang}
         try:
@@ -79,7 +96,10 @@ class Translate(getattr(commands, "Cog", object)):
     @commands.command(pass_context=True)
     @checks.mod_or_permissions(manage_channels=True)
     async def translatereact(self, ctx):
-        """Set the bot to post reaction self.flags to translate messages on this guild"""
+        """
+            Have the bot translate messages when
+            a flag is reacted to the message
+        """
         guild = ctx.message.guild
         if not await self.config.guild(guild).enabled():
             await self.config.guild(guild).enabled.set(True)
@@ -89,7 +109,10 @@ class Translate(getattr(commands, "Cog", object)):
             await ctx.send("{} has been removed from translated responses!".format(guild.name))
 
     async def on_raw_reaction_add(self, payload):
-        """Translates the message based off the flag added"""
+        """
+            Translates the message based off reactions
+            with country flags
+        """
         channel = self.bot.get_channel(id=payload.channel_id)
         try:
             guild = channel.guild
@@ -98,8 +121,8 @@ class Translate(getattr(commands, "Cog", object)):
             return
         if await self.config.api_key() is None:
             return
-        # check_emoji = lambda emoji: emoji in self.flags
-        if str(payload.emoji) not in self.flags:
+        # check_emoji = lambda emoji: emoji in FLAGS
+        if str(payload.emoji) not in FLAGS:
             return
         if not await self.config.guild(guild).enabled():
             return
@@ -113,20 +136,29 @@ class Translate(getattr(commands, "Cog", object)):
                 num_emojis = reaction.count
         if num_emojis > 1:
             return
-        target = self.flags[str(payload.emoji)]["code"]
-        from_lang = await self.detect_language(to_translate)
-        translated_text = await self.translate_text(from_lang[0][0]["language"], target, to_translate)
+        user = self.bot.get_user(payload.user_id)
+        user_name = f"{user.name}#{user.discriminator}"
+        target = FLAGS[str(payload.emoji)]["code"]
+        original_lang = await self.detect_language(to_translate)
+        translated_text = await self.translate_text(original_lang[0][0]["language"], target, to_translate)
         author = message.author
         em = discord.Embed(colour=author.top_role.colour, description=translated_text)
         em.set_author(name=author.display_name, icon_url=author.avatar_url)
-        em.set_footer(text="{} to {}".format(from_lang[0][0]["language"].upper(), target.upper()))
+        from_lang = original_lang[0][0]["language"].upper()
+        to_lang = target.upper()
+        if from_lang == to_lang:
+            # don't post anything if the detected language is the same
+            return
+        em.set_footer(text=f"{from_lang} to {to_lang} Requested by {user_name}")
         await channel.send(embed=em)
 
     @commands.command(pass_context=True)
     @checks.is_owner()
     async def translateset(self, ctx, api_key):
-        """You must get an API key from google to set this up
-        https://console.cloud.google.com/apis/library/translate.googleapis.com/
+        """
+            You must get an API key from google to set this up
+
+            https://console.cloud.google.com/apis/library/translate.googleapis.com/
         """
         await self.config.api_key.set(api_key)
         await ctx.send("API key set.")
