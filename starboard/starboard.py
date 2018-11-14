@@ -302,9 +302,12 @@ class Starboard(getattr(commands, "Cog", object)):
 
     async def get_posted_message(self, guild, message):
         msg_list = await self.config.guild(guild).messages()
+        msg = None
         for past_message in msg_list:
             if message.id == past_message["original_message"]:
                 msg = past_message
+        if msg is None:
+            return
         msg_list.remove(msg)
         msg["count"] += 1
         msg_list.append(msg)
