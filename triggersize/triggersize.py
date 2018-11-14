@@ -1,15 +1,18 @@
 import discord
-from redbot.core import commands
-from redbot.core import Config
-from redbot.core import checks
+from redbot.core import commands, checks, Config
 from redbot.core.data_manager import bundled_data_path
 import aiohttp
-import io
+from io import BytesIO
+import functools
+import asyncio
 from PIL import Image
 
 
 
 class Triggersize(getattr(commands, "Cog", object)):
+    """
+        Generate different sized images based on length of specific keywords
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -26,8 +29,6 @@ class Triggersize(getattr(commands, "Cog", object)):
             return
         if message.author.bot:
             return
-        if message.guild.id == "236313384100954113" and message.channel.id not in ["244653444504223755", "367879950466023425"]:
-            return
         msg = message.content.lower()
         guild = message.guild
         channel = message.channel
@@ -36,26 +37,45 @@ class Triggersize(getattr(commands, "Cog", object)):
             for word in msg.split(" "):
                 if "reee" in word:
                     await channel.trigger_typing()
-                    file = await self.change_size_reee(len(word)-3)
+                    task = functools.partial(self.change_size_reee, size=len(word)-3)
+                    task = self.bot.loop.run_in_executor(None, task)
+                    try:
+                        file = await asyncio.wait_for(task, timeout=60)
+                    except asyncio.TimeoutError:
+                        return
                     await message.channel.send(file=file)
         if "zioo" in msg and await self.config.guild(guild).zio():
             for word in msg.split(" "):
                 if "zioo" in word:
                     await channel.trigger_typing()
-                    file = await self.change_size_zio(len(word)-3)
+                    task = functools.partial(self.change_size_zio, size=len(word)-3)
+                    task = self.bot.loop.run_in_executor(None, task)
+                    try:
+                        file = await asyncio.wait_for(task, timeout=60)
+                    except asyncio.TimeoutError:
+                        return
                     await message.channel.send(file=file)
         if "taaa" in msg and "nk" in msg and await self.config.guild(guild).tank():
             for word in msg.split(" "):
                 if "taaa" in word:
+                    url = guild.icon_url_as(format="png", size=64)
+                    async with self.session.get(url) as resp:
+                        guild_icon = await resp.read()
+                    icon = BytesIO(guild_icon)
                     await channel.trigger_typing()
-                    file = await self.change_size_tank(len(word)-3, guild)
+                    task = functools.partial(self.change_size_tank, size=len(word)-3, guild_icon=icon)
+                    task = self.bot.loop.run_in_executor(None, task)
+                    try:
+                        file = await asyncio.wait_for(task, timeout=60)
+                    except asyncio.TimeoutError:
+                        return
                     await message.channel.send(file=file)
         if "fuck" in msg.lower() and await self.config.guild(guild).christian():
             async with channel.typing():
                 file = discord.File(str(bundled_data_path(self)) + "/christian.jpg")
                 await channel.send(file=file)
             
-    async def change_size_reee(self, size):
+    def change_size_reee(self, size):
         length, width = self.smallest
         if size <=10:
             im = Image.open(str(bundled_data_path(self)) + "/reee.png")
@@ -65,30 +85,28 @@ class Triggersize(getattr(commands, "Cog", object)):
             im = Image.open(str(bundled_data_path(self)) + "/reee2.png")
             im.thumbnail((length*size, width*size), Image.ANTIALIAS)
         # im.save("data/reee/newreee.png")
-        byte_array = io.BytesIO()
+        byte_array = BytesIO()
         im.save(byte_array, format="PNG")
         return discord.File(byte_array.getvalue(), filename="reeee.png")
 
-    async def change_size_zio(self, size):
+    def change_size_zio(self, size):
         length, width = self.smallest
         im = Image.open(str(bundled_data_path(self)) + "/zio.jpg")
         im.thumbnail((length*size, width*size), Image.ANTIALIAS)
-        byte_array = io.BytesIO()
+        byte_array = BytesIO()
         im.save(byte_array, format="PNG")
         return discord.File(byte_array.getvalue(), filename="zio.png")
 
-    async def change_size_tank(self, size, guild):
-        async with self.session.get(guild.icon_url_as(format="png", size=128)) as resp:
-            test = await resp.read()
-        icon = Image.open(io.BytesIO(test))
+    def change_size_tank(self, size, guild_icon):
+        icon = Image.open(guild_icon)
         icon.convert("RGBA")
         # icon.thumbnail((190, 190), Image.ANTIALIAS)
         length, width = self.smallest
         im = Image.open(str(bundled_data_path(self)) + "/tank.png")
         im.convert("RGBA")
-        im.paste(icon, (1000,480))
+        im.paste(icon, (362,174))
         im.thumbnail((length*size, width*size), Image.ANTIALIAS)
-        byte_array = io.BytesIO()
+        byte_array = BytesIO()
         im.save(byte_array, format="PNG")
         return discord.File(byte_array.getvalue(), filename="tank.png")
 
