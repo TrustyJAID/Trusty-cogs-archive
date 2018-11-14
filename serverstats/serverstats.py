@@ -242,6 +242,26 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command()
     @checks.mod_or_permissions(manage_messages=True)
+    async def slowmode(self, ctx, time:int=0, channel:discord.TextChannel=None):
+        """
+            Set a channels slowmode setting
+
+            `time` must be a number between 0 and 120
+            `channel` is the channel you want to set slowmode on defaults to current channel
+        """
+        if channel is None:
+            channel = ctx.channel
+        if time < 0 or time > 120:
+            await ctx.send("You can only set a number between 0 and 120")
+            return
+        if not channel.permissions_for(ctx.guild.me).manage_channels:
+            await ctx.send("I don't have manage_channels permission.")
+            return
+        await channel.edit(slowmode_delay=time)
+        await ctx.send(f"Slowmode set to {time} in {channel.mention}")
+
+    @commands.command()
+    @checks.mod_or_permissions(manage_messages=True)
     async def topmembers(self, ctx, number:int=10, guild_name:Union[int, str]=None):
         """Lists top 10 members on the server by join date"""
         guild = ctx.guild
