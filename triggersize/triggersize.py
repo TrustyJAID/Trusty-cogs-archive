@@ -44,6 +44,7 @@ class Triggersize(getattr(commands, "Cog", object)):
                     except asyncio.TimeoutError:
                         return
                     await message.channel.send(file=file)
+                    return
         if "zioo" in msg and await self.config.guild(guild).zio():
             for word in msg.split(" "):
                 if "zioo" in word:
@@ -55,6 +56,7 @@ class Triggersize(getattr(commands, "Cog", object)):
                     except asyncio.TimeoutError:
                         return
                     await message.channel.send(file=file)
+                    return
         if "taaa" in msg and "nk" in msg and await self.config.guild(guild).tank():
             for word in msg.split(" "):
                 if "taaa" in word:
@@ -70,6 +72,7 @@ class Triggersize(getattr(commands, "Cog", object)):
                     except asyncio.TimeoutError:
                         return
                     await message.channel.send(file=file)
+                    return
         if "fuck" in msg.lower() and await self.config.guild(guild).christian():
             async with channel.typing():
                 file = discord.File(str(bundled_data_path(self)) + "/christian.jpg")
