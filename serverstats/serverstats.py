@@ -550,14 +550,13 @@ class ServerStats(getattr(commands, "Cog", object)):
                 await channel.send(page)
 
 
-    async def emoji_menu(self, ctx, post_list: list,
+    async def emoji_menu(self, ctx, post_list: list, guild,
                          message: discord.Message=None,
                          page=0, timeout: int=30):
         """menu control logic for this taken from
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
 
         emojis = post_list[page]
-        guild = ctx.message.guild
         em = discord.Embed(timestamp=ctx.message.created_at)
         em.set_author(name=guild.name + " Emojis", icon_url=guild.icon_url)
         regular = []
@@ -596,7 +595,7 @@ class ServerStats(getattr(commands, "Cog", object)):
                     await message.remove_reaction("➡", ctx.message.author)
                 except:
                     pass
-                return await self.emoji_menu(ctx, post_list, message=message,
+                return await self.emoji_menu(ctx, post_list, guild, message=message,
                                              page=next_page, timeout=timeout)
             elif react == "back":
                 next_page = 0
@@ -608,7 +607,7 @@ class ServerStats(getattr(commands, "Cog", object)):
                     await message.remove_reaction("⬅", ctx.message.author)
                 except:
                     pass
-                return await self.emoji_menu(ctx, post_list, message=message,
+                return await self.emoji_menu(ctx, post_list, guild, message=message,
                                              page=next_page, timeout=timeout)
             else:
                 return await message.delete()
@@ -639,7 +638,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         x = [regular[i:i+10] for i in range(0, len(regular), 10)]
         # if animated != "":
             # embed.add_field(name="Animated Emojis", value=animated[:1023])
-        await self.emoji_menu(ctx, x)
+        await self.emoji_menu(ctx, x, guild)
 
     def __unload(self):
         self.bot.loop.create_task(self.session.close())
