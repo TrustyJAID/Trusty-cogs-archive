@@ -24,7 +24,7 @@ class Weather(getattr(commands, "Cog", object)):
         """
             Display weather in a given location
 
-            `location` must take the form of `city, Countr Code`
+            `location` must take the form of `city, Country Code`
             example: `[p]weather New York,US`
         """
         await ctx.trigger_typing()
