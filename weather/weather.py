@@ -1,20 +1,16 @@
 import discord
-from redbot.core import commands
-from redbot.core import Config
-from random import randint
-from random import choice
-from enum import Enum
-import json
+from redbot.core import commands, Config
 import datetime
 import aiohttp
-import asyncio
+
 
 class Weather(getattr(commands, "Cog", object)):
+    """Get weather data from https://openweathermap.org"""
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 138475464)
-        default = {"units":"imperial"}
+        default = {"units" : None}
         self.config.register_guild(**default)
         self.config.register_user(**default)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
@@ -23,40 +19,74 @@ class Weather(getattr(commands, "Cog", object)):
             "metric": {"code": ["m", "c"], "speed": "km/h", "temp": "°C"},
             "kelvin": {"code": ["k", "s"], "speed": "km/h", "temp": "°K"}}
 
-    @commands.command(pass_context=True, name="weather", aliases=["we"])
+    @commands.command(name="weather", aliases=["we"])
     async def weather(self, ctx, *, location):
-        await ctx.trigger_typing()
-        await self.getweather(ctx, location)
+        """
+            Display weather in a given location
 
-    @commands.group(pass_context=True, name="weatherset")
+            `location` must take the form of `city, Countr Code`
+            example: `[p]weather New York,US`
+        """
+        await ctx.trigger_typing()
+        await self.get_weather(ctx, location)
+
+    @commands.group(name="weatherset")
     async def weather_set(self, ctx):
         """Set user or guild default units"""
         pass
-    @weather_set.command(pass_context=True, name="guild")
+
+    @weather_set.command(name="guild")
     async def set_guild(self, ctx, units):
-        """Sets the guild default weather units use imperial, metric, or kelvin"""
+        """
+            Sets the guild default weather units 
+
+            `units` must be one of imperial, metric, or kelvin
+        """
         guild = ctx.message.guild
-        if units in self.unit:
-            await self.config.guild(guild).units.set(units)
-            await ctx.send("Default units set to {} in {}.".format(units, guild.name))
+        if units.lower() in ["f", "imperial", "mph"]:
+            new_units = "imperial"
+        elif units.lower() in ["c", "metric", "kph"]:
+            new_units = "metric"
+        elif units.lower() in ["k", "kelvin"]:
+            new_units = "kelvin"
+        else:
+            await ctx.send(f"{units} is not a vaild option!")
+            return
+        
+        await self.config.guild(guild).units.set(new_units)
+        await ctx.send("Default units set to {} in {}.".format(new_units, guild.name))
 
-    @weather_set.command(pass_context=True, name="user")
+    @weather_set.command(name="user")
     async def set_user(self, ctx, units):
-        """Sets the user default weather units use imperial, metric, or kelvin"""
-        author = ctx.message.author
-        if units in self.unit:
-            await self.config.user(author).units.set(units)
-            await ctx.send("Default units set to {} in {}.".format(units, author.name))
+        """
+            Sets the user default weather units 
 
-    async def getweather(self, ctx, location):
+            `units` must be one of imperial, metric, or kelvin
+            Note: User settings override guild settings.
+        """
+        author = ctx.message.author
+        if units.lower() in ["f", "imperial", "mph"]:
+            new_units = "imperial"
+        elif units.lower() in ["c", "metric", "kph"]:
+            new_units = "metric"
+        elif units.lower() in ["k", "kelvin"]:
+            new_units = "kelvin"
+        else:
+            await ctx.send(f"{units} is not a vaild option!")
+            return
+
+        await self.config.user(author).units.set(new_units)
+        await ctx.send("Default units set to {} in {}.".format(new_units, author.name))
+
+    async def get_weather(self, ctx, location):
         guild = ctx.message.guild
         author = ctx.message.author
         guild_units = await self.config.guild(guild).units()
         user_units = await self.config.user(author).units()
         units = "imperial"
-        if guild_units != "imperial" and guild_units != user_units:
+        if guild_units != units and guild_units is not None:
             units = guild_units
-        if user_units != "imperial" and user_units != guild_units:
+        if user_units != units and user_units is not None:
             units = user_units
         
         if units == "kelvin":
