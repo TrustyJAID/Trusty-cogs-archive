@@ -6,7 +6,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 | Name | Status | Description (Click to see full status)
 | --- | --- | --- |
-| Hockey | **Release** | A cog to gather hockey scores, schedules, player data and more!|
+| Hockey | **Release** | <details><summary>A cog to gather hockey scores, schedules, player data and more!</summary> If you would like to use the built in emoljis, ask me (TrustyJAID#0001) on discord to add your bot to my server hosting the emojis used in this cog.</details>|
 | Tarot | **Release** | Find your tarot reading, your life reading, or pull a random tarot card! Can also search for a card. |
 | Faces | **Release** | Find your own Japanese style emoji face courtesy of the CIA. |
 | REKT | **Release** |  a command to see how rekt someone is. |

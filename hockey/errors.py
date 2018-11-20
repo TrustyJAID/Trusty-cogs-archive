@@ -9,3 +9,6 @@ class VotingHasEndedError(HockeyError):
 
 class NotAValidTeamError(HockeyError):
     pass
+
+class InvalidFileError(HockeyError):
+    pass
