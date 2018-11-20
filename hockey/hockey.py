@@ -886,14 +886,14 @@ class Hockey(getattr(commands, "Cog", object)):
             wins = user["season"]
             total = user["total"]
             losses = user["total"] - user["season"]
-            position = (ctx.author.display_name + _(", you're #") + (user_position+1) + 
+            position = (ctx.author.display_name + _(", you're #") + str(user_position+1) + 
                         " on the " + leaderboard_type + _(" leaderboard!"))
             if leaderboard_type == "season":
                 percent = (wins/total)*100
-                position += f"You have {wins}/{total} correct ({percent:.4}%)."
+                position += _(" You have ")+f"{wins}/{total} "+_("correct ")+f"({percent:.4}%)."
             elif leaderboard_type == "worst":
                 percent = (losses/total)*100
-                position += f"You have {losses}/{total} incorrect ({percent:.4}%)."
+                position += _(" You have ")+f"{wins}/{total} "+_("correct ")+f"({percent:.4}%)."
             await ctx.send(position)
         await hockey_menu(ctx, leaderboard_type, leaderboard_list)
 
