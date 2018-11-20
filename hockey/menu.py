@@ -3,6 +3,11 @@ import discord
 import aiohttp
 from redbot.core.commands import Context
 from .embeds import *
+from .standings import Standings
+from .game import Game
+from redbot.core.i18n import Translator
+
+_ = Translator("Hockey", __file__)
 
 numbs = {
     "next": "➡",
@@ -16,19 +21,19 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
        https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
     if ctx.channel.permissions_for(ctx.guild.me).embed_links:
         if display_type == "standings":
-            em = await build_standing_embed(post_list, page)
+            em = await Standings.build_standing_embed(post_list, page)
         if display_type == "division":
-            em = await division_standing_embed(post_list, page)
+            em = await Standings.build_standing_embed(post_list, page)
         if display_type == "conference":
-            em = await conference_standing_embed_test(post_list, page)
+            em = await Standings.build_standing_embed(post_list, page)
         if display_type == "teams":
-            em = await team_standing_embed(post_list, page)
+            em = await Standings.build_standing_embed(post_list, page)
         if display_type == "all":
-            em = await all_standing_embed(post_list, page)
+            em = await Standings.all_standing_embed(post_list, page)
         if display_type == "roster":
             em = await roster_embed(post_list, page)
         if display_type == "game":
-            em = await game_embed(post_list, page)
+            em = await Game.get_game_embed(post_list, page)
         if display_type == "season":
             leaderboard = {"type": "Seasonal", "lists": post_list}
             em = await make_leaderboard_embed(ctx.guild, leaderboard, page)
@@ -39,7 +44,7 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
             leaderboard = {"type": "Worst", "lists": post_list}
             em = await make_leaderboard_embed(ctx.guild, leaderboard, page)
     else:
-        await ctx.send("I need embed_links permission to use this command.")
+        await ctx.send(_("I don't have embed links permission!"))
         return
     
     if not message:
