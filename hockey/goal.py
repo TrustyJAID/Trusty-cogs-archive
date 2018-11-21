@@ -88,12 +88,12 @@ class Goal:
         # scorer = self.headshots.format(goal["players"][0]["player"]["id"])
         post_state = ["all", game_data.home_team, game_data.away_team]
         msg_list = {}
-        # if "Edmonton Oilers" in self.team_name and "missed" not in self.event.lower():
-            # try:
-                # hue = Oilers(bot)
-                # await hue.goal_lights()
-            # except:
-                # pass
+        if "Edmonton Oilers" in self.team_name and "missed" not in self.event.lower():
+            try:
+                hue = Oilers(bot)
+                await hue.goal_lights()
+            except:
+                pass
         goal_embed = await self.goal_post_embed(game_data)
         goal_text = await self.goal_post_text(game_data)
         for channels in await self.config.all_channels():
@@ -144,7 +144,7 @@ class Goal:
                         msg_list[str(channel.id)] = msg.id
                         continue
 
-                    if role is None or "missed" in event.lower():
+                    if role is None or "missed" in self.event.lower():
                         msg = await channel.send(embed=goal_embed)
                         msg_list[str(channel.id)] = msg.id
                     else:
@@ -213,7 +213,7 @@ class Goal:
                         # We don't want to ping people in the game day channels twice
                         if channel.id in game_day_channels:
                             role = None
-                if role is None or "missed" in event.lower():
+                if role is None or "missed" in self.event.lower():
                     await message.edit(embed=em)
                 else:  
                     await message.edit(content=role.mention, embed=em)
