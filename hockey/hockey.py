@@ -946,15 +946,15 @@ class Hockey(getattr(commands, "Cog", object)):
                 team = await pick_team(ctx, team_search)
             else:
                 team = team_search[0]
-            await ctx.send(teams[team]["invite"])
+            await ctx.send(TEAMS[team]["invite"])
         else:
             if not ctx.channel.permissions_for(ctx.message.author).manage_messages:
                 # Don't need everyone spamming this command
                 return
-            atlantic = [team for team in teams if teams[team]["division"] == "Atlantic"]
-            metropolitan = [team for team in teams if teams[team]["division"] == "Metropolitan"]
-            central = [team for team in teams if teams[team]["division"] == "Central"]
-            pacific = [team for team in teams if teams[team]["division"] == "Pacific"]
+            atlantic = [team for team in TEAMS if TEAMS[team]["division"] == "Atlantic"]
+            metropolitan = [team for team in TEAMS if TEAMS[team]["division"] == "Metropolitan"]
+            central = [team for team in TEAMS if TEAMS[team]["division"] == "Central"]
+            pacific = [team for team in TEAMS if TEAMS[team]["division"] == "Pacific"]
             team_list = {"Atlantic":atlantic, "Metropolitan":metropolitan, "Central":central, "Pacific":pacific}
             msg1 = _("__**Hockey Discord Master List**__\n```fix\n"
                     "- Do not join other discords to troll.\n- "
@@ -983,12 +983,12 @@ class Hockey(getattr(commands, "Cog", object)):
                     logo.seek(0)
                     image = discord.File(logo, filename="western_logo.png")
                     await ctx.send(file=image)
-                div_emoji = "<:" + teams["Team {}".format(division)]["emoji"] + ">"
+                div_emoji = "<:" + TEAMS["Team {}".format(division)]["emoji"] + ">"
                 msg = "{0} __**{1} DIVISION**__ {0}".format(div_emoji, division.upper())
                 await ctx.send(msg)
                 for team in team_list[division]:
-                    team_emoji = "<:" + teams[team]["emoji"] + ">"
-                    team_link = teams[team]["invite"]
+                    team_emoji = "<:" + TEAMS[team]["emoji"] + ">"
+                    team_link = TEAMS[team]["invite"]
                     msg = "{0} {1} {0}".format(team_emoji, team_link)
                     await ctx.send(msg)
 
