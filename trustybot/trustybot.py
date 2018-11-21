@@ -188,4 +188,20 @@ class TrustyBot(getattr(commands, "Cog", object)):
             table = str.maketrans(char, tran)
             name += user.translate(table) + " "
         await ctx.send(msg + "(╯°□°）╯︵ " + name[::-1])
+
+    @commands.command()
+    @checks.is_owner()
+    async def makerole(self, ctx):
+        guild = ctx.guild
+        role = await guild.create_role(
+            name="Muted",
+            reason="A random reason",
+        )
+        await role.edit(
+            position=guild.me.top_role.position - 1,
+            reason=(
+                "Modifying role's position, keep it under my top role so "
+                "I can add it to muted members."
+            ),
+        )
     
