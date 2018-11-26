@@ -1399,16 +1399,6 @@ class NotSoBot(getattr(commands, "Cog", object)):
         file = discord.File(b, filename='achievement.png')
         await ctx.send(file=file)
 
-    @commands.command(pass_context=True, aliases=['identify', 'captcha'])
-    async def i(self, ctx, *, url:str):
-        """Identify an image/gif using Microsofts Captionbot API"""
-        with aiohttp.ClientSession() as session:
-            async with session.post("https://www.captionbot.ai/api/message", data={"conversationId": "FPrBPK2gAJj","waterMark": "","userMessage": url}) as r:
-                pass
-        load = await self.get_json("https://www.captionbot.ai/api/message?waterMark=&conversationId=FPrBPK2gAJj")
-        msg = '`{0}`'.format(json.loads(load)['BotMessages'][-1])
-        await ctx.send(msg)
-
     @commands.command(pass_context=True, aliases=['wm'])
     async def watermark(self, ctx, url:str, mark:str=None):
         try:
