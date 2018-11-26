@@ -61,14 +61,10 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 
 | Name | Status | Description (Click to see full status)
 | --- | --- | --- |
-| Trustyavatar | **Release** | The cog that controls TrustyBot's changing Avatar image. |
-| Trustybot | **Alpha** | Hard coded commands meant for personal use. |
 | Backup | **Release** | Backs up all messages on a server. Use with caution and ensure any backups are stored on an encrypted drive. |
-| QPosts | **Release** | Gathers new Q posts from 8ch.net and posts them in discord. |
 | Juche | **Release** | Corrects dates posted in discord with the current Juche year. |
 | Dev | **Release** | A copy of the developer commands in redbot with `sudo` replacing `mock` like V2. NOTE:This bypasses the `--dev` flag and is not recommended unless you know what you're doing. |
 | Hue | **Release** | A cog to control Philips Hue lights through discord. Not tested with bots outside the home network. |
-| Unity4J | **Release** | Hard coded cog for one server. Do not use. |
 
 Any questions you can find me and TrustyBot over on [my server](https://discord.gg/wVVrqej) or on the [Redbot Cog Support server](https://discord.gg/GET4DVk)
 
