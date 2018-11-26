@@ -1519,29 +1519,6 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 pass
             raise
 
-    @commands.command()
-    async def bean(self, ctx, url:str):
-        """You got BEANED"""
-        try:
-            check = await self.isimage(url)
-            if check is False:
-                await ctx.send('Invalid or Non-Image!')
-                return
-            b = await self.bytes_download(url)
-            bean_path = str(bundled_data_path(self))+'/bean.png'
-            bean = PIL.Image.open(bean_path)
-            img = PIL.Image.open(b)
-            width, height = bean.size
-            bean.resize((int(width/50), int(height/50)))
-            img.paste(bean, (math.floor(width/2), math.floor(height/2)))
-            final = BytesIO()
-            img.save(final, 'png')
-            final.seek(0)
-            file = discord.File(final, filename='beaned.png')
-            await ctx.send(file=file)
-        except Exception as e:
-            await ctx.send(e)
-
     @commands.command(aliases=['pixel'], pass_context=True)
     async def pixelate(self, ctx, *urls):
         try:
