@@ -22,18 +22,17 @@ numbs = {
     "exit": "❌"
 }
 class QPosts(getattr(commands, "Cog", object)):
+    """Gather Qanon updates from 8chan"""
 
     def __init__(self, bot):
         self.bot = bot
         default_data = {"twitter":{"access_secret" : "",
         "access_token" : "",
         "consumer_key" : "",
-        "consumer_secret" : ""}, "boards":{}, "channels":[], "last_checked":0}
+        "consumer_secret" : ""}, "boards":{}, "channels":[], "last_checked":0, "print":True}
         self.config = Config.get_conf(self, 112444567876)
         self.config.register_global(**default_data)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-        # self.settings = dataIO.load_json("data/qposts/settings.json")
-        # self.qposts = dataIO.load_json("data/qposts/qposts.json")
         self.url = "https://8ch.net"
         self.boards = ["greatawakening", "qresearch", "patriotsfight"]
         self.trips = ["!UW.yye1fxo", "!ITPb.qbhqo", "!xowAT4Z3VQ", "!4pRcUA0lBE", "!CbboFOtcZs", "!A6yxsPKia.", "!2jsTvXXmX", "!!mG7VJxZNCI"]
@@ -77,7 +76,8 @@ class QPosts(getattr(commands, "Cog", object)):
             
             for page in data:
                 for thread in page["threads"]:
-                    print(thread["no"])
+                    if await self.config.print():
+                        print(thread["no"])
                     async with self.session.get("{}/{}/res/{}.json".format(self.url, board,thread["no"])) as resp:
                         posts = await resp.json()
                     for post in posts["posts"]:
@@ -107,7 +107,7 @@ class QPosts(getattr(commands, "Cog", object)):
                     async with self.session.get("{}/{}/catalog.json".format(self.url, board)) as resp:
                         data = await resp.json()
                 except Exception as e:
-                    print("error grabbing board catalog {} {}".format(board, e))
+                    print(f"error grabbing board catalog {board}: {e}")
                     continue
                 Q_posts = []
                 if board not in board_posts:
@@ -144,10 +144,10 @@ class QPosts(getattr(commands, "Cog", object)):
                             board_posts["edit"][board].append(old_post)
                             board_posts[board].remove(old_post)
                             board_posts[board].append(post)
-                            # dataIO.save_json("data/qposts/qposts.json", self.qposts)
                             await self.postq(post, "/{}/ {}".format(board, "EDIT"))
             await self.config.boards.set(board_posts)
-            print("checking Q...")
+            if await self.config.print():
+                print("checking Q...")
             cur_time = datetime.utcnow()
             await self.config.last_checked.set(cur_time.timestamp())
             await asyncio.sleep(60)
@@ -227,19 +227,21 @@ class QPosts(getattr(commands, "Cog", object)):
         if img_url != "":
             em.set_image(url=img_url)
             try:
-                print("sending tweet")
+                if await self.config.print():
+                    print("sending tweet with image")
                 tw_msg = "{}\n#QAnon\n{}".format(url, text)
                 await self.send_tweet(tw_msg[:280], "data/qposts/files/{}{}".format(file_id, file_ext))
             except Exception as e:
-                print(e)
+                print(f"Error sending tweet with image: {e}")
                 pass
         else:
             try:
-                print("sending tweet")
+                if await self.config.print():
+                    print("sending tweet")
                 tw_msg = "{}\n#QAnon\n{}".format(url, text)
                 await self.send_tweet(tw_msg[:280])
             except Exception as e:
-                print(e)
+                print(f"Error sending tweet: {e}")
                 pass
         em.set_footer(text=board)
         
@@ -248,7 +250,7 @@ class QPosts(getattr(commands, "Cog", object)):
             try:
                 channel = self.bot.get_channel(id=channel_id)
             except Exception as e:
-                print(e)
+                print(f"Error getting the qchannel: {e}")
                 continue
             if channel is None:
                 continue
@@ -264,7 +266,7 @@ class QPosts(getattr(commands, "Cog", object)):
                 else:
                     await channel.send("<{}>".format(url), embed=em)
             except Exception as e:
-                print(e)
+                print(f"Error posting Qpost in {channel_id}: {e}")
                 
 
 
@@ -363,12 +365,23 @@ class QPosts(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True, aliases=["postq"])
     async def qpost(self, ctx, board="patriotsfight"):
+        """Display latest qpost from specified board"""
         if board not in await self.config.boards():
             await ctx.send("{} is not an available board!")
             return
         qposts = await self.config.boards()
         qposts = list(reversed(qposts[board]))
         await self.q_menu(ctx, qposts, board)
+
+    @commands.command()
+    async def qprint(self, ctx):
+        """Toggle printing to the console"""
+        if await self.config.print():
+            await self.config.print.set(False)
+            await ctx.send("Printing off.")
+        else:
+            await self.config.print.set(True)
+            await ctx.send("Printing on.")
 
     async def save_q_files(self, post):
         try:
@@ -392,11 +405,12 @@ class QPosts(getattr(commands, "Cog", object)):
                     with open(str(file_path) + "/{}{}".format(file_id, file_ext), "wb") as out:
                         out.write(image)
         except Exception as e:
-            print(e)
+            print(f"Error saving files: {e}")
             pass
 
     @commands.command(pass_context=True)
     async def qchannel(self, ctx, channel:discord.TextChannel=None):
+        """Set the channel for live qposts"""
         if channel is None:
             channel = ctx.message.channel
         guild = ctx.message.guild
@@ -411,6 +425,7 @@ class QPosts(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     async def remqchannel(self, ctx, channel:discord.TextChannel=None):
+        """Remove qpost updates from a channel"""
         if channel is None:
             channel = ctx.message.channel
         guild = ctx.message.guild
@@ -426,7 +441,7 @@ class QPosts(getattr(commands, "Cog", object)):
     @commands.command(name='qtwitterset')
     @checks.is_owner()
     async def set_creds(self, ctx, consumer_key: str, consumer_secret: str, access_token: str, access_secret: str):
-        """[p]tweetset """
+        """Set automatic twitter updates alongside discord"""
         api = {'consumer_key': consumer_key, 'consumer_secret': consumer_secret,
             'access_token': access_token, 'access_secret': access_secret}
         await self.config.twitter.set(api)
