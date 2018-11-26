@@ -1,10 +1,13 @@
 import discord
-from redbot.core import commands
+from redbot.core import commands, Config
 
 class Juche(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.bot = bot
+        self.config = Config.get_conf(self, 4563465345472)
+        default = {"correct_juche":False}
+        self.config.register_guild(**default)
     
     async def check_date(self, message):
         for i in range(1912, 2100):
@@ -15,14 +18,26 @@ class Juche(getattr(commands, "Cog", object)):
 
         return None
 
+    @commands.command()
+    async def juche(self, ctx):
+        """
+            Toggle the bot correcting dates in messages with the juche calendar
+        """
+        if await self.config.guild(ctx.guild).correct_juche():
+            await self.config.guild(ctx.guild).correct_juche.set(False)
+            await ctx.send("No longer correcting dates to the Juche calendar.")
+        else:
+            await self.config.guild(ctx.guild).correct_juche.set(True)
+            await ctx.send("Now correcting dates to the Juche calendar.")
+
     async def on_message(self, message):
         msg = message.content
-        if not hasattr(msg, "guild"):
+        if not hasattr(message, "guild"):
             return
         guild = message.guild
         channel = message.channel
 
-        if guild.id in [304436539482701825, 321105104931389440]:
+        if await self.config.guild(guild).correct_juche():
             juche = await self.check_date(msg)
             if juche != None:
                 await channel.send(juche)
