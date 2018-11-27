@@ -1290,25 +1290,25 @@ class NotSoBot(getattr(commands, "Cog", object)):
         """Analyze Tone in Text"""
         payload = {'text':text}
         headers = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:46.0) Gecko/20100101 Firefox/46.0.2 Waterfox/46.0.2'}
-        async with self.session.post('https://tone-analyzer-demo.mybluemix.net/api/tone', data=payload, headers=headers) as r:
+        async with self.session.post('https://tone-analyzer-demo.ng.bluemix.net/api/tone', data=payload, headers=headers) as r:
             load = await r.json()
-        anger = load['document_tone']['tone_categories'][0]['tones'][0]['score']
-        disgust = load['document_tone']['tone_categories'][0]['tones'][1]['score']
-        fear = load['document_tone']['tone_categories'][0]['tones'][2]['score']
-        joy = load['document_tone']['tone_categories'][0]['tones'][3]['score']
-        sadness = load['document_tone']['tone_categories'][0]['tones'][4]['score']
-        emotions_msg = "Anger: {0}\nDisgust: {1}\nFear: {2}\nJoy: {3}\nSadness: {4}".format(anger, disgust, fear, joy, sadness)
-        analytical = load['document_tone']['tone_categories'][1]['tones'][0]['score']
-        confident = load['document_tone']['tone_categories'][1]['tones'][1]['score']
-        tentative = load['document_tone']['tone_categories'][1]['tones'][2]['score']
-        language_msg = "Analytical: {0}\nConfidence: {1}\nTentitive: {2}".format(analytical, confident, tentative)
-        openness = load['document_tone']['tone_categories'][2]['tones'][0]['score']
-        conscientiousness = load['document_tone']['tone_categories'][2]['tones'][1]['score']
-        extraversion = load['document_tone']['tone_categories'][2]['tones'][2]['score']
-        agreeableness = load['document_tone']['tone_categories'][2]['tones'][3]['score']
-        emotional_range = load['document_tone']['tone_categories'][2]['tones'][4]['score']
-        social_msg = "Openness: {0}\nConscientiousness: {1}\nExtraversion (Stimulation): {2}\nAgreeableness: {3}\nEmotional Range: {4}".format(openness, conscientiousness, extraversion, agreeableness, emotional_range)
-        await ctx.send("\n**Emotions**"+code.format(emotions_msg)+"**Language Style**"+code.format(language_msg)+"**Social Tendencies**"+code.format(social_msg))
+        emotions_msg = "\n".join("{}: {}".format(t["tone_name"], t["score"]) for t in load["document_tone"]["tones"])
+        sentence_msg = ""
+        if "sentences_msg" in load:
+            for sentence in load["sentences_tone"]:
+                sentence_msg += "".join("# Sentence {}\n{}: {}\n"
+                                  .format(sentence["sentence_id"]+1, t["tone_name"], t["score"]) for t in sentence["tones"])
+        try:
+            em = discord.Embed(colour=await self.bot.db.color())
+            em.add_field(name="Emotions", value=emotions_msg)
+            if sentence_msg != "":
+                em.add_field(name="Sentences", value=sentence_msg)
+            await ctx.send(embed=em)
+        except:
+            full_msg = "\n**Emotions**"+code.format(emotions_msg)
+            if sentence_msg != "":
+                full_msg += "**Sentence Style**"+code.format(sentence_msg)
+            await ctx.send(full_msg)
 
     @commands.command(pass_context=True, aliases=['text2img', 'texttoimage', 'text2image'])
     async def tti(self, ctx, *, txt:str):
