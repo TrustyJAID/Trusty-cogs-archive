@@ -280,7 +280,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                         if str(math.floor(float(s_url))).isdigit():
                             int_scale = int(math.floor(float(s_url)))
                             scale_msg = '`Scale: {0}`\n'.format(int_scale)
-                            if int_scale > scale_limit and ctx.message.author.id != self.bot.owner.id:
+                            if int_scale > scale_limit and await ctx.bot.is_owner(ctx.author):
                                 int_scale = scale_limit
                                 scale_msg = '`Scale: {0} (Limit: <= {1})`\n'.format(int_scale, scale_limit)
                             continue
@@ -562,7 +562,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 except EOFError:
                     break
             imgs = glob.glob(gif_dir+"*_{0}.png".format(rand))
-            if len(imgs) > 150 and ctx.message.author.id != self.bot.owner.id:
+            if len(imgs) > 150 and await ctx.bot.is_owner(ctx.author):
                 for image in imgs:
                     os.remove(image)
                 os.remove(gif)
@@ -612,7 +612,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
             gifout = gif_dir+'2_{0}.gif'.format(rand)
             print(url)
             await self.download(url, gifin)
-            if os.path.getsize(gifin) > 5000000 and ctx.message.author.id != self.bot.owner.id:
+            if os.path.getsize(gifin) > 5000000 and await ctx.bot.is_owner(ctx.author):
                 await ctx.send(":no_entry: `GIF Too Large (>= 5 mb).`")
                 os.remove(gifin)
                 return
@@ -973,7 +973,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 location2 = gif_dir+'2_{0}.gif'.format(rand)
                 x = await ctx.message.channel.send( "ok, processing")
                 await self.download(url, location)
-                if os.path.getsize(location) > 3000000 and ctx.message.author.id != self.bot.owner.id:
+                if os.path.getsize(location) > 3000000 and await ctx.bot.is_owner(ctx.author):
                     await ctx.send("Sorry, GIF Too Large!")
                     os.remove(location)
                     return
@@ -982,7 +982,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                     await ctx.send(result)
                     return
                 list_imgs = glob.glob(gif_dir+"*_{0}.png".format(rand))
-                if len(list_imgs) > 120 and ctx.message.author.id != self.bot.owner.id:
+                if len(list_imgs) > 120 and await ctx.bot.is_owner(ctx.author):
                     await ctx.send("Sorry, GIF has too many frames!")
                     for image in list_imgs:
                         os.remove(image)
