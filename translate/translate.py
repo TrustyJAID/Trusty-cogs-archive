@@ -61,7 +61,7 @@ class Translate(getattr(commands, "Cog", object)):
         translated_text = await self.translate_text(original_lang[0][0]["language"], language_code, message)
         author = ctx.message.author
         user_name = f"{author.name}#{author.discriminator}"
-        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+        if ctx.channel.permissions_for(ctx.me).embed_links:
             em = discord.Embed(colour=author.top_role.colour, description=translated_text)
             em.set_author(name=author.display_name, icon_url=author.avatar_url)
             em.set_footer(text=f"{from_lang} to {to_language} Requested by {user_name}")
@@ -95,6 +95,7 @@ class Translate(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     @checks.mod_or_permissions(manage_channels=True)
+    @commands.guild_only()
     async def translatereact(self, ctx):
         """
             Have the bot translate messages when
@@ -150,7 +151,10 @@ class Translate(getattr(commands, "Cog", object)):
             # don't post anything if the detected language is the same
             return
         em.set_footer(text=f"{from_lang} to {to_lang} Requested by {user_name}")
-        await channel.send(embed=em)
+        if channel.permissions_for(guild.me).embed_links:
+            await channel.send(embed=em)
+        else:
+            msg = f"{from_lang} to {to_lang} Requested by {user_name}\n{translated_text}"
 
     @commands.command(pass_context=True)
     @checks.is_owner()
