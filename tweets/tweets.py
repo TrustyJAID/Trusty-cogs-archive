@@ -202,19 +202,19 @@ class Tweets(getattr(commands, "Cog", object)):
         """menu control logic for this taken from
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
         s = post_list[page]
-        em = await self.build_tweet_embed(s)
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            em = await self.build_tweet_embed(s)
+        else:
+            em = None
         post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
         if not message:
-            if ctx.channel.permissions_for(ctx.me).embed_links:
-                message = await ctx.send(embed=em)
-            else:
-                message = await ctx.send(post_url)
+            message = await ctx.send(post_url, embed=em)
             await message.add_reaction("⬅")
             await message.add_reaction("❌")
             await message.add_reaction("➡")
         else:
             # message edits don't return the message object anymore lol
-            await message.edit(embed=em)
+            await message.edit(content=post_url, embed=em)
         check = lambda react, user: user == ctx.message.author and react.emoji in ["➡", "⬅",
                                                                                    "❌"] and react.message.id == message.id
         try:
@@ -352,7 +352,10 @@ class Tweets(getattr(commands, "Cog", object)):
             emb.add_field(name="Verified", value="Yes")
         footer = "Created at "
         emb.set_footer(text=footer)
-        await ctx.send(embed=emb)
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            await ctx.send("<"+profile_url+">", embed=emb)
+        else:
+            await ctx.send(profile_url)
 
     @_tweets.command(no_pm=True, name='gettweets')
     async def get_tweets(self, ctx, username: str, count: int = 10):
@@ -470,7 +473,6 @@ class Tweets(getattr(commands, "Cog", object)):
         return False, None
 
     @_autotweet.command(name="add")
-    @commands.guild_only()
     async def _add(self, ctx, account: str, channel: discord.TextChannel = None):
         """
             Adds a twitter account to the specified channel
