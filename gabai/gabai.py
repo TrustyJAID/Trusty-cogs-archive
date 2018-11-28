@@ -136,7 +136,7 @@ class Gabai(getattr(commands, "Cog", object)):
         """menu control logic for this taken from
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
         post = post_list[page]
-        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+        if ctx.channel.permissions_for(ctx.me).embed_links:
             em = await self.make_post_embed(post)
         else:
             await ctx.send("I need embed_links permission to use this command.")
@@ -154,9 +154,9 @@ class Gabai(getattr(commands, "Cog", object)):
         try:
             react, user = await ctx.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
-            await message.remove_reaction("⬅", ctx.guild.me)
-            await message.remove_reaction("❌", ctx.guild.me)
-            await message.remove_reaction("➡", ctx.guild.me)
+            await message.remove_reaction("⬅", ctx.me)
+            await message.remove_reaction("❌", ctx.me)
+            await message.remove_reaction("➡", ctx.me)
             return None
         else:
             if react.emoji == "➡":
@@ -165,10 +165,8 @@ class Gabai(getattr(commands, "Cog", object)):
                     next_page = 0  # Loop around to the first item
                 else:
                     next_page = page + 1
-                try:
+                if ctx.channel.permissions_for(ctx.me).manage_messages:
                     await message.remove_reaction("➡", ctx.message.author)
-                except:
-                    pass
                 return await self.gab_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             elif react.emoji == "⬅":
@@ -177,10 +175,8 @@ class Gabai(getattr(commands, "Cog", object)):
                     next_page = len(post_list) - 1  # Loop around to the last item
                 else:
                     next_page = page - 1
-                try:
+                if ctx.channel.permissions_for(ctx.me).manage_messages:
                     await message.remove_reaction("⬅", ctx.message.author)
-                except:
-                    pass
                 return await self.gab_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             else:
