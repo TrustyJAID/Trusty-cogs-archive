@@ -53,7 +53,7 @@ class Mock(getattr(commands, "Cog", object)):
                          ctx.message.author.display_name, author.display_name), icon_url=ctx.message.author.avatar_url)
         if hasattr(msg, "attachments") and msg.attachments != []:
             embed.set_image(url=msg.attachments[0].url)
-        if not channel.permissions_for(channel.guild.me).embed_links:
+        if not channel.permissions_for(ctx.me).embed_links:
             if author != user:
                 await ctx.send(result + " - " + author.mention)
             else:
