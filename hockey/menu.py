@@ -19,7 +19,7 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
                          page=0, timeout: int=30):
     """menu control logic for this taken from
        https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
-    if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+    if ctx.channel.permissions_for(ctx.me).embed_links:
         if display_type == "standings":
             em = await Standings.build_standing_embed(post_list, page)
         if display_type == "division":
@@ -59,9 +59,9 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
     try:
         react, user = await ctx.bot.wait_for("reaction_add", check=check, timeout=timeout)
     except asyncio.TimeoutError:
-        await message.remove_reaction("⬅", ctx.guild.me)
-        await message.remove_reaction("❌", ctx.guild.me)
-        await message.remove_reaction("➡", ctx.guild.me)
+        await message.remove_reaction("⬅", ctx.me)
+        await message.remove_reaction("❌", ctx.me)
+        await message.remove_reaction("➡", ctx.me)
         return None
     else:
         reacts = {v: k for k, v in numbs.items()}
@@ -72,10 +72,8 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
                 next_page = 0  # Loop around to the first item
             else:
                 next_page = page + 1
-            try:
+            if ctx.channel.permissions_for(ctx.me).manage_messages:
                 await message.remove_reaction("➡", ctx.message.author)
-            except:
-                pass
             return await hockey_menu(ctx, display_type, post_list, message=message,
                                          page=next_page, timeout=timeout)
         elif react == "back":
@@ -84,10 +82,8 @@ async def hockey_menu(ctx:Context, display_type:str, post_list: list,
                 next_page = len(post_list) - 1  # Loop around to the last item
             else:
                 next_page = page - 1
-            try:
+            if ctx.channel.permissions_for(ctx.me).manage_messages:
                 await message.remove_reaction("⬅", ctx.message.author)
-            except:
-                pass
             return await hockey_menu(ctx, display_type, post_list, message=message,
                                          page=next_page, timeout=timeout)
         else:
