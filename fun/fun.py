@@ -210,7 +210,11 @@ class Fun(getattr(commands, "Cog", object)):
     @commands.command()
     async def oof(self, ctx, msg_id:int=None, channel:discord.TextChannel=None):
         """
-            Oof a message
+            react 🅾🇴🇫 to a message
+
+            `msg_id` must be the message ID for desited message within the channel
+            `channel` must be the channel where the desired message is defaults to current channel
+            if the bot has manage messages permission it will attempt to delete the command
         """
         emojis = ["🅾", "🇴", "🇫"]
         if channel is None:
@@ -220,9 +224,9 @@ class Fun(getattr(commands, "Cog", object)):
                 msg = message
         else:
             msg = await channel.get_message(msg_id)
-        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+        if ctx.channel.permissions_for(ctx.me).manage_messages:
             await ctx.message.delete()
-        if channel.permissions_for(ctx.guild.me).add_reactions:
+        if channel.permissions_for(ctx.me).add_reactions:
             for emoji in emojis:
                 await msg.add_reaction(emoji)
 
@@ -231,13 +235,19 @@ class Fun(getattr(commands, "Cog", object)):
     # TODO make it consider reactions already applied to the message
     @commands.command(pass_context=True, aliases=['r'])
     async def react(self, ctx, msg: str, msg_id:int=None, channel:discord.TextChannel=None):
-        """Add letter(s) as reaction to previous message. Ex: [p]react hot"""
+        """
+            Add letter(s) as reaction to previous message.
+
+            `msg` is the word you would like to react, no spaces
+            `msg_id` must be the message ID for desited message within the channel
+            `channel` must be the channel where the desired message is defaults to current channel
+        """
         
         msg = msg.lower()
 
         if channel is None:
             channel = ctx.channel
-        if not channel.permissions_for(ctx.guild.me).add_reactions:
+        if not channel.permissions_for(ctx.me).add_reactions:
             return
         if msg_id is None:
             async for message in channel.history(limit=2):
