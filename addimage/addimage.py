@@ -104,6 +104,25 @@ class AddImage(getattr(commands, "Cog", object)):
 
         return message.author.id not in await self.bot.db.blacklist()
 
+    async def check_ignored_channel(self, message):
+        """https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/release/3.0.0/redbot/cogs/mod/mod.py#L1273"""
+        channel = message.channel
+        guild = channel.guild
+        author = message.author
+        mod = self.bot.get_cog("Mod")
+        perms = channel.permissions_for(author)
+        surpass_ignore = (
+            isinstance(channel, discord.abc.PrivateChannel)
+            or perms.manage_guild
+            or await self.bot.is_owner(author)
+            or await self.bot.is_admin(author)
+        )
+        if surpass_ignore:
+            return True
+        guild_ignored = await mod.settings.guild(guild).ignored()
+        chann_ignored = await mod.settings.channel(channel).ignored()
+        return not (guild_ignored or chann_ignored and not perms.manage_channels)
+
 
     async def on_message(self, message):
         if len(message.content) < 2 or message.guild is None:
@@ -120,6 +139,8 @@ class AddImage(getattr(commands, "Cog", object)):
         if not await self.local_perms(message):
             return
         if not await self.global_perms(message):
+            return
+        if not await self.check_ignored_channel(message):
             return
 
         if alias in [x["command_name"] for x in await self.config.images()]:
@@ -162,7 +183,7 @@ class AddImage(getattr(commands, "Cog", object)):
         """menu control logic for this taken from
            https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
         post = post_list[page]
-        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+        if ctx.channel.permissions_for(ctx.me).embed_links:
             em = discord.Embed(timestamp=ctx.message.created_at)
             for image in post:
                 info = "__Author__: <@{}>\n__Count__: **{}**".format(image["author"], image["count"])
@@ -222,6 +243,7 @@ class AddImage(getattr(commands, "Cog", object)):
                 return await message.delete()
 
     @commands.group()
+    @commands.guild_only()
     async def addimage(self, ctx):
         """
             Add an image for the bot to directly upload
@@ -232,7 +254,6 @@ class AddImage(getattr(commands, "Cog", object)):
     async def listimages(self, ctx, image_loc="guild", server_id:int=None):
         """List images added to bot"""
         msg = ""
-        print(server_id)
         if image_loc in ["global"]:
             image_list = await self.config.images()
         elif image_loc in ["guild", "server"]:
