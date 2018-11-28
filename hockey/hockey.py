@@ -269,6 +269,7 @@ class Hockey(getattr(commands, "Cog", object)):
         pass
 
     @commands.group(name="hockeyset", aliases=["nhlset"])
+    @commands.guild_only()
     async def hockeyset_commands(self, ctx):
         """
             Setup commands for the server
@@ -322,6 +323,7 @@ class Hockey(getattr(commands, "Cog", object)):
 
     @commands.group()
     @checks.admin_or_permissions(manage_channels=True)
+    @commands.guild_only()
     async def gdc(self, ctx):
         """
             Game Day Channel setup for the server
@@ -447,6 +449,9 @@ class Hockey(getattr(commands, "Cog", object)):
             must be either `True` or `False` and a category must be provided
         """
         guild = ctx.message.guild
+        if guild is None:
+            await ctx.send("This needs to be done in a server.")
+            return
         if category is None:
             category = guild.get_channel(ctx.message.channel.category_id)
         if not category.permissions_for(guild.me).manage_channels:
@@ -793,7 +798,7 @@ class Hockey(getattr(commands, "Cog", object)):
         if players != []:
             await hockey_menu(ctx, "roster", players)
         else:
-            await ctx.message.channel.send(search + _("{} is not an NHL team or Player!"))
+            await ctx.send(search + _(" is not an NHL team or Player!"))
 
     @hockey_commands.command(hidden=True)
     @checks.mod_or_permissions(manage_messages=True)
@@ -898,6 +903,7 @@ class Hockey(getattr(commands, "Cog", object)):
         await hockey_menu(ctx, leaderboard_type, leaderboard_list)
 
     @hockey_commands.command()
+    @commands.guild_only()
     async def leaderboard(self, ctx, leaderboard_type:str="seasonal"):
         """
             Shows the current server leaderboard either seasonal or weekly
@@ -1086,7 +1092,7 @@ class Hockey(getattr(commands, "Cog", object)):
 
             Requires you to upload a .yaml file with 
             emojis that the bot can see
-            an example may be found [here](insert link after commit)
+            an example may be found [here](https://github.com/TrustyJAID/Trusty-cogs/blob/V3/hockey/emoji.yaml)
             if no emoji is provided for a team the Other
             slot will be filled instead
             It's recommended to have an emoji for every team
