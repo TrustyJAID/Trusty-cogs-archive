@@ -544,7 +544,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
         except Exception as e:
             await ctx.send(e)
 
-    def do_gmagik(self, ctx, gif, gif_dir, rand):
+    def do_gmagik(self, is_owner, gif, gif_dir, rand):
         try:
             try:
                 frame = PIL.Image.open(gif)
@@ -562,7 +562,7 @@ class NotSoBot(getattr(commands, "Cog", object)):
                 except EOFError:
                     break
             imgs = glob.glob(gif_dir+"*_{0}.png".format(rand))
-            if len(imgs) > 150 and await ctx.bot.is_owner(ctx.author):
+            if (len(imgs) > 150) and not is_owner:
                 for image in imgs:
                     os.remove(image)
                 os.remove(gif)
@@ -612,12 +612,13 @@ class NotSoBot(getattr(commands, "Cog", object)):
             gifout = gif_dir+'2_{0}.gif'.format(rand)
             print(url)
             await self.download(url, gifin)
-            if os.path.getsize(gifin) > 5000000 and await ctx.bot.is_owner(ctx.author):
+            is_owner = await ctx.bot.is_owner(ctx.author)
+            if os.path.getsize(gifin) > 5000000 and not is_owner:
                 await ctx.send(":no_entry: `GIF Too Large (>= 5 mb).`")
                 os.remove(gifin)
                 return
             try:
-                result = await self.bot.loop.run_in_executor(None, self.do_gmagik, ctx, gifin, gif_dir, rand)
+                result = await self.bot.loop.run_in_executor(None, self.do_gmagik, is_owner, gifin, gif_dir, rand)
             except Exception as e:
                 print("Failing here")
                 print(e)
