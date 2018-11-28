@@ -19,14 +19,15 @@ class Spoiler(getattr(commands, "Cog", object)):
 
 
     @commands.command(name="spoiler", aliases=["spoilers"])
+    @commands.guild_only()
     async def _spoiler(self, ctx, *, spoiler_msg):
         """
             Post spoilers in chat, react to the message to see the spoilers
         """
-        if not ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+        if not ctx.channel.permissions_for(ctx.me).manage_messages:
             await ctx.send("I don't have `manage_messages` permission.")
             return
-        if not ctx.channel.permissions_for(ctx.guild.me).add_reactions:
+        if not ctx.channel.permissions_for(ctx.me).add_reactions:
             await ctx.send("I don't have `add_reactions` permission.")
             return
         await ctx.message.delete()
