@@ -17,10 +17,13 @@ class Starboard(getattr(commands, "Cog", object)):
 
     @commands.group(pass_context=True)
     @checks.admin_or_permissions(manage_channels=True)
+    @commands.guild_only()
     async def starboard(self, ctx):
         """Commands for managing the starboard"""
         if ctx.invoked_subcommand is None:
             guild = ctx.guild
+            if guild is None:
+                return
             enabled = await self.config.guild(guild).enabled()
             if enabled:
                 channel = self.bot.get_channel(await self.config.guild(guild).channel())
@@ -74,6 +77,7 @@ class Starboard(getattr(commands, "Cog", object)):
         return guild_emoji
 
     @commands.command()
+    @commands.guild_only()
     async def star(self, ctx, msg_id, channel:discord.TextChannel=None):
         """
             Manually star a message
