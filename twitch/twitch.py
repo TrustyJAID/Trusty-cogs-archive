@@ -20,8 +20,8 @@ class Twitch(getattr(commands, "Cog", object)):
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, 1543454673)
-        self.config.register_global(**self.global_defaults)
-        self.config.register_user(**self.user_defaults)
+        self.config.register_global(**self.global_defaults, force_registration=True)
+        self.config.register_user(**self.user_defaults, force_registration=True)
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.rate_limit_resets = set()
@@ -232,6 +232,7 @@ class Twitch(getattr(commands, "Cog", object)):
 
     @twitchhelp.command(name="setfollow")
     @checks.admin_or_permissions(manage_channels=True)
+    @commands.guild_only()
     async def set_follow(self, ctx, twitch_name=None, channel:discord.TextChannel=None):
         """
             Setup a channel for automatic follow notifications
@@ -262,6 +263,7 @@ class Twitch(getattr(commands, "Cog", object)):
 
     @twitchhelp.command(name="remfollow", aliases=["remove", "delete", "del"])
     @checks.admin_or_permissions(manage_channels=True)
+    @commands.guild_only()
     async def remove_follow(self, ctx, twitch_name=None, channel:discord.TextChannel=None):
         """
             Remove an account from follow notifications in the specified channel
@@ -334,8 +336,11 @@ class Twitch(getattr(commands, "Cog", object)):
         except TwitchError as e:
             await ctx.send(e)
             return
-        em = await self.make_user_embed(profile)        
-        await ctx.send(embed=em)
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            em = await self.make_user_embed(profile)        
+            await ctx.send(embed=em)
+        else:
+            await ctx.send("https://twitch.tv/{}".format(profile.login))
 
 
     async def twitch_menu(self, ctx: Context, post_list: list, total_followers=0,
@@ -351,24 +356,29 @@ class Twitch(getattr(commands, "Cog", object)):
             data = await resp.json()
 
         profile = TwitchProfile.from_json(data)
-        em = await self.make_user_embed(profile)
-        em.timestamp = datetime.strptime(followed_at, "%Y-%m-%dT%H:%M:%SZ")
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            em = await self.make_user_embed(profile)
+            em.timestamp = datetime.strptime(followed_at, "%Y-%m-%dT%H:%M:%SZ")
+        else:
+            em = None
+        prof_url = "https://twitch.tv/{}".format(profile.login)
+        
         
         if not message:
-            message = await ctx.send(embed=em)
+            message = await ctx.send(prof_url, embed=em)
             await message.add_reaction("⬅")
             await message.add_reaction("❌")
             await message.add_reaction("➡")
         else:
             # message edits don't return the message object anymore lol
-            await message.edit(embed=em)
+            await message.edit(content=prof_url, embed=em)
         check = lambda react, user:user == ctx.message.author and react.emoji in ["➡", "⬅", "❌"] and react.message.id == message.id
         try:
             react, user = await ctx.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
-            await message.remove_reaction("⬅", ctx.guild.me)
-            await message.remove_reaction("❌", ctx.guild.me)
-            await message.remove_reaction("➡", ctx.guild.me)
+            await message.remove_reaction("⬅", ctx.me)
+            await message.remove_reaction("❌", ctx.me)
+            await message.remove_reaction("➡", ctx.me)
             return None
         else:
             if react.emoji == "➡":
@@ -377,7 +387,7 @@ class Twitch(getattr(commands, "Cog", object)):
                     next_page = 0  # Loop around to the first item
                 else:
                     next_page = page + 1
-                if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+                if ctx.channel.permissions_for(ctx.me).manage_messages:
                     await message.remove_reaction("➡", ctx.message.author)
                 return await self.twitch_menu(ctx, post_list, total_followers, message=message,
                                              page=next_page, timeout=timeout)
@@ -387,7 +397,7 @@ class Twitch(getattr(commands, "Cog", object)):
                     next_page = len(post_list) - 1  # Loop around to the last item
                 else:
                     next_page = page - 1
-                if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+                if ctx.channel.permissions_for(ctx.me).manage_messages:
                     await message.remove_reaction("⬅", ctx.message.author)
                 return await self.twitch_menu(ctx, post_list, total_followers, message=message,
                                              page=next_page, timeout=timeout)
@@ -412,7 +422,7 @@ class Twitch(getattr(commands, "Cog", object)):
         await ctx.send("Twitch token set.")
 
     def __unload(self):
-        if self.loop:
+        if getattr(self, "loop", None) is not None:
             self.loop.cancel()
         self.bot.loop.create_task(self.session.close())
 
