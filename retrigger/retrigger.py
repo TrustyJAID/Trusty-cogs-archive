@@ -23,8 +23,8 @@ class Trigger:
         self.image = image
         self.text = text
 
-    def _add(self):
-        self.count += 1
+    def _add(self, number:int):
+        self.count += number
 
     def to_json(self) -> dict:
         return {"name":self.name,
@@ -55,7 +55,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 964565433247)
-        default_guild = {"trigger_list":[]}
+        default_guild = {"trigger_list":[], "allow_multiple":False}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
@@ -241,10 +241,15 @@ class ReTrigger(getattr(commands, "Cog", object)):
         for triggers in trigger_list:
             trigger = Trigger.from_json(triggers)
             search = re.findall(trigger.regex, message.content.lower())
-            if search is not None:
-                trigger._add()
+            if search != []:
+                trigger_list.remove(trigger.to_json())
+                trigger._add(len(search))
+                trigger_list.append(trigger.to_json())
+                await self.config.guild(guild).trigger_list.set(trigger_list)
                 for find in search:
                     await self.perform_trigger(message, trigger, find)
+                    if not await self.config.guild(guild).allow_multiple():
+                        return
 
     async def perform_trigger(self, message, trigger, find):
         own_permissions = message.channel.permissions_for(message.guild.me)
@@ -286,7 +291,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if trigger.response_type == "image" and own_permissions.attach_files:
             path = str(cog_data_path(self)) + f"/{guild.id}/{trigger.image}"
             file = discord.File(path)
-            await channel.send(file=file)
+            await channel.send(trigger.text, file=file)
 
     async def remove_trigger(self, guild, trigger_name):
         trigger_list = await self.config.guild(guild).trigger_list()
@@ -316,11 +321,28 @@ class ReTrigger(getattr(commands, "Cog", object)):
         pass
 
     @retrigger.command()
+    async def allowmultiple(self, ctx):
+        """
+            Toggle multiple triggers to respond at once
+        """
+        if await self.config.guild(ctx.guild).allow_multiple():
+            await self.config.guild(ctx.guild).allow_multiple.set(False)
+            await ctx.send("Multiple responses disabled, only the first trigger will happen.")
+            return
+        else:
+            await self.config.guild(ctx.guild).allow_multiple.set(True)
+            await ctx.send("Multiple responses enabled, all triggers will occur.")
+            return
+
+    @retrigger.command()
     async def list(self, ctx):
         """
             List all triggers currently on the server
         """
         trigger_list = await self.config.guild(ctx.guild).trigger_list()
+        if trigger_list == []:
+            await ctx.send("There are no triggers setup on this server.")
+            return
         post_list = [trigger_list[i:i + 25] for i in range(0, len(trigger_list), 25)]
         await self.trigger_menu(ctx, post_list)
 
@@ -363,7 +385,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
     @retrigger.command()
     async def image(self, ctx, name:str, regex:str, image_url:str=None):
         """
-            Add an image response trigger
+            Add an image/file response trigger
 
             `name` name of the trigger
             `regex` the regex that will determine when to respond
@@ -390,6 +412,42 @@ class ReTrigger(getattr(commands, "Cog", object)):
             filename = await self.save_image_location(image_url, guild)
 
         new_trigger = Trigger(name, regex, "image", author, 0, filename, None)
+        trigger_list = await self.config.guild(guild).trigger_list()
+        trigger_list.append(new_trigger.to_json())
+        await self.config.guild(guild).trigger_list.set(trigger_list)
+        await ctx.send("Trigger `{}` set.".format(name))
+
+    @retrigger.command()
+    async def imagetext(self, ctx, name:str, regex:str, text:str, image_url:str=None):
+        """
+            Add an image/file response with text trigger
+
+            `name` name of the trigger
+            `regex` the regex that will determine when to respond
+            `text` the triggered text response
+            `image_url` optional image_url if none is provided the bot will ask to upload an image
+            See https://regexr.com/ for help building a regex pattern
+            Example for simple search: `"\\bthis matches"` the whole phrase only
+        """
+        if await self.check_trigger_exists(name.lower(), ctx.guild):
+            await ctx.send("{} is already a trigger name")
+            return
+        guild = ctx.guild
+        author = ctx.message.author.id
+        name = name.lower()           
+        if ctx.message.attachments != []:
+            image_url = ctx.message.attachments[0].url
+            filename = await self.save_image_location(image_url, guild)
+        if image_url is not None:
+            filename = await self.save_image_location(image_url, guild)
+        else:
+            msg = await self.wait_for_image(ctx)
+            if msg is None:
+                return
+            image_url = msg.attachments[0].url
+            filename = await self.save_image_location(image_url, guild)
+
+        new_trigger = Trigger(name, regex, "image", author, 0, filename, text)
         trigger_list = await self.config.guild(guild).trigger_list()
         trigger_list.append(new_trigger.to_json())
         await self.config.guild(guild).trigger_list.set(trigger_list)
