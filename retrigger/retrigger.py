@@ -317,7 +317,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             msg = copy(message)
             prefix_list = await self.bot.command_prefix(self.bot, message)
             msg.content = prefix_list[0] + trigger.text
-            await self.bot.dispatch("message", msg)
+            self.bot.dispatch("message", msg)
 
 
     async def remove_trigger(self, guild, trigger_name):
@@ -745,7 +745,6 @@ class ReTrigger(getattr(commands, "Cog", object)):
             await ctx.send("{} is already a trigger name")
             return
         cmd_list = command.split(" ")
-        print(cmd_list)
         existing_cmd = self.bot.get_command(cmd_list[0])
         if existing_cmd is None:
             await ctx.send("{} doesn't seem to be an available command.".format(command))
