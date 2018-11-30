@@ -301,7 +301,6 @@ class ReTrigger(getattr(commands, "Cog", object)):
             if guild.me.top_role > author.top_role:
                 await author.ban(reason=reason, delete_message_days=0)
         if trigger.response_type == "kick" and own_permissions.kick_members:
-            print(author == guild.owner)
             if await self.bot.is_owner(author) or author == guild.owner:
                 # Don't want to accidentally kick the bot owner 
                 # or try to kick the guild owner
@@ -348,8 +347,6 @@ class ReTrigger(getattr(commands, "Cog", object)):
 
             https://regexr.com/ is a good place to test regex
         """
-        # trigger, index = await self.get_trigger(ctx.guild, "test")
-        # print(index)
         pass
 
     @retrigger.command()
@@ -450,11 +447,9 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if channel.id not in trigger.blacklist:
             try:
                 trigger_list = await self.config.guild(ctx.guild).trigger_list()
-                print(trigger_list)
                 trigger_list.remove(trigger.to_json())
             except:
                 trigger_list = await self.config.guild(ctx.guild).trigger_list()
-                print(trigger_list)
                 return
             trigger.blacklist.append(channel.id)
             trigger_list.append(trigger.to_json())
