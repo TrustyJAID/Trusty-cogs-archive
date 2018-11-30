@@ -14,7 +14,8 @@ import os
 
 class Trigger:
 
-    def __init__(self, name, regex, response_type, author, count, image=None, text=None):
+    def __init__(self, name, regex, response_type, author, count, 
+                 image=None, text=None, whitelist=[], blacklist=[]):
         self.name = name
         self.regex = regex
         self.response_type = response_type
@@ -22,8 +23,10 @@ class Trigger:
         self.count = count
         self.image = image
         self.text = text
+        self.whitelist = whitelist
+        self.blacklist = blacklist
 
-    def _add(self, number:int):
+    def _add_count(self, number:int):
         self.count += number
 
     def to_json(self) -> dict:
@@ -33,7 +36,9 @@ class Trigger:
                 "author": self.author,
                 "count": self.count,
                 "image":self.image,
-                "text":self.text
+                "text":self.text,
+                "whitelist":self.whitelist,
+                "blacklist":self.blacklist
                 }
 
     @classmethod
@@ -44,7 +49,9 @@ class Trigger:
                    data["author"],
                    data["count"],
                    data["image"],
-                   data["text"])
+                   data["text"],
+                   data["whitelist"],
+                   data["blacklist"])
 
 
 class ReTrigger(getattr(commands, "Cog", object)):
@@ -90,6 +97,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
             return message.author.id in whitelist
 
         return message.author.id not in await self.bot.db.blacklist()
+
+    async def channel_perms(self, trigger, channel):
+        if trigger.whitelist:
+            return channel.id in trigger.whitelist
+        return channel.id not in trigger.blacklist
 
     async def check_ignored_channel(self, message):
         """https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/release/3.0.0/redbot/cogs/mod/mod.py#L1273"""
@@ -167,10 +179,18 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if ctx.channel.permissions_for(ctx.me).embed_links:
             em = discord.Embed(timestamp=ctx.message.created_at)
             for trigger in post:
+                blacklist = ", ".join(x for x in [f"<#{y}>" for y in trigger["blacklist"]])
+                whitelist = ", ".join(x for x in [f"<#{y}>" for y in trigger["whitelist"]])
+                if blacklist == "":
+                    blacklist = "None"
+                if whitelist == "":
+                    whitelist = "None"
                 info = ("__Author__: <@" + str(trigger["author"])+
                         ">\n__Count__: **" + str(trigger["count"]) +"**\n"+
                         "__Regex__: **" + trigger["regex"]+ "**\n"+
-                        "__Response Type__: **" + trigger["response_type"] + "**")
+                        "__Response Type__: **" + trigger["response_type"] + "**\n"+
+                        "__Whitelist__: **" + whitelist + "**\n"+ 
+                        "__Blacklist__: **" + blacklist + "**\n")
 
                 em.add_field(name=trigger["name"], value=info)
             em.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
@@ -240,16 +260,17 @@ class ReTrigger(getattr(commands, "Cog", object)):
         trigger_list = await self.config.guild(guild).trigger_list()
         for triggers in trigger_list:
             trigger = Trigger.from_json(triggers)
+            if not await self.channel_perms(trigger, channel):
+                continue
             search = re.findall(trigger.regex, message.content.lower())
             if search != []:
-                trigger_list.remove(trigger.to_json())
-                trigger._add(len(search))
+                trigger_list.remove(triggers)
+                trigger._add_count(len(search))
                 trigger_list.append(trigger.to_json())
+                await self.perform_trigger(message, trigger, search[0]) 
                 await self.config.guild(guild).trigger_list.set(trigger_list)
-                for find in search:
-                    await self.perform_trigger(message, trigger, find)
-                    if not await self.config.guild(guild).allow_multiple():
-                        return
+            if not await self.config.guild(guild).allow_multiple():
+                continue
 
     async def perform_trigger(self, message, trigger, find):
         own_permissions = message.channel.permissions_for(message.guild.me)
@@ -307,7 +328,16 @@ class ReTrigger(getattr(commands, "Cog", object)):
                 trigger_list.remove(triggers)
                 await self.config.guild(guild).trigger_list.set(trigger_list)
                 return True
-        return False    
+        return False
+
+    async def get_trigger(self, guild, name):
+        trigger = None
+        index = None
+        trigger_list = await self.config.guild(guild).trigger_list()
+        for triggers in trigger_list:
+            if triggers["name"] == name.lower():
+                trigger = Trigger.from_json(triggers)
+        return trigger
 
     @commands.group()
     @checks.mod_or_permissions(manage_messages=True)
@@ -318,6 +348,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
 
             https://regexr.com/ is a good place to test regex
         """
+        # trigger, index = await self.get_trigger(ctx.guild, "test")
+        # print(index)
         pass
 
     @retrigger.command()
@@ -333,6 +365,128 @@ class ReTrigger(getattr(commands, "Cog", object)):
             await self.config.guild(ctx.guild).allow_multiple.set(True)
             await ctx.send("Multiple responses enabled, all triggers will occur.")
             return
+
+    @retrigger.group()
+    async def blacklist(self, ctx):
+        """
+            Set blacklist options for retrigger
+        """
+        pass
+
+    @retrigger.group()
+    async def whitelist(self, ctx):
+        """
+            Set whitelist options for retrigger
+        """
+        pass
+
+    @whitelist.command(name="add")
+    async def whitelist_add(self, ctx, name:str, channel:discord.TextChannel=None):
+        """
+            Add channel to trigger's whitelist
+
+            `name` is the name of the trigger
+            `channel` is the channel where the trigger will only work defaults to current channel
+        """
+        if channel is None:
+            channel = ctx.message.channel
+        trigger = await self.get_trigger(ctx.guild, name)
+        if trigger is None:
+            await ctx.send("Trigger `{}` doesn't exist.".format(name))
+            return
+        if channel.id not in trigger.whitelist:
+            trigger_list = await self.config.guild(ctx.guild).trigger_list()
+            trigger_list.remove(trigger.to_json())
+            trigger.whitelist.append(channel.id)
+            trigger_list.append(trigger.to_json())
+            await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
+            await ctx.send("{} added to Trigger {}'s whitelist.".format(channel.mention, name))
+            return
+        else:
+            await ctx.send("{} is already in Trigger {}'s whitelist.".format(channel.mention, name))
+            return
+        
+
+    @whitelist.command(name="remove", aliases=["rem", "del"])
+    async def whitelist_remove(self, ctx, name:str, channel:discord.TextChannel=None):
+        """
+            Remove channel from trigger's whitelist
+
+            `name` is the name of the trigger
+            `channel` is the channel where the trigger will only work defaults to current channel
+        """
+        if channel is None:
+            channel = ctx.message.channel
+        
+        trigger = await self.get_trigger(ctx.guild, name)
+        if trigger is None:
+            await ctx.send("Trigger `{}` doesn't exist.".format(name))
+            return
+        if channel.id in trigger.whitelist:
+            trigger_list = await self.config.guild(ctx.guild).trigger_list()
+            trigger_list.remove(trigger.to_json())
+            trigger.whitelist.remove(channel.id)
+            trigger_list.append(trigger.to_json())
+            await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
+            await ctx.send("{} removed from Trigger {}'s whitelist.".format(channel.mention, name))
+        else:
+            await ctx.send("{} is not in Trigger {}'s whitelist.".format(channel.mention, name))
+        
+
+    @blacklist.command(name="add")
+    async def blacklist_add(self, ctx, name:str, channel:discord.TextChannel=None):
+        """
+            Add channel to trigger's blacklist
+
+            `name` is the name of the trigger
+            `channel` is the channel where the trigger will only work defaults to current channel
+        """
+        if channel is None:
+            channel = ctx.message.channel
+        trigger = await self.get_trigger(ctx.guild, name)
+        if trigger is None:
+            await ctx.send("Trigger `{}` doesn't exist.".format(name))
+            return
+        if channel.id not in trigger.blacklist:
+            try:
+                trigger_list = await self.config.guild(ctx.guild).trigger_list()
+                print(trigger_list)
+                trigger_list.remove(trigger.to_json())
+            except:
+                trigger_list = await self.config.guild(ctx.guild).trigger_list()
+                print(trigger_list)
+                return
+            trigger.blacklist.append(channel.id)
+            trigger_list.append(trigger.to_json())
+            await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
+            await ctx.send("{} added to Trigger {}'s whitelist.".format(channel.mention, name))
+        else:
+            await ctx.send("{} is already in Trigger {}'s whitelist.".format(channel.mention, name))
+
+
+    @blacklist.command(name="remove", aliases=["rem", "del"])
+    async def blacklist_remove(self, ctx, name:str, channel:discord.TextChannel=None):
+        """
+            Remove channel from trigger's blacklist
+
+            `name` is the name of the trigger
+            `channel` is the channel where the trigger will only work defaults to current channel
+        """
+        if channel is None:
+            channel = ctx.message.channel
+        trigger = await self.get_trigger(ctx.guild, name)
+        if trigger is None:
+            await ctx.send("Trigger `{}` doesn't exist.".format(name))
+            return
+        if channel.id in trigger.blacklist:
+            trigger_list = await self.config.guild(ctx.guild).trigger_list()
+            trigger_list.remove(trigger.to_json())
+            trigger.blacklist.remove(channel.id)
+            trigger_list.append(trigger.to_json())
+            await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
+            await ctx.send("{} removed from Trigger {}'s blacklist.".format(channel.mention, name))
+        else:
+            await ctx.send("{} is not in Trigger {}'s blacklist.".format(channel.mention, name))    
 
     @retrigger.command()
     async def list(self, ctx):
