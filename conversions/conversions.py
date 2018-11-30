@@ -208,13 +208,14 @@ class Conversions(getattr(commands, "Cog", object)):
             hour_24_emoji = "🔼" if hour_24 >= 0 else "🔽"
             days_7_emoji = "🔼" if days_7 >= 0 else "🔽"
             available_supply = "{0:,.2f}".format(coin_data["circulating_supply"])
-            max_supply = "{0:,.2f}".format(coin_data["max_supply"])
+            max_supply = "{0:,.2f}".format(coin_data["max_supply"]) if "max_supply" in coin_data else None
             total_supply = "{0:,.2f}".format(coin_data["total_supply"])
             embed.set_thumbnail(url=coin_image)
             embed.add_field(name="Market Cap", value="{0:,.2f} {1}".format(market_cap, currency.upper()))
             embed.add_field(name="24 Hour Volume", value="{0:,.2f} {1}".format(volume_24h, currency.upper()))
             embed.add_field(name="Available Supply", value=available_supply)
-            embed.add_field(name="Max Supply", value=max_supply)
+            if max_supply is not None:
+                embed.add_field(name="Max Supply", value=max_supply)
             embed.add_field(name="Total Supply ", value=total_supply)
             embed.add_field(name="Change 1 hour " + hour_1_emoji, value="{}%".format(hour_1))
             embed.add_field(name="Change 24 hours " + hour_24_emoji, value="{}%".format(hour_24))
