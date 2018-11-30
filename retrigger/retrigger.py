@@ -3,6 +3,7 @@ from redbot.core import commands, checks, Config
 from redbot.core.data_manager import cog_data_path
 from PIL import Image
 from io import BytesIO
+from copy import copy
 import aiohttp
 import functools
 import asyncio
@@ -312,6 +313,12 @@ class ReTrigger(getattr(commands, "Cog", object)):
             path = str(cog_data_path(self)) + f"/{guild.id}/{trigger.image}"
             file = discord.File(path)
             await channel.send(trigger.text, file=file)
+        if trigger.response_type == "command":
+            msg = copy(message)
+            prefix_list = await self.bot.command_prefix(self.bot, message)
+            msg.content = prefix_list[0] + trigger.text
+            await self.bot.dispatch("message", msg)
+
 
     async def remove_trigger(self, guild, trigger_name):
         trigger_list = await self.config.guild(guild).trigger_list()
@@ -718,6 +725,35 @@ class ReTrigger(getattr(commands, "Cog", object)):
         author = ctx.message.author.id
         name = name.lower()
         new_trigger = Trigger(name, regex, "react", author, 0, None, good_emojis)
+        trigger_list = await self.config.guild(guild).trigger_list()
+        trigger_list.append(new_trigger.to_json())
+        await self.config.guild(guild).trigger_list.set(trigger_list)
+        await ctx.send("Trigger `{}` set.".format(name))
+
+    @retrigger.command()
+    async def command(self, ctx, name:str, regex:str, *, command:str):
+        """
+            Add a command trigger
+
+            `name` name of the trigger
+            `regex` the regex that will determine when to respond
+            `command` the command that will be triggered, do add [p] prefix
+            See https://regexr.com/ for help building a regex pattern
+            Example for simple search: `"\\bthis matches"` the whole phrase only
+        """
+        if await self.check_trigger_exists(name.lower(), ctx.guild):
+            await ctx.send("{} is already a trigger name")
+            return
+        cmd_list = command.split(" ")
+        print(cmd_list)
+        existing_cmd = self.bot.get_command(cmd_list[0])
+        if existing_cmd is None:
+            await ctx.send("{} doesn't seem to be an available command.".format(command))
+            return
+        guild = ctx.guild
+        author = ctx.message.author.id
+        name = name.lower()
+        new_trigger = Trigger(name, regex, "command", author, 0, None, command)
         trigger_list = await self.config.guild(guild).trigger_list()
         trigger_list.append(new_trigger.to_json())
         await self.config.guild(guild).trigger_list.set(trigger_list)
