@@ -20,6 +20,9 @@ except ImportError:
     TRUMP = False
 
 class ImageMaker(getattr(commands, "Cog", object)):
+    """
+        Create various fun images
+    """
     
     def __init__(self, bot):
         self.bot = bot
@@ -33,6 +36,9 @@ class ImageMaker(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     async def beautiful(self, ctx, user:discord.Member=None):
+        """
+            Generate a beautiful image using users avatar
+        """
         if user is None:
             user = ctx.message.author
         async with ctx.channel.typing():
@@ -46,6 +52,9 @@ class ImageMaker(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     async def feels(self, ctx, user:discord.Member=None):
+        """
+            Generate a feels image using users avatar and role colour
+        """
         if user is None:
             user = ctx.message.author
         async with ctx.channel.typing():
@@ -59,6 +68,9 @@ class ImageMaker(getattr(commands, "Cog", object)):
 
     @commands.command(aliases=["isnowillegal"])
     async def trump(self, ctx, *, message):
+        """
+            Generate isnowillegal image with supplied `message`
+        """
         if not TRUMP:
             await ctx.send("The bot owner needs to run `pip3 install opencv-python` to run this command")
             return
@@ -74,42 +86,42 @@ class ImageMaker(getattr(commands, "Cog", object)):
 
     @commands.command()
     async def redpill(self, ctx):
-        """Red Pill"""
+        """Generate a Red Pill"""
         msg = copy(ctx.message)
         msg.content = ctx.prefix + "pill #FF0000"
         ctx.bot.dispatch("message", msg)
 
     @commands.command()
     async def bluepill(self, ctx):
-        """Blue Pill"""
+        """Generate a Blue Pill"""
         msg = copy(ctx.message)
         msg.content = ctx.prefix + "pill #0000FF"
         ctx.bot.dispatch("message", msg)
 
     @commands.command()
     async def blackpill(self, ctx):
-        """Black Pill"""
+        """Generate a Black Pill"""
         msg = copy(ctx.message)
         msg.content = ctx.prefix + "pill #000000"
         ctx.bot.dispatch("message", msg)
 
     @commands.command()
     async def purplepill(self, ctx):
-        """Purple Pill"""
+        """Generate a Purple Pill"""
         msg = copy(ctx.message)
         msg.content = ctx.prefix + "pill #800080"
         ctx.bot.dispatch("message", msg)
 
     @commands.command()
     async def yellowpill(self, ctx):
-        """Yellow Pill"""
+        """Generate a Yellow Pill"""
         msg = copy(ctx.message)
         msg.content = ctx.prefix + "pill #FFFF00"
         ctx.bot.dispatch("message", msg)
 
     @commands.command()
     async def greenpill(self, ctx):
-        """Green Pill"""
+        """Generate a Green Pill"""
         msg = copy(ctx.message)
         msg.content = ctx.prefix + "pill #008000"
         ctx.bot.dispatch("message", msg)
@@ -126,7 +138,9 @@ class ImageMaker(getattr(commands, "Cog", object)):
 
     @commands.command()
     async def pill(self, ctx, colour="#FF0000"):
-        """Converts the pill to any colour with hex codes like #FF0000"""
+        """
+            Generate a pill image to any colour with hex codes like #FF0000
+        """
         async with ctx.channel.typing():
             pill_image = await self.make_colour(colour)
             if pill_image is None:
@@ -238,11 +252,7 @@ class ImageMaker(getattr(commands, "Cog", object)):
         return temp
 
     async def make_feels(self, user):
-        try:
-            colour = user.top_role.colour.to_rgb()
-        except:
-            colour = (255, 255, 255)
-
+        colour = user.colour.to_rgb()
         if user.is_avatar_animated():
             avatar = Image.open(await self.dl_image(user.avatar_url_as(format="gif", size=64)))
             task = functools.partial(self.make_feels_gif, colour=colour, avatar=avatar)
