@@ -263,8 +263,6 @@ class ReTrigger(getattr(commands, "Cog", object)):
             if trigger.cooldown["style"] in ["guild", "server"]:
                 last = trigger.cooldown["last"]
                 time = trigger.cooldown["time"]
-                print(now-last)
-                print("Guild")
                 if (now - last) > time:
                     trigger.cooldown["last"] = now
                     trigger_list[trigger.name] = trigger.to_json()
@@ -286,8 +284,6 @@ class ReTrigger(getattr(commands, "Cog", object)):
                         if entity["id"] == snowflake.id:
                             last = entity["last"]
                             time = trigger.cooldown["time"]
-                            print(now-last)
-                            print(style)
                             if (now - last) > time:
                                 trigger.cooldown["last"].remove({"id":snowflake.id, "last":last})
                                 trigger.cooldown["last"].append({"id":snowflake.id, "last":now})
@@ -317,10 +313,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
                 # Don't run a trigger if it's the name of a command
                 return
         trigger_list = await self.config.guild(guild).trigger_list()
-        print(trigger_list)
         for triggers in trigger_list:
             trigger = Trigger.from_json(trigger_list[triggers])
-            print(trigger.name)
             if not await self.channel_perms(trigger, channel):
                 continue
             search = re.findall(trigger.regex, message.content)
