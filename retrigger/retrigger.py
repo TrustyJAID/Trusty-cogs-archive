@@ -282,12 +282,14 @@ class ReTrigger(getattr(commands, "Cog", object)):
                     await self.config.guild(guild).trigger_list.set(trigger_list)
                     return False
                 else:
-                    for entity in trigger.cooldown["last"]:
+                    entity_list = trigger.cooldown["last"]
+                    for entity in entity_list:
                         if entity["id"] == snowflake.id:
                             last = entity["last"]
                             time = trigger.cooldown["time"]
                             if (now - last) > time:
                                 trigger_list.remove(trigger.to_json())
+                                trigger.cooldown["last"].remove({"id":snowflake.id, "last":last})
                                 trigger.cooldown["last"].append({"id":snowflake.id, "last":now})
                                 trigger_list.append(trigger.to_json())
                                 await self.config.guild(guild).trigger_list.set(trigger_list)
@@ -608,6 +610,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `text` response of the trigger
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
@@ -631,6 +634,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `image_url` optional image_url if none is provided the bot will ask to upload an image
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
@@ -667,6 +671,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `image_url` optional image_url if none is provided the bot will ask to upload an image
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
@@ -703,6 +708,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `image_url` optional image_url if none is provided the bot will ask to upload an image
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
@@ -740,6 +746,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `regex` the regex that will determine when to respond
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
@@ -765,6 +772,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `regex` the regex that will determine when to respond
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
@@ -788,6 +796,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `emojis` the emojis to react with when triggered separated by spaces
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
@@ -823,6 +832,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             `command` the command that will be triggered, do add [p] prefix
             See https://regexr.com/ for help building a regex pattern
             Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
         """
         if await self.check_trigger_exists(name.lower(), ctx.guild):
             await ctx.send("{} is already a trigger name")
