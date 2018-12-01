@@ -31,6 +31,7 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Gabai | **Beta** | A cog to verify a user is on gab before letting them join the server. |
 | Notsobot | **Beta**| Working cog for many of NotSoBot's commands. Has lots of requirements, view the cog README.md for details. |
 | Spoiler | **Beta**| Post spoiler messages in chat and react to the message to view the spoilers. |
+| ReTrigger | **Release** | <details><summary>Trigger events based on regex!</summary>Note: This repo requires pillow to allow resizing of images similar to triggersize cog.</details> |
 
 
 
