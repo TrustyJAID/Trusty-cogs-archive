@@ -319,7 +319,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
                 if await self.check_trigger_cooldown(message, trigger):
                     return
                 trigger_list.remove(triggers)
-                trigger._add_count(len(search))
+                trigger._add_count(1)
                 trigger_list.append(trigger.to_json())
                 await self.perform_trigger(message, trigger, search[0]) 
                 await self.config.guild(guild).trigger_list.set(trigger_list)
