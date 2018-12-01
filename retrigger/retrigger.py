@@ -4,6 +4,7 @@ from redbot.core.data_manager import cog_data_path
 from PIL import Image
 from io import BytesIO
 from copy import copy
+from datetime import datetime
 import aiohttp
 import functools
 import asyncio
@@ -16,7 +17,7 @@ import os
 class Trigger:
 
     def __init__(self, name, regex, response_type, author, count, 
-                 image=None, text=None, whitelist=[], blacklist=[]):
+                 image=None, text=None, whitelist=[], blacklist=[], cooldown={}):
         self.name = name
         self.regex = regex
         self.response_type = response_type
@@ -26,6 +27,7 @@ class Trigger:
         self.text = text
         self.whitelist = whitelist
         self.blacklist = blacklist
+        self.cooldown = cooldown
 
     def _add_count(self, number:int):
         self.count += number
@@ -39,11 +41,16 @@ class Trigger:
                 "image":self.image,
                 "text":self.text,
                 "whitelist":self.whitelist,
-                "blacklist":self.blacklist
+                "blacklist":self.blacklist,
+                "cooldown":self.cooldown
                 }
 
     @classmethod
     def from_json(cls, data:dict):
+        if "cooldown" not in data:
+            cooldown = {}
+        else:
+            cooldown = data["cooldown"]
         return cls(data["name"],
                    data["regex"],
                    data["response_type"],
@@ -52,7 +59,8 @@ class Trigger:
                    data["image"],
                    data["text"],
                    data["whitelist"],
-                   data["blacklist"])
+                   data["blacklist"],
+                   cooldown)
 
 
 class ReTrigger(getattr(commands, "Cog", object)):
@@ -179,6 +187,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
         post = post_list[page]
         if ctx.channel.permissions_for(ctx.me).embed_links:
             em = discord.Embed(timestamp=ctx.message.created_at)
+            em.colour = await self.bot.db.color()
             for trigger in post:
                 blacklist = ", ".join(x for x in [f"<#{y}>" for y in trigger["blacklist"]])
                 whitelist = ", ".join(x for x in [f"<#{y}>" for y in trigger["whitelist"]])
@@ -243,6 +252,48 @@ class ReTrigger(getattr(commands, "Cog", object)):
                                              page=next_page, timeout=timeout)
             else:
                 return await message.delete()
+
+    async def check_trigger_cooldown(self, message, trigger):
+        guild = message.guild
+        trigger_list = await self.config.guild(guild).trigger_list()
+        now = datetime.now().timestamp()
+        if trigger.cooldown == {}:
+            return False
+        else:
+            if trigger.cooldown["style"] in ["guild", "server"]:
+                last = trigger.cooldown["last"]
+                time = trigger.cooldown["time"]
+                if (now - last) > time:
+                    
+                    trigger_list.remove(trigger.to_json())
+                    trigger.cooldown["last"] = now
+                    trigger_list.append(trigger.to_json())
+                    await self.config.guild(guild).trigger_list.set(trigger_list)
+                    return False
+                else:
+                    return True
+            else:
+                style = trigger.cooldown["style"]
+                snowflake = getattr(message, style)
+                if snowflake.id not in [x["id"] for x in trigger.cooldown["last"]]:
+                    trigger_list.remove(trigger.to_json())
+                    trigger.cooldown["last"].append({"id":snowflake.id, "last":now})
+                    trigger_list.append(trigger.to_json())
+                    await self.config.guild(guild).trigger_list.set(trigger_list)
+                    return False
+                else:
+                    for entity in trigger.cooldown["last"]:
+                        if entity["id"] == snowflake.id:
+                            last = entity["last"]
+                            time = trigger.cooldown["time"]
+                            if (now - last) > time:
+                                trigger_list.remove(trigger.to_json())
+                                trigger.cooldown["last"].append({"id":snowflake.id, "last":now})
+                                trigger_list.append(trigger.to_json())
+                                await self.config.guild(guild).trigger_list.set(trigger_list)
+                                return False
+                            else:
+                                return True
     
     async def on_message(self, message):
         if message.guild is None:
@@ -265,6 +316,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
                 continue
             search = re.findall(trigger.regex, message.content.lower())
             if search != []:
+                if await self.check_trigger_cooldown(message, trigger):
+                    return
                 trigger_list.remove(triggers)
                 trigger._add_count(len(search))
                 trigger_list.append(trigger.to_json())
@@ -384,6 +437,35 @@ class ReTrigger(getattr(commands, "Cog", object)):
         """
         pass
 
+    @retrigger.command()
+    async def cooldown(self, ctx, name:str, time:int, style="guild"):
+        """
+            Set cooldown options for retrigger
+
+            `name` is the name of the trigger
+            `time` is a time in seconds until the trigger will run again
+            `style` must be either `guild`, `server`, `channel`, `user`, or `member`
+        """
+        trigger = await self.get_trigger(ctx.guild, name)
+        if trigger is None:
+            await ctx.send("Trigger `{}` doesn't exist.".format(name))
+            return
+        if style not in ["guild", "server", "channel", "user", "member"]:
+            await ctx.send("Style must be either `guild`, `server`, `channel`, `user`, or `member`.")
+            return
+        if style in ["user", "member"]:
+            style = "author"
+        if style in ["guild", "server"]:
+            cooldown = {"time":time, "style":style, "last": 0}
+        else:
+            cooldown = {"time":time, "style":style, "last": []}
+        trigger_list = await self.config.guild(ctx.guild).trigger_list()
+        trigger_list.remove(trigger.to_json())
+        trigger.cooldown = cooldown
+        trigger_list.append(trigger.to_json())
+        await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
+        await ctx.send("Cooldown of {}s per {} set for Trigger {}.".format(time, style, name))
+
     @whitelist.command(name="add")
     async def whitelist_add(self, ctx, name:str, channel:discord.TextChannel=None):
         """
@@ -488,7 +570,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
             await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
             await ctx.send("{} removed from Trigger {}'s blacklist.".format(channel.mention, name))
         else:
-            await ctx.send("{} is not in Trigger {}'s blacklist.".format(channel.mention, name))    
+            await ctx.send("{} is not in Trigger {}'s blacklist.".format(channel.mention, name))
+
 
     @retrigger.command()
     async def list(self, ctx):
