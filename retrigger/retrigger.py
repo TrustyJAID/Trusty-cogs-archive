@@ -71,7 +71,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 964565433247)
-        default_guild = {"trigger_list":[], "allow_multiple":False}
+        default_guild = {"trigger_list":{}, "allow_multiple":False}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
@@ -132,7 +132,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
         return not (guild_ignored or chann_ignored and not perms.manage_channels)
 
     async def check_trigger_exists(self, trigger, guild):
-        if trigger in [x["name"] for x in await self.config.guild(guild).trigger_list()]:
+        if trigger in await self.config.guild(guild).trigger_list():
             return True
         else:
             return False
@@ -202,7 +202,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
                         "__Whitelist__: **" + whitelist + "**\n"+ 
                         "__Blacklist__: **" + blacklist + "**\n")
 
-                em.add_field(name=trigger["name"], value=info)
+                em.add_field(name=trigger["name"], value=info[:1024])
             em.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
             em.set_footer(text="Page {}/{}".format(page+1, len(post_list)))
         else:
@@ -263,11 +263,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
             if trigger.cooldown["style"] in ["guild", "server"]:
                 last = trigger.cooldown["last"]
                 time = trigger.cooldown["time"]
+                print(now-last)
+                print("Guild")
                 if (now - last) > time:
-                    
-                    trigger_list.remove(trigger.to_json())
                     trigger.cooldown["last"] = now
-                    trigger_list.append(trigger.to_json())
+                    trigger_list[trigger.name] = trigger.to_json()
                     await self.config.guild(guild).trigger_list.set(trigger_list)
                     return False
                 else:
@@ -276,9 +276,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
                 style = trigger.cooldown["style"]
                 snowflake = getattr(message, style)
                 if snowflake.id not in [x["id"] for x in trigger.cooldown["last"]]:
-                    trigger_list.remove(trigger.to_json())
                     trigger.cooldown["last"].append({"id":snowflake.id, "last":now})
-                    trigger_list.append(trigger.to_json())
+                    trigger_list[trigger.name] = trigger.to_json()
                     await self.config.guild(guild).trigger_list.set(trigger_list)
                     return False
                 else:
@@ -287,11 +286,12 @@ class ReTrigger(getattr(commands, "Cog", object)):
                         if entity["id"] == snowflake.id:
                             last = entity["last"]
                             time = trigger.cooldown["time"]
+                            print(now-last)
+                            print(style)
                             if (now - last) > time:
-                                trigger_list.remove(trigger.to_json())
                                 trigger.cooldown["last"].remove({"id":snowflake.id, "last":last})
                                 trigger.cooldown["last"].append({"id":snowflake.id, "last":now})
-                                trigger_list.append(trigger.to_json())
+                                trigger_list[trigger.name] = trigger.to_json()
                                 await self.config.guild(guild).trigger_list.set(trigger_list)
                                 return False
                             else:
@@ -311,22 +311,28 @@ class ReTrigger(getattr(commands, "Cog", object)):
         msg = message.content
         guild = message.guild
         channel = message.channel
+        prefix_list = await self.bot.command_prefix(self.bot, message)
+        for prefix in prefix_list:
+            if msg.startswith(prefix):
+                # Don't run a trigger if it's the name of a command
+                return
         trigger_list = await self.config.guild(guild).trigger_list()
+        print(trigger_list)
         for triggers in trigger_list:
-            trigger = Trigger.from_json(triggers)
+            trigger = Trigger.from_json(trigger_list[triggers])
+            print(trigger.name)
             if not await self.channel_perms(trigger, channel):
                 continue
             search = re.findall(trigger.regex, message.content)
             if search != []:
                 if await self.check_trigger_cooldown(message, trigger):
                     return
-                trigger_list.remove(triggers)
                 trigger._add_count(1)
-                trigger_list.append(trigger.to_json())
+                trigger_list[triggers] = trigger.to_json()
                 await self.perform_trigger(message, trigger, search[0]) 
                 await self.config.guild(guild).trigger_list.set(trigger_list)
-            if not await self.config.guild(guild).allow_multiple():
-                continue
+                if not await self.config.guild(guild).allow_multiple():
+                    return
 
     async def perform_trigger(self, message, trigger, find):
         own_permissions = message.channel.permissions_for(message.guild.me)
@@ -341,13 +347,13 @@ class ReTrigger(getattr(commands, "Cog", object)):
                 file = await asyncio.wait_for(task, timeout=60)
             except asyncio.TimeoutError:
                 return
-            await message.channel.send(file=file)
-            return
+            return await message.channel.send(file=file)
         if trigger.response_type == "text" and own_permissions.send_messages:
-            await channel.send(trigger.text)
+            return await channel.send(trigger.text)
         if trigger.response_type == "react" and own_permissions.add_reactions:
             for emoji in trigger.text:
                 await message.add_reaction(emoji)
+            return
         if trigger.response_type == "ban" and own_permissions.ban_members:
             reason = "Trigger response: {}".format(trigger.name)
             if await self.bot.is_owner(author) or author == guild.owner:
@@ -356,6 +362,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
                 return
             if guild.me.top_role > author.top_role:
                 await author.ban(reason=reason, delete_message_days=0)
+            return
         if trigger.response_type == "kick" and own_permissions.kick_members:
             if await self.bot.is_owner(author) or author == guild.owner:
                 # Don't want to accidentally kick the bot owner 
@@ -364,15 +371,17 @@ class ReTrigger(getattr(commands, "Cog", object)):
             reason = "Trigger response: {}".format(trigger.name)
             if guild.me.top_role > author.top_role:
                 await author.kick(reason=reason)
+            return
         if trigger.response_type == "image" and own_permissions.attach_files:
             path = str(cog_data_path(self)) + f"/{guild.id}/{trigger.image}"
             file = discord.File(path)
-            await channel.send(trigger.text, file=file)
+            return await channel.send(trigger.text, file=file)
         if trigger.response_type == "command":
             msg = copy(message)
             prefix_list = await self.bot.command_prefix(self.bot, message)
             msg.content = prefix_list[0] + trigger.text
             self.bot.dispatch("message", msg)
+            return
 
 
     async def remove_trigger(self, guild, trigger_name):
@@ -395,9 +404,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
         trigger = None
         index = None
         trigger_list = await self.config.guild(guild).trigger_list()
-        for triggers in trigger_list:
-            if triggers["name"] == name.lower():
-                trigger = Trigger.from_json(triggers)
+        if name in trigger_list:
+            trigger = Trigger.from_json(trigger_list[name])
         return trigger
 
     @commands.group()
@@ -462,9 +470,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
         else:
             cooldown = {"time":time, "style":style, "last": []}
         trigger_list = await self.config.guild(ctx.guild).trigger_list()
-        trigger_list.remove(trigger.to_json())
         trigger.cooldown = cooldown
-        trigger_list.append(trigger.to_json())
+        trigger_list[name] = trigger.to_json()
         await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
         await ctx.send("Cooldown of {}s per {} set for Trigger {}.".format(time, style, name))
 
@@ -484,9 +491,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
             return
         if channel.id not in trigger.whitelist:
             trigger_list = await self.config.guild(ctx.guild).trigger_list()
-            trigger_list.remove(trigger.to_json())
             trigger.whitelist.append(channel.id)
-            trigger_list.append(trigger.to_json())
+            trigger_list[name] = trigger.to_json()
             await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
             await ctx.send("{} added to Trigger {}'s whitelist.".format(channel.mention, name))
             return
@@ -512,9 +518,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
             return
         if channel.id in trigger.whitelist:
             trigger_list = await self.config.guild(ctx.guild).trigger_list()
-            trigger_list.remove(trigger.to_json())
             trigger.whitelist.remove(channel.id)
-            trigger_list.append(trigger.to_json())
+            trigger_list[name] = trigger.to_json()
             await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
             await ctx.send("{} removed from Trigger {}'s whitelist.".format(channel.mention, name))
         else:
@@ -536,14 +541,9 @@ class ReTrigger(getattr(commands, "Cog", object)):
             await ctx.send("Trigger `{}` doesn't exist.".format(name))
             return
         if channel.id not in trigger.blacklist:
-            try:
-                trigger_list = await self.config.guild(ctx.guild).trigger_list()
-                trigger_list.remove(trigger.to_json())
-            except:
-                trigger_list = await self.config.guild(ctx.guild).trigger_list()
-                return
+            trigger_list = await self.config.guild(ctx.guild).trigger_list()
             trigger.blacklist.append(channel.id)
-            trigger_list.append(trigger.to_json())
+            trigger_list[name] = trigger.to_json()
             await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
             await ctx.send("{} added to Trigger {}'s whitelist.".format(channel.mention, name))
         else:
@@ -566,9 +566,8 @@ class ReTrigger(getattr(commands, "Cog", object)):
             return
         if channel.id in trigger.blacklist:
             trigger_list = await self.config.guild(ctx.guild).trigger_list()
-            trigger_list.remove(trigger.to_json())
             trigger.blacklist.remove(channel.id)
-            trigger_list.append(trigger.to_json())
+            trigger_list[name] = trigger.to_json()
             await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
             await ctx.send("{} removed from Trigger {}'s blacklist.".format(channel.mention, name))
         else:
@@ -580,11 +579,12 @@ class ReTrigger(getattr(commands, "Cog", object)):
         """
             List all triggers currently on the server
         """
-        trigger_list = await self.config.guild(ctx.guild).trigger_list()
+        trigger_dict = await self.config.guild(ctx.guild).trigger_list()
+        trigger_list = [trigger_dict[name] for name in trigger_dict]
         if trigger_list == []:
             await ctx.send("There are no triggers setup on this server.")
             return
-        post_list = [trigger_list[i:i + 25] for i in range(0, len(trigger_list), 25)]
+        post_list = [trigger_list[i:i + 10] for i in range(0, len(trigger_list), 10)]
         await self.trigger_menu(ctx, post_list)
 
     @retrigger.command(aliases=["del", "rem", "delete"])
@@ -612,15 +612,14 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()
         new_trigger = Trigger(name, regex, "text", author, 0, None, text)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
@@ -636,12 +635,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()           
         if ctx.message.attachments != []:
             image_url = ctx.message.attachments[0].url
             filename = await self.save_image_location(image_url, guild)
@@ -656,7 +654,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
 
         new_trigger = Trigger(name, regex, "image", author, 0, filename, None)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
@@ -673,12 +671,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()           
         if ctx.message.attachments != []:
             image_url = ctx.message.attachments[0].url
             filename = await self.save_image_location(image_url, guild)
@@ -693,7 +690,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
 
         new_trigger = Trigger(name, regex, "image", author, 0, filename, text)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
@@ -710,12 +707,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()           
         if ctx.message.attachments != []:
             image_url = ctx.message.attachments[0].url
             filename = await self.save_image_location(image_url, guild)
@@ -730,7 +726,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
 
         new_trigger = Trigger(name, regex, "resize", author, 0, filename, None)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
@@ -748,15 +744,14 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()
         new_trigger = Trigger(name, regex, "ban", author, 0, None, None)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
@@ -774,15 +769,14 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()
         new_trigger = Trigger(name, regex, "kick", author, 0, None, None)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
@@ -798,7 +792,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         good_emojis = []
@@ -815,10 +809,9 @@ class ReTrigger(getattr(commands, "Cog", object)):
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()
         new_trigger = Trigger(name, regex, "react", author, 0, None, good_emojis)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
@@ -834,7 +827,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             Example for simple search: `"\\bthis matches"` the whole phrase only
             For case insensitive searches add `(?i)` at the start of the regex
         """
-        if await self.check_trigger_exists(name.lower(), ctx.guild):
+        if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
         cmd_list = command.split(" ")
@@ -844,10 +837,9 @@ class ReTrigger(getattr(commands, "Cog", object)):
             return
         guild = ctx.guild
         author = ctx.message.author.id
-        name = name.lower()
         new_trigger = Trigger(name, regex, "command", author, 0, None, command)
         trigger_list = await self.config.guild(guild).trigger_list()
-        trigger_list.append(new_trigger.to_json())
+        trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
         await ctx.send("Trigger `{}` set.".format(name))
 
