@@ -314,7 +314,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             trigger = Trigger.from_json(triggers)
             if not await self.channel_perms(trigger, channel):
                 continue
-            search = re.findall(trigger.regex, message.content.lower())
+            search = re.findall(trigger.regex, message.content)
             if search != []:
                 if await self.check_trigger_cooldown(message, trigger):
                     return
