@@ -24,7 +24,6 @@ To add the cogs to your instance please do: `[p]repo add Trusty-cogs https://git
 | Triggersize | **Release** | <details><summary>Posts various sized images based on specific triggered command lengths.</summary> May be customized manually for different images or by default express ones true rage.</details> |
 | Encoding | **Release** | Allows one to encode or decode in Binary and DNA sequencing (ACGT). As well has hashing strings and caeser cipher text. |
 | Compliment | **Release** | Compliment a user! |
-| Activity | **Release** |  Track users posting on a server and kick people who have been inactive for the set time. |
 | ServerStats | **Release** | This cog provides a ton of useful development functions for gathering channel data and user data as well as providing a way to setup a channel to monitor which servers are adding the bot. |
 | Runescape | **Beta** | a cog to grab Runescape 3 stats and profile information. |
 | Fun | **Release**| The fun cog from Appu's Selfbot rewritten for redbot V3 including adding reactions and other "fun" commands. |
