@@ -134,6 +134,21 @@ class Pickems:
             pickems.append(old_pickem)
         await config.guild(guild).pickems.set(pickems)
 
+    @staticmethod
+    async def reset_weekly(bot):
+        # Reset the weekly leaderboard for all servers
+        config =hockey_config()
+        for guild_id in await config.all_guilds():
+            guild = bot.get_guild(id=guild_id)
+            if guild is None:
+                continue
+            leaderboard = await config.guild(guild).leaderboard()
+            if leaderboard is None:
+                leaderboard = {}
+            for user in leaderboard:
+                leaderboard[str(user)]["weekly"] = 0
+            await config.guild(guild).leaderboard.set(leaderboard)
+
 
     @staticmethod
     async def tally_leaderboard(bot):
@@ -151,15 +166,6 @@ class Pickems:
                 if pickem_list_json is None:
                     continue
                 pickem_list = [Pickems.from_json(p) for p in pickem_list_json]
-                time_now = datetime.now()
-                if time_now.weekday() == 6:
-                    # Reset the weekly leaderboard if it's Sunday
-                    leaderboard = await config.guild(guild).leaderboard()
-                    if leaderboard is None:
-                        leaderboard = {}
-                    for user in leaderboard:
-                        leaderboard[str(user)]["weekly"] = 0
-                    await config.guild(guild).leaderboard.set(leaderboard)
                 for pickems in pickem_list:
                     if pickems.winner is not None:
                         leaderboard = await config.guild(guild).leaderboard()
