@@ -156,6 +156,11 @@ class Hockey(getattr(commands, "Cog", object)):
 
     async def check_new_day(self):
         if not await self.config.created_gdc():
+            if datetime.now().weekday() == 6:
+                try:
+                    await Pickems.reset_weekly(self.bot)
+                except Exception as e:
+                    print(_("Error reseting the weekly leaderboard: ") + str(e))
             try:
                 await Standings.post_automatic_standings(self.bot)
             except Exception as e:
