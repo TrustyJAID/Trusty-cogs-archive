@@ -381,7 +381,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
     async def remove_trigger(self, guild, trigger_name):
         trigger_list = await self.config.guild(guild).trigger_list()
         for triggers in trigger_list:
-            trigger = Trigger.from_json(triggers)
+            trigger = Trigger.from_json(trigger_list[triggers])
             if trigger.name == trigger_name:
                 if trigger.image is not None:
                     path = str(cog_data_path(self)) + f"/{guild.id}/{trigger.image}"
@@ -389,7 +389,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
                         os.remove(path)
                     except Exception as e:
                         print(e)
-                trigger_list.remove(triggers)
+                del trigger_list[triggers]
                 await self.config.guild(guild).trigger_list.set(trigger_list)
                 return True
         return False
