@@ -191,16 +191,19 @@ class ReTrigger(getattr(commands, "Cog", object)):
             for trigger in post:
                 blacklist = ", ".join(x for x in [f"<#{y}>" for y in trigger["blacklist"]])
                 whitelist = ", ".join(x for x in [f"<#{y}>" for y in trigger["whitelist"]])
-                if blacklist == "":
-                    blacklist = "None"
-                if whitelist == "":
-                    whitelist = "None"
                 info = ("__Author__: <@" + str(trigger["author"])+
                         ">\n__Count__: **" + str(trigger["count"]) +"**\n"+
                         "__Regex__: **" + trigger["regex"]+ "**\n"+
-                        "__Response Type__: **" + trigger["response_type"] + "**\n"+
-                        "__Whitelist__: **" + whitelist + "**\n"+ 
-                        "__Blacklist__: **" + blacklist + "**\n")
+                        "__Response__: **" + trigger["response_type"] + "**\n"
+                        )
+                if blacklist:
+                    info += "__Blacklist__: **" + blacklist + "**\n"
+                if whitelist:
+                    info += "__Whitelist__: **" + whitelist + "**\n"
+                if trigger["cooldown"]:
+                    time = trigger["cooldown"]["time"]
+                    style = trigger["cooldown"]["style"]
+                    info += "__Cooldown__: **{}s per {}**".format(time, style)
 
                 em.add_field(name=trigger["name"], value=info[:1024])
             em.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
@@ -210,8 +213,7 @@ class ReTrigger(getattr(commands, "Cog", object)):
             return
         if len(post_list) == 1:
             # No need to offer multiple pages if they don't exist
-            await ctx.send(embed=em)
-            return
+            return await ctx.send(embed=em)
         
         if not message:
             message = await ctx.send(embed=em)
@@ -225,9 +227,9 @@ class ReTrigger(getattr(commands, "Cog", object)):
         try:
             react, user = await ctx.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
-            await message.remove_reaction("⬅", ctx.guild.me)
-            await message.remove_reaction("❌", ctx.guild.me)
-            await message.remove_reaction("➡", ctx.guild.me)
+            await message.remove_reaction("⬅", ctx.me)
+            await message.remove_reaction("❌", ctx.me)
+            await message.remove_reaction("➡", ctx.me)
             return None
         else:
             if react.emoji == "➡":
@@ -457,17 +459,21 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if style not in ["guild", "server", "channel", "user", "member"]:
             await ctx.send("Style must be either `guild`, `server`, `channel`, `user`, or `member`.")
             return
+        msg = "Cooldown of {}s per {} set for Trigger {}.".format(time, style, name)
         if style in ["user", "member"]:
             style = "author"
         if style in ["guild", "server"]:
             cooldown = {"time":time, "style":style, "last": 0}
         else:
             cooldown = {"time":time, "style":style, "last": []}
+        if time <= 0:
+            cooldown = {}
+            msg = "Cooldown for Trigger {} reset.".format(name)
         trigger_list = await self.config.guild(ctx.guild).trigger_list()
         trigger.cooldown = cooldown
         trigger_list[name] = trigger.to_json()
         await self.config.guild(ctx.guild).trigger_list.set(trigger_list)
-        await ctx.send("Cooldown of {}s per {} set for Trigger {}.".format(time, style, name))
+        await ctx.send(msg)
 
     @whitelist.command(name="add")
     async def whitelist_add(self, ctx, name:str, channel:discord.TextChannel=None):
