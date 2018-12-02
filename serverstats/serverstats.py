@@ -23,6 +23,10 @@ class GuildNotFoundError(Exception):
     pass
 
 class ServerStats(getattr(commands, "Cog", object)):
+    """
+        Gather useful information about servers the bot is in
+        A lot of commands are bot owner only
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -32,6 +36,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     async def on_guild_join(self, guild):
+        """Build and send a message containing serverinfo when the bot joins a new server"""
         channel_id = await self.config.join_channel()
         if channel_id is None:
             return
@@ -69,6 +74,7 @@ class ServerStats(getattr(commands, "Cog", object)):
         await channel.send(embed=em)
 
     async def on_guild_remove(self, guild):
+        """Build and send a message containing serverinfo when the bot leaves a server"""
         channel_id = await self.config.join_channel()
         if channel_id is None:
             return
@@ -106,8 +112,8 @@ class ServerStats(getattr(commands, "Cog", object)):
 
         await channel.send(embed=em)
 
-    @commands.command(pass_context=True)
-    async def emoji(self, ctx, emoji):
+    @commands.command()
+    async def emoji(self, ctx, emoji:str):
         """
             Post a large size server emoji in chat
         """
@@ -136,7 +142,88 @@ class ServerStats(getattr(commands, "Cog", object)):
                 file = discord.File(BytesIO(data),filename="{}.png".format(emoji_id))
             await ctx.send(file=file)
 
-    @commands.command(pass_context=True)
+    async def ask_for_invite(self, ctx):
+        """
+            Ask the user to provide an invite link
+            if reinvite is True
+        """
+        check = lambda m: m.author == ctx.message.author
+        msg_send = ("Please provide a reinvite link/message.\n"
+                    "Type `exit` for no invite link/message.")
+        invite_check = await ctx.send(msg_send)
+        try:
+            msg = await ctx.bot.wait_for("message", check=check, timeout=30)
+        except asyncio.TimeoutError:
+            await msg.edit(content="I Guess not.")
+            return None
+        if "exit" in msg.content:
+            return None
+        else:
+            return msg.content
+
+    @commands.command()
+    @checks.mod_or_permissions(kick_members=True)
+    @checks.bot_has_permissions(kick_members=True, add_reactions=True)
+    async def pruneroles(self, ctx,  days:int, role:discord.Role=None, reinvite:bool=True):
+        """
+            Purge users from the server who have been inactive for x days
+            
+            `days` is the number of days since last seen talking in channels
+            `role` is the specified role you would like to kick defaults to everyone
+            `reinvite` True/False whether to try to send the user a message before kicking
+            Note: This will only check if a user has talked in the past x days whereas 
+            discords built in Prune checks online status
+        """
+        now = datetime.datetime.utcnow()
+        after = now - datetime.timedelta(days=days)
+        if role is not None and role >= ctx.me.top_role:
+            await ctx.send("That role is higher than my role so I can't kick those members.")
+            return
+        if role is None:
+            member_list = [m for m in ctx.guild.members if m.top_role < ctx.me.top_role]
+        else:
+            member_list = [m for m in role.members if m.top_role < ctx.me.top_role]
+        # for member in member_list:
+        user_list = []
+        for channel in ctx.guild.text_channels:
+            if not channel.permissions_for(ctx.me).read_message_history:
+                continue
+            async for message in channel.history(limit=None, after=after):
+                if message.author.id not in user_list:
+                    user_list.append(message.author.id)
+        for member in member_list:
+            if member.id in user_list:
+                member_list.remove(member)
+        send_msg = ("{} estimated users to kick. ".format(len(member_list)) +
+                    "Would you like to kick them?")
+        msg = await ctx.send(send_msg)
+        if ctx.channel.permissions_for(ctx.me).add_reactions:
+            check = lambda r, u: u == ctx.message.author and r.emoji in ["✅", "❌"]
+            await msg.add_reaction("✅")
+            await msg.add_reaction("❌")
+
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60)
+            except asyncio.TimeoutError:
+                await ctx.send("I guess not.")
+            if reaction.emoji == "✅":
+                link = await self.ask_for_invite(ctx)
+                no_invite = []
+                for member in member_list:
+                    if link:
+                        try:
+                            await member.send(link)
+                        except:
+                            no_invite.append(member.id)
+                    await member.kick(reason="Kicked due to inactivity.")
+                if link and len(no_invite) > 0:
+                    await ctx.send("{} users could not be DM'd an invite link".format(len(no_invite)))
+            else:
+                await ctx.send("Not kicking users.")
+                return
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def avatar(self, ctx, member:discord.Member=None):
         """
             Display a users avatar in chat
@@ -160,8 +247,11 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command()
     @checks.is_owner()
+    @commands.bot_has_permissions(embed_links=True)
     async def setguildjoin(self, ctx, channel:discord.TextChannel=None):
-        """Set a channel to see new servers the bot is joining"""
+        """
+            Set a channel to see new servers the bot is joining
+        """
         if channel is None:
             channel = ctx.message.channel
         await self.config.join_channel.set(channel.id)
@@ -170,14 +260,18 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command()
     @checks.is_owner()
     async def removeguildjoin(self, ctx):
-        """Set a channel to see new servers the bot is joining"""
+        """
+            Stop bots join/leave server messages
+        """
         await self.config.join_channel.set(None)
         await ctx.send("No longer posting joined or left servers.")
 
     @commands.command(hidden=True)
     @checks.is_owner()
-    async def checkcheater(self, ctx, user_id):
-        """Checks for possible cheaters abusing the global bank and server powers"""
+    async def checkcheater(self, ctx, user_id:int):
+        """
+            Checks for possible cheaters abusing the global bank and server powers
+        """
         is_cheater = False
         for guild in self.bot.guilds:
             print(guild.owner.id)
@@ -190,7 +284,11 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command(hidden=True)
     @checks.is_owner()
     async def whois(self, ctx, member:Union[int, discord.User]):
-        """Shows if a user is on any other servers the bot is on"""
+        """
+            Display servers a user shares with the bot
+
+            `member` can be a user ID or mention
+        """
         if type(member) == int:
             try:
                 member = await self.bot.get_user_info(member)
@@ -215,7 +313,9 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command(hidden=True)
     @checks.is_owner()
     async def topservers(self, ctx):
-        """Lists servers by number of users and shows number of users"""
+        """
+            Lists servers by number of users and shows number of users
+        """
         owner = ctx.author
         guilds = sorted(list(self.bot.guilds),
                         key=lambda s: len(s.members), reverse=True)
@@ -229,7 +329,9 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command(hidden=True)
     @checks.is_owner()
     async def newservers(self, ctx):
-        """Lists servers by when the bot was added to the server"""
+        """
+            Lists servers by when the bot was added to the server
+        """
         owner = ctx.author
         guilds = sorted(list(self.bot.guilds),
                         key=lambda s: s.me.joined_at)
@@ -242,6 +344,7 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command()
     @checks.mod_or_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_channels=True)
     async def slowmode(self, ctx, time:int=0, channel:discord.TextChannel=None):
         """
             Set a channels slowmode setting
@@ -254,16 +357,18 @@ class ServerStats(getattr(commands, "Cog", object)):
         if time < 0 or time > 120:
             await ctx.send("You can only set a number between 0 and 120")
             return
-        if not channel.permissions_for(ctx.guild.me).manage_channels:
-            await ctx.send("I don't have manage_channels permission.")
-            return
         await channel.edit(slowmode_delay=time)
         await ctx.send(f"Slowmode set to {time} in {channel.mention}")
 
     @commands.command()
     @checks.mod_or_permissions(manage_messages=True)
     async def topmembers(self, ctx, number:int=10, guild_name:Union[int, str]=None):
-        """Lists top 10 members on the server by join date"""
+        """
+            Lists top members on the server by join date
+
+            `number` is the number of users to display default is 10
+            `guild_name` can be either the server ID or partial name
+        """
         guild = ctx.guild
         if guild_name is not None:
             try:
@@ -295,7 +400,11 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command()
     @checks.is_owner()
     async def listchannels(self, ctx, *, guild_name:Union[int, str]=None):
-        """Lists channels and their position and ID for a server"""
+        """
+            Lists channels and their position and ID for a server
+
+            `guild_name` can be either the server ID or partial name
+        """
         guild = ctx.guild
         if guild_name is not None:
             try:
@@ -367,9 +476,9 @@ class ServerStats(getattr(commands, "Cog", object)):
         try:
             react, user = await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
         except asyncio.TimeoutError:
-            await message.remove_reaction("⬅", self.bot.user)
-            await message.remove_reaction("❌", self.bot.user)
-            await message.remove_reaction("➡", self.bot.user)
+            await message.remove_reaction("⬅", ctx.me)
+            await message.remove_reaction("❌", ctx.me)
+            await message.remove_reaction("➡", ctx.me)
             return None
         else:
             reacts = {v: k for k, v in numbs.items()}
@@ -380,10 +489,8 @@ class ServerStats(getattr(commands, "Cog", object)):
                     next_page = 0  # Loop around to the first item
                 else:
                     next_page = page + 1
-                try:
+                if ctx.channel.permissions_for(ctx.me).manage_messages:
                     await message.remove_reaction("➡", ctx.message.author)
-                except:
-                    pass
                 return await self.guild_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             elif react == "back":
@@ -392,10 +499,8 @@ class ServerStats(getattr(commands, "Cog", object)):
                     next_page = len(post_list) - 1  # Loop around to the last item
                 else:
                     next_page = page - 1
-                try:
+                if ctx.channel.permissions_for(ctx.me).manage_messages:
                     await message.remove_reaction("⬅", ctx.message.author)
-                except:
-                    pass
                 return await self.guild_menu(ctx, post_list, message=message,
                                              page=next_page, timeout=timeout)
             else:
@@ -403,8 +508,13 @@ class ServerStats(getattr(commands, "Cog", object)):
 
     @commands.command()
     @checks.is_owner()
+    @commands.bot_has_permissions(embed_links=True)
     async def getguild(self, ctx, *, guild_name:Union[int, str]=None):
-        """Menu to view info on all servers the bot is on"""
+        """
+            Display info about servers the bot is on
+
+            `guild_name` can be either the server ID or partial name
+        """
         guilds = [guild for guild in self.bot.guilds]
         page = 0
         if guild_name is not None:
@@ -422,7 +532,11 @@ class ServerStats(getattr(commands, "Cog", object)):
     @commands.command()
     @checks.mod_or_permissions(manage_messages=True)
     async def nummembers(self, ctx, *, guild_name:Union[int, str]=None):
-        """Checks the number of members on the server"""
+        """
+            Display number of users on a server
+
+            `guild_name` can be either the server ID or partial name
+        """
         guild = ctx.guild
         if guild_name is not None:
             try:
@@ -438,6 +552,8 @@ class ServerStats(getattr(commands, "Cog", object)):
     async def getroles(self, ctx, *, guild_name:Union[int, str]=None):
         """
             Displays all roles and their associated ID in chat
+
+            `guild_name` can be either the server ID or partial name
         """
         guild = ctx.guild
         if guild_name is not None:
@@ -457,7 +573,9 @@ class ServerStats(getattr(commands, "Cog", object)):
     @checks.mod_or_permissions(manage_messages=True)
     async def rolestats(self, ctx, *, guild_name:Union[int, str]=None):
         """
-            Display number of members in each role by role hierarchy 
+            Display number of members in each role by role hierarchy
+
+            `guild_name` can be either the server ID or partial name
         """
         guild = ctx.guild
         if guild_name is not None:
@@ -613,9 +731,12 @@ class ServerStats(getattr(commands, "Cog", object)):
                 return await message.delete()
 
     @commands.command(aliases=["serveremojis"])
+    @commands.bot_has_permissions(embed_links=True)
     async def guildemojis(self, ctx, *, guild_name:Union[int, str]=None):
         """
             Display all server emojis in a menu that can be scrolled through
+
+            `guild_name` can be either the server ID or partial name
         """
         guild = ctx.guild
         if guild_name is not None:
