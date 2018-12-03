@@ -206,7 +206,7 @@ class Tweets(getattr(commands, "Cog", object)):
             em = await self.build_tweet_embed(s)
         else:
             em = None
-        post_url = "https://twitter.com/{}/status/{}".format(status.user.screen_name, status.id)
+        post_url = "https://twitter.com/{}/status/{}".format(s.user.screen_name, s.id)
         if not message:
             message = await ctx.send(post_url, embed=em)
             await message.add_reaction("⬅")
