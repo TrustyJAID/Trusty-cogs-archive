@@ -44,6 +44,7 @@ class ServerWhitelist(getattr(commands, "Cog", object)):
     async def on_guild_join(self, guild):
         """Checks if a joined server is in the bots approved server list and leaves if it isn't."""
         whitelist = await self.config.whitelist()
-        if guild.id not in whitelist:
-            await guild.leave()
+        if whitelist:
+            if guild.id not in whitelist:
+                await guild.leave()
 
