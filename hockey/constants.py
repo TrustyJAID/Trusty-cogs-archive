@@ -249,7 +249,7 @@ TEAMS = {
         "emoji" : "OttawaSenators:381568942776254475",
         "home" : "#E31837",
         "id" : 9,
-        "invite" : "https://discord.gg/w3Cezje",
+        "invite" : "https://discord.gg/VQzYRKP",
         "logo" : "https://nhl.bamcontent.com/images/photos/281723314/256x256/cut.png",
         "team_url" : "http://www.ottawasenators.com",
         "timezone" : "US/Eastern"
