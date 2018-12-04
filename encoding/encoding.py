@@ -9,6 +9,9 @@ from string import ascii_lowercase as lc, ascii_uppercase as uc
 
 
 class Encoding(getattr(commands, "Cog", object)):
+    """
+        Convert messages into fun encodings
+    """
 
     def __init__(self, bot):
         self.bot = bot

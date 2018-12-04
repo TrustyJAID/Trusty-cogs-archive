@@ -13,7 +13,11 @@ class Compliment(getattr(commands, "Cog", object)):
 
     @commands.command()
     async def compliment(self, ctx, user : discord.Member=None):
-        """Compliment the user"""
+        """
+            Compliment the user
+
+            `user` the user you would like to compliment
+        """
 
         msg = ' '
         if user != None:

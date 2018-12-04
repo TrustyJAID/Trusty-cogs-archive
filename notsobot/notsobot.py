@@ -90,6 +90,10 @@ class DataProtocol(asyncio.SubprocessProtocol):
             pass
 
 class NotSoBot(getattr(commands, "Cog", object)):
+    """
+        Rewrite of many NotSoBot commands to work on RedBot V3
+    """
+    
     def __init__(self, bot):
         self.bot = bot
         try:

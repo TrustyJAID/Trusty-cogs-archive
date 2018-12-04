@@ -90,13 +90,16 @@ rektlist = [
 
 
 class Rekt(getattr(commands, "Cog", object)):
+    """
+        Post embed with random rekt messages
+    """
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
     @commands.cooldown(1, 60, commands.BucketType.guild)
     async def rekt(self, ctx):
-        """REKT"""
+        """Post embed with random rekt messages"""
         user = ctx.message.author.id
         rektemoji = ["\u2611", "\U0001F1F7", "\U0001F1EA", "\U0001F1F0", "\U0001F1F9"]
         embed = discord.Embed(colour=discord.Colour.blue())
