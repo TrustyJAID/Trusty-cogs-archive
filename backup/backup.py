@@ -9,9 +9,16 @@ import os
 from random import randint
 import json
 import logging
+from typing import Union
 
+
+class GuildNotFoundError(Exception):
+    pass
 
 class Backup(getattr(commands, "Cog", object)):
+    """
+        Create a set of json backups of a server
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -56,15 +63,36 @@ class Backup(getattr(commands, "Cog", object)):
         else:
             return True
 
+    async def get_guild_obj(self, guild_name):
+        if type(guild_name) == int:
+            page_guild = [g for g in self.bot.guilds if int(guild_name) == g.id]
+        if type(guild_name) == str:
+            page_guild = [g for g in self.bot.guilds if guild_name.lower() in g.name.lower()]
+        try:
+            if guild_name is not None:
+                guilds = [g for g in self.bot.guilds]
+                guild = guilds[guilds.index(page_guild[0])]
+        except IndexError as e:
+            raise GuildNotFoundError
+        return guild
+
     @commands.command(pass_context=True, aliases=["serverbackup"])
-    @checks.admin_or_permissions(manage_messages=True)
-    async def serverlogs(self, ctx, *, guild_id:int=None):
-        if guild_id is None:
-            guild = ctx.message.guild
-        else:
-            for guilds in self.bot.guilds:
-                if guild_id == guilds.id:
-                    guild = guilds
+    @checks.admin_or_permissions(manage_guild=True)
+    @commands.guild_only()
+    async def serverlogs(self, ctx, *, guild_name:Union[int, str]=None):
+        """
+            Creat a backup of all server data as json files
+
+            `guild_name` is partial name or ID of the server you want to backup
+            defaults to the server the command was run in
+        """
+        guild = ctx.guild
+        if guild_name is not None:
+            try:
+                guild = await self.get_guild_obj(guild_name)
+            except GuildNotFoundError:
+                await ctx.send("{} guild could not be found.".format(guild_name))
+                return
         today = datetime.date.today().strftime("%Y-%m-%d")
         channel = ctx.message.channel
         is_folder = await self.check_folder(guild.name)
