@@ -19,6 +19,9 @@ import functools
 import asyncio
 
 class Badges(getattr(commands, "Cog", object)):
+    """
+        Create fun fake badges based on your discord profile
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -60,11 +63,13 @@ class Badges(getattr(commands, "Cog", object)):
         return img
 
     async def dl_image(self, url):
+        """Download bytes like object of user avatar"""
         async with self.session.get(url) as resp:
             test = await resp.read()
             return BytesIO(test)
 
     def make_template(self, user, badge):
+        """Build the base template before determining animated or not"""
         if hasattr(user, "roles"):
             department = "GENERAL SUPPORT" if user.top_role.name == "@everyone" else user.top_role.name.upper()
             status = user.status
@@ -126,6 +131,7 @@ class Badges(getattr(commands, "Cog", object)):
         return template
 
     def make_animated_gif(self, template, avatar):
+        """Create animated badge from gif avatar"""
         gif_list = [frame.copy() for frame in ImageSequence.Iterator(avatar)]
         img_list = []
         num = 0
@@ -150,6 +156,7 @@ class Badges(getattr(commands, "Cog", object)):
         return temp
 
     def make_badge(self, template, avatar):
+        """Create basic badge from regular avatar"""
         watermark = avatar.convert("RGBA")
         watermark.putalpha(128)
         watermark = watermark.resize((100,100))
@@ -162,6 +169,7 @@ class Badges(getattr(commands, "Cog", object)):
         return temp
 
     async def create_badge(self, user, badge):
+        """Async create badges handler"""
         task = functools.partial(self.make_template, user=user, badge=badge)
         task = self.bot.loop.run_in_executor(None, task)
         try:
@@ -201,9 +209,14 @@ class Badges(getattr(commands, "Cog", object)):
                 to_return = await Badge.from_json(badge)
         return to_return
 
-    @commands.group(aliases=["badge"], autohelp=False)
+    @commands.group(aliases=["badge"])
     async def badges(self, ctx, *, badge):
-        """Creates a badge for [cia, nsa, fbi, dop, ioi]"""
+        """
+            Creates a fun fake badge based on your discord profile
+
+            `badge` is the name of the badges
+            do `[p]listbadges` to see available badges
+        """
         guild = ctx.message.guild
         user = ctx.message.author
         if badge.lower() == "list":
@@ -222,8 +235,11 @@ class Badges(getattr(commands, "Cog", object)):
             await ctx.send(file=image)
 
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def listbadges(self, ctx):
+        """
+            List the available badges that can be created
+        """
         guild = ctx.message.guild
         global_badges = await self.config.badges()
         guild_badges =  await self.config.guild(guild).badges()
