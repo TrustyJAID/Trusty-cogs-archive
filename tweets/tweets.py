@@ -82,7 +82,7 @@ class Tweets(getattr(commands, "Cog", object)):
                     stream_start = TweetListener(api, self.bot)
                     self.mystream = tw.Stream(api.auth, stream_start, chunk_size=1024, timeout=900.0)
                     self.start_stream_loop(tweet_list)
-            if not self.mystream.running:
+            if not getattr(self.mystream, "running", False):
                 api = await self.authenticate()
                 tweet_list = [str(x["twitter_id"]) for x in await self.config.accounts()]
                 stream_start = TweetListener(api, self.bot)
@@ -173,6 +173,15 @@ class Tweets(getattr(commands, "Cog", object)):
                         await self.del_account(channel, user_id, username)
                     if channel_send.permissions_for(channel_send.guild.me).embed_links:
                         await channel_send.send(post_url, embed=em)
+                    elif channel_send.permissions_for(channel_send.guild.me).manage_webhooks:
+                        webhook = None
+                        for hook in await channel_send.webhooks():
+                            if hook.name == channel_send.guild.me.name:
+                                webhook = hook
+                        if webhook is None:
+                            webhook = await ctx.channel.create_webhook(name=channel_send.guild.me.name)
+                        avatar = status.user.profile_image_url
+                        await webhook.send(post_url, username=username, avatar_url=avatar, embed=em)
                     else:
                         await channel_send.send(post_url)
                 except Exception as e:
@@ -302,13 +311,10 @@ class Tweets(getattr(commands, "Cog", object)):
             location_names.append(locations["name"])
             if location.lower() in locations["name"].lower():
                 country_id = locations
-                # print(locations)
         if country_id is None:
             await ctx.send("{} Is not a correct location!".format(location))
             return
         trends = api.trends_place(country_id["woeid"])[0]["trends"]
-        # print(trends)
-        # print(trends)
         em = discord.Embed(colour=discord.Colour(value=self.random_colour()),
                            title=country_id["name"])
         msg = ""
@@ -499,11 +505,12 @@ class Tweets(getattr(commands, "Cog", object)):
             return
         if channel is None:
             channel = ctx.message.channel
-        if not channel.permissions_for(ctx.guild.me).send_messages:
+        own_perms = channel.permissions_for(ctx.guild.me)
+        if not own_perms.send_messages:
             await ctx.send("I don't have permission to post in {}".format(channel.mention))
             return
-        if not channel.permissions_for(ctx.guild.me).embed_links:
-            msg = (f"I do not have embed links permission in {channel.mention}, "
+        if not own_perms.embed_links and not own_perms.manage_webhooks:
+            msg = (f"I do not have embed links or manage webhooks permission in {channel.mention}, "
                    "I recommend enabling that for pretty twitter posts!")
             await ctx.send(msg)
         in_list = True if str(user_id) in [str(x["twitter_id"]) for x in await self.config.accounts()] else False
@@ -520,6 +527,7 @@ class Tweets(getattr(commands, "Cog", object)):
         # await self.autotweet_restart()
 
     @_autotweet.command(name="list")
+    @commands.bot_has_permissions(embed_links=True)
     async def _list(self, ctx):
         """Lists the autotweet accounts on the guild"""
         account_list = ""
@@ -577,7 +585,6 @@ class Tweets(getattr(commands, "Cog", object)):
             cursor = -1
             list_members = []
             member_count = api.get_list(owner_screen_name=owner, slug=list_name).member_count
-            print(member_count)
             while len(list_members) < member_count:
                 member_list = api.list_members(owner_screen_name=owner, slug=list_name, cursor=cursor)
                 for member in member_list[0]:
@@ -600,7 +607,6 @@ class Tweets(getattr(commands, "Cog", object)):
                     channel.mention))
         added_accounts = []
         missed_accounts = []
-        print(len(list_members))
         for member in list_members:
             added = await self.add_account(channel, member.id, member.name)
             if added:
