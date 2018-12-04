@@ -13,7 +13,11 @@ class Insult(getattr(commands, "Cog", object)):
 
     @commands.command(aliases=["takeitback"])
     async def insult(self, ctx, user : discord.Member=None):
-        """Insult the user"""
+        """
+            Insult the user
+            
+            `user` the user you would like to insult
+        """
 
         msg = ' '
         if user != None:

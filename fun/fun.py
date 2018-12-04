@@ -10,6 +10,10 @@ import discord
 
 
 class Fun(getattr(commands, "Cog", object)):
+    """
+        RedBot V3 conversion of Appu's Fun cog
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.regionals = {'a': '\N{REGIONAL INDICATOR SYMBOL LETTER A}', 'b': '\N{REGIONAL INDICATOR SYMBOL LETTER B}',

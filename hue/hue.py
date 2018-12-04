@@ -10,12 +10,14 @@ import asyncio
 from phue import Bridge
 
 class Hue(getattr(commands, "Cog", object)):
+    """
+        Control philips hue light on the same network as the bot
+    """
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 1384534876565)
         default_global = {"ip":None}
-        # self.settings = dataIO.load_json("data/hue/settings.json")
         self.bridge = None
         self.lights = None
 
@@ -34,7 +36,7 @@ class Hue(getattr(commands, "Cog", object)):
     # @commands.command(pass_context=True)
     async def oilersgoal(self):
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         old_lights = {}
         for light in self.lights:
@@ -70,13 +72,17 @@ class Hue(getattr(commands, "Cog", object)):
     async def hue_connect(self):
         """Setup command if bridge cannot connect"""
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         self.bridge.connect()
 
     @_hue.command(pass_context=True, name="set")
     async def hue_setup(self, ctx, ip):
-        """Set the IP address of the hue bridge"""
+        """
+            Set the IP address of the hue bridge
+
+            `ip` is the bridges IP address
+        """
         await self.config.ip.set(ip)
         self.bridge = Bridge(await self.config.ip())
         self.lights = self.bridge.lights 
@@ -85,7 +91,7 @@ class Hue(getattr(commands, "Cog", object)):
     async def check_api(self, ctx):
         """Gets light data from bridge and prints to terminal"""
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         print(self.bridge.get_api())
 
@@ -99,9 +105,14 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="brightness")
     async def brightness_set(self, ctx, brightness:int=254, *, name=None):
-        """Sets the brightness for lights"""
+        """
+            Sets the brightness for lights
+
+            `brightness` the level of brightness to set
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         brightness = await self.max_min_check(brightness, 254, 0)
         for light in self.lights:
@@ -110,9 +121,14 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="temp", aliases=["ct", "colourtemp", "temperature"])
     async def colourtemp_set(self, ctx, ct:int=500, *, name=None):
-        """Sets the colour temperature for lights"""
+        """
+            Sets the colour temperature for lights
+
+            `ct` must be a number the colour temperature to set
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         ct = await self.max_min_check(ct, 600, 154)
         for light in self.lights:
@@ -121,9 +137,14 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="hue")
     async def hue_set(self, ctx, hue:int=25000, *, name=None):
-        """Sets the hue for lights"""
+        """
+            Sets the hue for lights
+
+            `hue` must be a number the hue value to set the light to
+            `name` the name of the light to adjust 
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         for light in self.lights:
             if name is None or light.name.lower() == name.lower() and light.on:
@@ -131,9 +152,14 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="saturation", aliases=["sat"])
     async def saturation_set(self, ctx, saturation:int=254, *, name=None):
-        """Sets the saturation for lights"""
+        """
+            Sets the saturation for lights
+
+            `saturation` must be a number the saturation value to set the light to
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         saturation = await self.max_min_check(saturation, 254, 0)
         for light in self.lights:
@@ -142,9 +168,13 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="random")
     async def hue_random_colour(self, ctx, *, name=None):
-        """Sets the light to a random colour"""
+        """
+            Sets the light to a random colour
+
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         colours = [random.random(), random.random()]
         for light in self.lights:
@@ -153,9 +183,13 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="colourloop", aliases=["cl"])
     async def hue_colourloop(self, ctx, *, name=None):
-        """Toggles the light on colour looping all colours"""
+        """
+            Toggles the light on colour looping all colours
+
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         for light in self.lights:
             if name is None or light.name.lower() == name.lower():
@@ -170,7 +204,7 @@ class Hue(getattr(commands, "Cog", object)):
     async def _colour(self, ctx):
         """Sets the colour for lights"""
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         pass
 
@@ -188,9 +222,16 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_colour.command(pass_context=True, name="rgb")
     async def hue_colour_rgb(self, ctx, red:float, green:float, blue:float, *, name=None):
-        """Sets the colour using RGB colour coordinates"""
+        """
+            Sets the colour using RGB colour coordinates
+
+            `red` must be a number the red value to set
+            `green` must be a number the green value to set
+            `blue` must be a number the blue value to set
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         x, y = await self.rgb_to_xy(red, green, blue)
         for light in self.lights:
@@ -199,9 +240,16 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_colour.command(pass_context=True, name="xy", aliases=["xyz"])
     async def hue_colour_xy(self, ctx, x:float, y:float, *, name=None):
-        """Sets the colour using RGB colour coordinates"""
+        """
+            Sets the colour using xyz colour values
+
+            `x` must be a number the x value to set
+            `y` must be a number the y value to set
+            `name` the name of the light to adjust
+            Note: The z value is determined from two other values
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         if x > 1.0 or x < 0.0:
             x = 1.0
@@ -213,9 +261,15 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_colour.command(pass_context=True, name="hex")
     async def hue_colour_hex(self, ctx, hex, *, name=None):
-        """Sets the colour using hex codes"""
+        """
+            Attempt to set the colour based on hex values
+            Not 100% accurate
+
+            `hex` the hex code colour to try to change to
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         if "#" in hex:
             hex.replace("#", "")
@@ -229,16 +283,20 @@ class Hue(getattr(commands, "Cog", object)):
     async def hue_test(self, ctx, cl1:float, cl2:float):
         """Testing function"""
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         for light in self.lights:
             light.xy = [cl1, cl2]
 
     @_hue.command(pass_context=True, name="switch")
     async def hue_switch(self, ctx, *, name=None):
-        """Toggles lights on or off"""
+        """
+            Toggles lights on or off
+
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         for light in self.lights:
             if name is None or light.name.lower() == name.lower():
@@ -251,9 +309,13 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="off")
     async def turn_off(self, ctx, *, name=None):
-        """Turns off light"""
+        """
+            Turns off light
+
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         for light in self.lights:
             if name is None or light.name.lower() == name.lower():
@@ -261,9 +323,13 @@ class Hue(getattr(commands, "Cog", object)):
 
     @_hue.command(pass_context=True, name="on")
     async def turn_on(self, ctx, name=None):
-        """Turns on Light"""
+        """
+            Turns on Light
+
+            `name` the name of the light to adjust
+        """
         if not await self.get_bridge():
-            await ctx.send("Whoops, set the IP.")
+            await ctx.send("No IP has been set.")
             return
         for light in self.lights:
             if name is None or light.name.lower() == name.lower():

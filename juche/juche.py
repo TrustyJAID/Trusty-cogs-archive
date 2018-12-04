@@ -2,6 +2,9 @@ import discord
 from redbot.core import commands, Config
 
 class Juche(getattr(commands, "Cog", object)):
+    """
+        Convert dates into the juche calendar
+    """
 
     def __init__(self, bot):
         self.bot = bot

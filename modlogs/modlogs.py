@@ -15,13 +15,17 @@ inv_settings = {"embed": False, "Channel": None, "toggleedit": False, "toggledel
 
 
 class ModLogs(getattr(commands, "Cog", object)):
+    """
+        Custom modlogs with embeds
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 154457677895)
         self.config.register_guild(**inv_settings)
 
     @checks.admin_or_permissions(administrator=True)
-    @commands.group(name='modlogtoggle', pass_context=True, no_pm=True)
+    @commands.group(name='modlogtoggle', )
     async def modlogtoggles(self, ctx):
         """toggle which guild activity to log"""
         if await self.config.guild(ctx.message.guild).settings() == {}:
@@ -49,12 +53,12 @@ class ModLogs(getattr(commands, "Cog", object)):
                 return
 
     @checks.admin_or_permissions(administrator=True)
-    @commands.group(pass_context=True, no_pm=True)
+    @commands.group()
     async def modlogsetup(self, ctx):
         """Change modlog settings"""
         pass
 
-    @modlogsetup.command(name='channel', pass_context=True, no_pm=True)
+    @modlogsetup.command(name='channel')
     async def _channel(self, ctx):
         """Set the channel to send notifications too"""
         guild = ctx.message.guild
@@ -71,7 +75,7 @@ class ModLogs(getattr(commands, "Cog", object)):
         else:
             return
 
-    @modlogsetup.command(pass_context=True, no_pm=True)
+    @modlogsetup.command()
     async def embed(self, ctx):
         """Enables or disables embed modlog."""
         guild = ctx.message.guild
@@ -84,7 +88,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("Disabled embed modlog.")
 
-    @modlogsetup.command(pass_context=True, no_pm=True)
+    @modlogsetup.command()
     async def disable(self, ctx):
         """disables the modlog"""
         guild = ctx.message.guild
@@ -96,9 +100,9 @@ class ModLogs(getattr(commands, "Cog", object)):
         
         await ctx.send("I will no longer send modlog notifications here")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def edit(self, ctx):
-        """toggle notifications when a member edits theyre message"""
+        """toggle notifications when a member edits their message"""
         guild = ctx.message.guild
         
         if await self.config.guild(guild).toggleedit() == False:
@@ -110,7 +114,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("Edit messages disabled")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def join(self, ctx):
         """toggles notofications when a member joins the guild."""
         guild = ctx.message.guild
@@ -124,7 +128,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("Disabled join logs.")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def guild(self, ctx):
         """toggles notofications when the guild updates."""
         guild = ctx.message.guild
@@ -138,7 +142,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("Disabled guild logs.")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def channel(self, ctx):
         """toggles channel update logging for the guild."""
         guild = ctx.message.guild
@@ -152,7 +156,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("Disabled channel logs.")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def leave(self, ctx):
         """toggles notofications when a member leaves the guild."""
         guild = ctx.message.guild
@@ -166,7 +170,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("Disabled leave logs.")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def delete(self, ctx):
         """toggle notifications when a member delete theyre message"""
         guild = ctx.message.guild
@@ -180,9 +184,9 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("Delete messages disabled")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def user(self, ctx):
-        """toggle notifications when a user changes his profile"""
+        """toggle notifications when a user changes their profile"""
         guild = ctx.message.guild
         
         if await self.config.guild(guild).toggleuser() == False:
@@ -194,7 +198,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             
             await ctx.send("User messages disabled")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def roles(self, ctx):
         """toggle notifications when roles change"""
         guild = ctx.message.guild
@@ -206,7 +210,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             await self.config.guild(guild).toggleroles.set(False)
             await ctx.send("Role messages disabled")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def voice(self, ctx):
         """toggle notifications when voice status change"""
         guild = ctx.message.guild
@@ -218,7 +222,7 @@ class ModLogs(getattr(commands, "Cog", object)):
             await self.config.guild(guild).togglevoice.set(False)
             await ctx.send("Voice messages disabled")
 
-    @modlogtoggles.command(pass_context=True, no_pm=True)
+    @modlogtoggles.command()
     async def ban(self, ctx):
         """toggle notifications when a user is banned"""
         guild = ctx.message.guild

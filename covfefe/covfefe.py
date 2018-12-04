@@ -3,6 +3,9 @@ from redbot.core import commands
 import re
 
 class Covfefe(getattr(commands, "Cog", object)):
+    """
+        Convert almost any word into covfefe
+    """
 
     def __init__(self, bot):
         self.bot = bot

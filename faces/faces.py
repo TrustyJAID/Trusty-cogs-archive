@@ -5,6 +5,9 @@ from redbot.core import commands
 from . import faceslist
 
 class Faces(getattr(commands, "Cog", object)):
+    """
+        Generate fun/random unicode faces courtesy of the CIA files
+    """
 
     def __init__(self, bot):
         self.bot = bot
