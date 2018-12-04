@@ -31,8 +31,9 @@ class Spoiler(getattr(commands, "Cog", object)):
             await ctx.send("I don't have `add_reactions` permission.")
             return
         await ctx.message.delete()
-
-        new_msg = await ctx.send("**__SPOILERS__** (React to this message to view)")
+        author = ctx.author.name
+        msg_text = "**__SPOILERS__** (React to this message to view {}'s spoiler.)".format(author)
+        new_msg = await ctx.send(msg_text)
         await new_msg.add_reaction("✅")
         msg_list = await self.config.guild(ctx.guild).messages()
         spoiler_obj = {"message_id":new_msg.id, "spoiler_text":spoiler_msg, "author":ctx.author.id}
