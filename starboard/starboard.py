@@ -6,6 +6,9 @@ from .message_entry import StarboardMessage
 from copy import copy
 
 class Starboard(getattr(commands, "Cog", object)):
+    """
+        Create a starboard to *pin* those special comments
+    """
 
     def __init__(self, bot):
         self.bot = bot

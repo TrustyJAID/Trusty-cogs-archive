@@ -5,6 +5,9 @@ from typing import Union
 from redbot.core.utils.chat_formatting import pagify
 
 class Imgflip(getattr(commands, "Cog", object)):
+    """
+        Generate memes from imgflip.com API
+    """
 
     def __init__(self, bot):
         self.bot = bot

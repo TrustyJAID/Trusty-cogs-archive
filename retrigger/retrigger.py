@@ -15,6 +15,9 @@ import os
 
 
 class Trigger:
+    """
+        Trigger class to handle trigger objects
+    """
 
     def __init__(self, name, regex, response_type, author, count, 
                  image=None, text=None, whitelist=[], blacklist=[], cooldown={}):

@@ -10,7 +10,9 @@ import time
 
 
 class TarotReading(getattr(commands, "Cog", object)):
-    """It's time to get your fortune!!!"""
+    """
+        Post information about tarot cards and readings
+    """
 
     def __init__(self, bot):
         self.bot = bot

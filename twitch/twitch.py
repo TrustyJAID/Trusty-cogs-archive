@@ -14,6 +14,9 @@ import time
 BASE_URL = "https://api.twitch.tv/helix"
 
 class Twitch(getattr(commands, "Cog", object)):
+    """
+        Get twitch user information and post when a user gets new followers
+    """
 
     global_defaults = {"client_id":"", "client_secret":"", "access_token":{}, "twitch_accounts":[]}
     user_defaults = {"id": "", "login":"", "display_name":""}
