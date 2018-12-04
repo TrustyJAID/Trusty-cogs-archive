@@ -179,7 +179,7 @@ class Tweets(getattr(commands, "Cog", object)):
                             if hook.name == channel_send.guild.me.name:
                                 webhook = hook
                         if webhook is None:
-                            webhook = await ctx.channel.create_webhook(name=channel_send.guild.me.name)
+                            webhook = await channel.create_webhook(name=channel_send.guild.me.name)
                         avatar = status.user.profile_image_url
                         await webhook.send(post_url, username=username, avatar_url=avatar, embed=em)
                     else:
