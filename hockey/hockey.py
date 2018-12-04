@@ -467,7 +467,7 @@ class Hockey(getattr(commands, "Cog", object)):
             await ctx.send(team + _(" is not a valid team!"))
             return
         if len(team_list) > 1:
-            team = await self.pick_team(ctx, team_list)
+            team = await pick_team(ctx, team_list)
         else:
             team = team_list[0]
 
