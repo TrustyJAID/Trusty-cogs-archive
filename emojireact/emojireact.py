@@ -3,6 +3,9 @@ from redbot.core import commands, Config, checks
 from .unicode_codes import UNICODE_EMOJI
 
 class EmojiReactions(getattr(commands, "Cog", object)):
+    """
+        Automatically react to messages with emojis in them with the emoji
+    """
     
     def __init__(self, bot):
         self.bot = bot
@@ -13,6 +16,9 @@ class EmojiReactions(getattr(commands, "Cog", object)):
     @commands.group()
     @checks.admin_or_permissions(manage_messages=True)
     async def emojireact(self, ctx):
+        """
+            Automatically react to messages with emojis in them with the emoji
+        """
         if ctx.invoked_subcommand is None:          
             try:
                 guild = ctx.message.guild

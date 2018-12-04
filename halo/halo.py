@@ -12,6 +12,9 @@ numbs = {
 }
 
 class Halo(getattr(commands, "Cog", object)):
+    """
+        Display Halo 5 and Halo Wars 2 stats and information
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -170,6 +173,7 @@ class Halo(getattr(commands, "Cog", object)):
 
     @_halo5.command(pass_context=True, name="rank")
     async def Halo5_rank(self, ctx, *, gamertag):
+        """Gather playter rank information from Halo 5"""
         colours = {"Unranked": "7f7f7f", "Bronze": "c27c0e", "Silver": "cccccc", "Gold": "xf1c40f", 
                    "Platinum": "e5e5e5", "Diamond": "ffffff", "Onyx": "000000", "Champion": "71368a"}
         player_data = await self.request_url("https://www.haloapi.com/stats/h5/servicerecords/arena?", {"players":gamertag})

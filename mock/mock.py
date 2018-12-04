@@ -20,15 +20,11 @@ class Mock(getattr(commands, "Cog", object)):
 
     @commands.command(pass_context=True)
     async def mock(self, ctx, *, msg=""):
-        """Use >mock to randomized capitalization on a message or string.
-            Better random comming soon™
-            Usage:
-            >mock a string
-                A sTRiNg
-            >mock
-                laSt SeNT MeSsaGE
-            >mock (message id)
-                THaT mEsSAgE
+        """
+            Mock a user with the spongebob meme
+
+            `msg` can be either custom message or message ID
+            if no `msg` is provided the command will use the last message in chat before the command
         """
         channel = ctx.message.channel
         result = ""

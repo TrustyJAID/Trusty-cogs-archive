@@ -38,6 +38,8 @@ class ImageMaker(getattr(commands, "Cog", object)):
     async def beautiful(self, ctx, user:discord.Member=None):
         """
             Generate a beautiful image using users avatar
+
+            `user` the user whos avatar will be places on the image
         """
         if user is None:
             user = ctx.message.author
@@ -54,6 +56,8 @@ class ImageMaker(getattr(commands, "Cog", object)):
     async def feels(self, ctx, user:discord.Member=None):
         """
             Generate a feels image using users avatar and role colour
+
+            `user` the user whos avatar will be places on the image
         """
         if user is None:
             user = ctx.message.author
@@ -69,7 +73,9 @@ class ImageMaker(getattr(commands, "Cog", object)):
     @commands.command(aliases=["isnowillegal"])
     async def trump(self, ctx, *, message):
         """
-            Generate isnowillegal image with supplied `message`
+            Generate isnowillegal gif image
+
+            `message` will be what is pasted on the gif
         """
         if not TRUMP:
             await ctx.send("The bot owner needs to run `pip3 install opencv-python` to run this command")
@@ -139,7 +145,9 @@ class ImageMaker(getattr(commands, "Cog", object)):
     @commands.command()
     async def pill(self, ctx, colour="#FF0000"):
         """
-            Generate a pill image to any colour with hex codes like #FF0000
+            Generate a pill image to any colour with hex codes
+
+            `colour` is a hexcode colour
         """
         async with ctx.channel.typing():
             pill_image = await self.make_colour(colour)
