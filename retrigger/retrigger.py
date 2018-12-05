@@ -381,6 +381,23 @@ class ReTrigger(getattr(commands, "Cog", object)):
             msg.content = prefix_list[0] + trigger.text
             self.bot.dispatch("message", msg)
             return
+        if trigger.response_type == "delete":
+            await message.delete()
+            return
+        if trigger.response_type == "add_role":
+            role = guild.get_role(trigger.text)
+            try:
+                await author.add_roles(role, reason="Said the magic words")
+            except Exception as e:
+                print(e)
+            return
+        if trigger.response_type == "remove_role":
+            role = guild.get_role(trigger.text)
+            try:
+                await author.remove_roles(role, reason="Said the magic words")
+            except Exception as e:
+                print(e)
+            return
 
 
     async def remove_trigger(self, guild, trigger_name):
@@ -618,6 +635,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
         guild = ctx.guild
         author = ctx.message.author.id
         new_trigger = Trigger(name, regex, "text", author, 0, None, text)
@@ -640,6 +662,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         """
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
+            return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
             return
         guild = ctx.guild
         author = ctx.message.author.id
@@ -677,6 +704,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
         guild = ctx.guild
         author = ctx.message.author.id
         if ctx.message.attachments != []:
@@ -712,6 +744,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         """
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
+            return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
             return
         guild = ctx.guild
         author = ctx.message.author.id
@@ -750,6 +787,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
         guild = ctx.guild
         author = ctx.message.author.id
         new_trigger = Trigger(name, regex, "ban", author, 0, None, None)
@@ -775,6 +817,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
         guild = ctx.guild
         author = ctx.message.author.id
         new_trigger = Trigger(name, regex, "kick", author, 0, None, None)
@@ -797,6 +844,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         """
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
+            return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
             return
         good_emojis = []
         for emoji in emojis.split(" "):
@@ -833,6 +885,11 @@ class ReTrigger(getattr(commands, "Cog", object)):
         if await self.check_trigger_exists(name, ctx.guild):
             await ctx.send("{} is already a trigger name")
             return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
         cmd_list = command.split(" ")
         existing_cmd = self.bot.get_command(cmd_list[0])
         if existing_cmd is None:
@@ -841,6 +898,97 @@ class ReTrigger(getattr(commands, "Cog", object)):
         guild = ctx.guild
         author = ctx.message.author.id
         new_trigger = Trigger(name, regex, "command", author, 0, None, command)
+        trigger_list = await self.config.guild(guild).trigger_list()
+        trigger_list[name] = new_trigger.to_json()
+        await self.config.guild(guild).trigger_list.set(trigger_list)
+        await ctx.send("Trigger `{}` set.".format(name))
+
+    @retrigger.command(aliases=["deletemsg"])
+    async def filter(self, ctx, name:str, regex:str):
+        """
+            Add a trigger to delete a message
+
+            `name` name of the trigger
+            `regex` the regex that will determine when to respond
+            See https://regexr.com/ for help building a regex pattern
+            Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
+        """
+        if await self.check_trigger_exists(name, ctx.guild):
+            await ctx.send("{} is already a trigger name")
+            return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
+        guild = ctx.guild
+        author = ctx.message.author.id
+        new_trigger = Trigger(name, regex, "delete", author, 0, None, None)
+        trigger_list = await self.config.guild(guild).trigger_list()
+        trigger_list[name] = new_trigger.to_json()
+        await self.config.guild(guild).trigger_list.set(trigger_list)
+        await ctx.send("Trigger `{}` set.".format(name))
+
+    @retrigger.command()
+    @commands.bot_has_permissions(manage_roles=True)
+    async def addrole(self, ctx, name:str, regex:str, role:discord.Role):
+        """
+            Add a trigger to add a role
+
+            `name` name of the trigger
+            `regex` the regex that will determine when to respond
+            `role` the role applied when the regex pattern matches
+            See https://regexr.com/ for help building a regex pattern
+            Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
+        """
+        if await self.check_trigger_exists(name, ctx.guild):
+            await ctx.send("{} is already a trigger name")
+            return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
+        if role >= ctx.me.top_role:
+            await ctx.send("I can't assign roles higher than my own.")
+            return
+        guild = ctx.guild
+        author = ctx.message.author.id
+        new_trigger = Trigger(name, regex, "add_role", author, 0, None, role.id)
+        trigger_list = await self.config.guild(guild).trigger_list()
+        trigger_list[name] = new_trigger.to_json()
+        await self.config.guild(guild).trigger_list.set(trigger_list)
+        await ctx.send("Trigger `{}` set.".format(name))
+
+    @retrigger.command()
+    @commands.bot_has_permissions(manage_roles=True)
+    async def removerole(self, ctx, name:str, regex:str, role:discord.Role):
+        """
+            Add a trigger to remove a role
+
+            `name` name of the trigger
+            `regex` the regex that will determine when to respond
+            `role` the role applied when the regex pattern matches
+            See https://regexr.com/ for help building a regex pattern
+            Example for simple search: `"\\bthis matches"` the whole phrase only
+            For case insensitive searches add `(?i)` at the start of the regex
+        """
+        if await self.check_trigger_exists(name, ctx.guild):
+            await ctx.send("{} is already a trigger name")
+            return
+        try:
+            search = re.findall(regex, ctx.message.content)
+        except Exception as e:
+            await ctx.send("There is something wrong with that regex pattern: {}".format(e))
+            return
+        if role >= ctx.me.top_role:
+            await ctx.send("I can't remove roles higher than my own.")
+            return
+        guild = ctx.guild
+        author = ctx.message.author.id
+        new_trigger = Trigger(name, regex, "remove_role", author, 0, None, role.id)
         trigger_list = await self.config.guild(guild).trigger_list()
         trigger_list[name] = new_trigger.to_json()
         await self.config.guild(guild).trigger_list.set(trigger_list)
