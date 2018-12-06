@@ -68,7 +68,7 @@ class Badges(getattr(commands, "Cog", object)):
             test = await resp.read()
             return BytesIO(test)
 
-    def make_template(self, user, badge):
+    def make_template(self, user, badge, template):
         """Build the base template before determining animated or not"""
         if hasattr(user, "roles"):
             department = "GENERAL SUPPORT" if user.top_role.name == "@everyone" else user.top_role.name.upper()
@@ -94,7 +94,7 @@ class Badges(getattr(commands, "Cog", object)):
         if badge.is_inverted:
             fill = (255, 255, 255)
             barcode = self.invert_barcode(barcode)
-        template = Image.open(str(bundled_data_path(self))+ "/" + badge.file_name)
+        template = Image.open(template)
         template = template.convert("RGBA")        
         barcode = barcode.convert("RGBA")
         barcode = barcode.resize((555,125), Image.ANTIALIAS)
@@ -170,7 +170,8 @@ class Badges(getattr(commands, "Cog", object)):
 
     async def create_badge(self, user, badge):
         """Async create badges handler"""
-        task = functools.partial(self.make_template, user=user, badge=badge)
+        template_img = await self.dl_image(badge.file_name)
+        task = functools.partial(self.make_template, user=user, badge=badge, template=template_img)
         task = self.bot.loop.run_in_executor(None, task)
         try:
             template = await asyncio.wait_for(task, timeout=60)
