@@ -1,4 +1,7 @@
-# Trusty-cogs
+# Trusty-cogs-archive
+NOTE: This repo is no longer being maintained due to bloat and moving forward with RedBot V3. There will be no more additions to the cogs listed here and for legacy V2 cogs they will be found here instead. For The latest V3 cogs see https://github.com/TrustyJAID/Trusty-cogs
+
+
 A few cogs for [Twentysix's Red-DiscordBot](https://github.com/Twentysix26/Red-DiscordBot).
 To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cogs-archive/`
 
