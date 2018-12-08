@@ -1,6 +1,6 @@
 # Trusty-cogs
 A few cogs for [Twentysix's Red-DiscordBot](https://github.com/Twentysix26/Red-DiscordBot).
-To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cogs/`
+To add, do `[p]cog repo add Trusty-cogs https://github.com/TrustyJAID/Trusty-cogs-archive/`
 
 **About Cogs**
 
