@@ -4,7 +4,7 @@
     "NAME" : "Tweets",
     "DISABLED" : false,
     "SHORT" : "Cog for getting info from Twitter",
-    "REQUIREMENTS" : ["tweepy==3.6.0"], 
+    "REQUIREMENTS" : ["tweepy==3.7.0"], 
     "DESCRIPTION" : "Gets the latest Tweet from twitter accounts and posts them in the specified channels",
     "TAGS": ["twitter", "utility"]
 }
