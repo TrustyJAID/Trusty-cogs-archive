@@ -368,7 +368,7 @@ class Tweets():
         tweet_list = list(self.settings["accounts"])
         stream_start = TweetListener(api, self.bot)
         self.mystream = tw.Stream(api.auth, stream_start)
-        self.mystream.filter(follow=tweet_list, async=True)
+        self.mystream.filter(follow=tweet_list, is_async=True)
     
     @_autotweet.command(pass_context=True, name="replies")
     async def _replies(self, ctx, account, replies):
