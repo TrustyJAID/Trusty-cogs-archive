@@ -125,7 +125,7 @@ class Translate:
         https://console.cloud.google.com/apis/library/translate.googleapis.com/?q=translate&id=c22f20ba-6a29-40ae-9084-8bc264a97fc2&project=dameznet-158219
         """
         self.settings["key"] = api_key
-        dataIO.save_json("data/google/settings.json", self.settings)
+        dataIO.save_json("data/translate/settings.json", self.settings)
         await self.bot.say("API key set.")
 
 def check_folder():
