@@ -250,6 +250,8 @@ class Star:
     async def build_embed(self, msg):
         author = msg.author
         channel = msg.channel
+        url = "\n\n[Click to see context](https://discordapp.com/channels/{}/{}/{})"
+        url = url.format(msg.guild.id, channel.id, msg.id)
         if msg.embeds != []:
             embed = msg.embeds[0] # .to_dict()
             # print(embed)
@@ -259,9 +261,9 @@ class Star:
             if "thumbnail" in embed:
                 em.set_thumbnail(url=embed["thumbnail"]["url"])
             if "description" in embed:
-                em.description = msg.clean_content + "\n\n" + embed["description"]
+                em.description = msg.clean_content + "\n\n" + embed["description"] + url
             if "description" not in embed:
-                em.description = msg.clean_content
+                em.description = msg.clean_content + url
             if "url" in embed:
                 em.url = embed["url"]
             if "footer" in embed:
@@ -296,7 +298,7 @@ class Star:
         else:
             em = discord.Embed(timestamp=msg.timestamp)
             em.color = author.top_role.color
-            em.description = msg.content
+            em.description = msg.content + url
             em.set_author(name=author.display_name, icon_url=author.avatar_url)
             if msg.attachments != []:
                 em.set_image(url=msg.attachments[0]["url"])
