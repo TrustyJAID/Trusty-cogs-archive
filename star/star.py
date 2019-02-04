@@ -251,7 +251,7 @@ class Star:
         author = msg.author
         channel = msg.channel
         url = "\n\n[Click to see context](https://discordapp.com/channels/{}/{}/{})"
-        url = url.format(msg.guild.id, channel.id, msg.id)
+        url = url.format(msg.server.id, channel.id, msg.id)
         if msg.embeds != []:
             embed = msg.embeds[0] # .to_dict()
             # print(embed)
